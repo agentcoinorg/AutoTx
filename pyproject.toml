@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "sage-agent"
+version = "0.1.0"
+description = ""
+authors = ["Nestor Amesty <nestor09amesty@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+crewai = "^0.10.0"
+pyright = "^1.1.350"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
