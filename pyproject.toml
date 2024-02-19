@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-crewai = "^0.10.0"
+crewai = "^0.11.2"
 pyright = "^1.1.350"
 click = "^8.1.7"
 pytest = "^7.4.3"
