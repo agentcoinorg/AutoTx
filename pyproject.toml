@@ -6,11 +6,10 @@ authors = ["Nestor Amesty <nestor09amesty@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-crewai = "^0.11.2"
+python = "3.10.12"
+crewai = "0.14.3"
 pyright = "^1.1.350"
 click = "^8.1.7"
-pytest = "^7.4.3"
 python-dotenv = "^1.0.1"
 safe-eth-py = "^5.8.0"
 eth-account = "^0.11.0"

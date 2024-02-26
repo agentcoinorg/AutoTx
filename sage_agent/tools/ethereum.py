@@ -31,28 +31,4 @@ class EthereumTools:
 
         :result hash: str, the hash of the transaction sent
         """
-        print(payload)
-        # TxParams
-        # """
-        # Allows to get the balance of a given address in Ethereum Blockchain
-        # """
-        # if "nonce" not in tx:
-        #     tx["nonce"] = w3.eth.get_transaction_count(
-        #         account.address, block_identifier="pending"
-        #     )
-
-        # if "gasPrice" not in tx and "maxFeePerGas" not in tx:
-        #     tx["gasPrice"] = w3.eth.gas_price
-
-        # if "gas" not in tx:
-        #     tx["gas"] = w3.eth.estimate_gas(tx)
-
-        # 1- Convert `Transaction` to `TxParams`
-        # 2- Get account object
-        # w3 = Web3(provider=provider)
-        # tx = TxParams({
-        #     "data": bytes(transaction.data)
-        # })
-        # signed_tx = account.sign_transaction(tx)
-        # return w3.eth.send_transaction(bytes(signed_tx))
         return "0xhash"

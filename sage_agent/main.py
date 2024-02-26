@@ -1,60 +1,63 @@
-# import os
-# from crewai import Agent, Task, Crew, Process
-# from langchain_openai import ChatOpenAI
+from crewai import Agent, Task, Crew, Process
+from langchain_openai import ChatOpenAI
 
-# from textwrap import dedent
-# from agents import Agents
-# from tasks import HandlePaymentTasks
+from agents import SageAgents
 
+llm = ChatOpenAI(model="gpt-4-1106-preview")  # type: ignore
 
-# # This is the main class that you will use to define your custom crew.
-# # You can define as many agents and tasks as you want in agents.py and tasks.py
-# class CustomCrew:
-#     def __init__(self, var1, var2):
-#         self.var1 = var1
-#         self.var2 = var2
-
-#     def run(self):
-#         # Define your custom agents and tasks in agents.py and tasks.py
-#         agents = Agents()
-#         tasks = HandlePaymentTasks()
-
-#         # Define your custom agents and tasks here
-#         custom_agent_1 = agents.agent_1_name()
-#         custom_agent_2 = agents.agent_2_name()
-
-#         # Custom tasks include agent name and variables as input
-#         custom_task_1 = tasks.task_1_name(
-#             custom_agent_1,
-#             self.var1,
-#             self.var2,
-#         )
-
-#         custom_task_2 = tasks.task_2_name(
-#             custom_agent_2,
-#         )
-
-#         # Define your custom crew here
-#         crew = Crew(
-#             agents=[custom_agent_1, custom_agent_2],
-#             tasks=[custom_task_1, custom_task_2],
-#             verbose=True,
-#         )
-
-#         result = crew.kickoff()
-#         return result
+agents = SageAgents()
+ethereum_agent = agents.ethereum_agent()
+erc_20_agent = agents.erc_20_agent()
+safe_agent = agents.safe_agent()
+bridge_agent = agents.bridge_agent()
 
 
-# # This is the main function that you will use to run your custom crew.
-# if __name__ == "__main__":
-#     print("## Welcome to Crew AI Template")
-#     print("-------------------------------")
-#     var1 = input(dedent("""Enter variable 1: """))
-#     var2 = input(dedent("""Enter variable 2: """))
+def encode_and_sign():
+    class Tasks:
+        def get_transfer_transaction():
+            return Task(
+                description="You must crate a transaction that sends 0.4 Cool Token (token address: 0x57c94aa4a136506d3b88d84473bf3dc77f5b51da) to address 0x0Ce3cC862b26FC643aA8A73D2D30d47EF791941e",
+                agent=erc_20_agent,
+            )
 
-#     custom_crew = CustomCrew(var1, var2)
-#     result = custom_crew.run()
-#     print("\n\n########################")
-#     print("## Here is you custom crew run result:")
-#     print("########################\n")
-#     print(result)
+        def create_transaction_in_safe():
+            return Task(
+                description="Based on given transaction, you must sign and create a safe transaction",
+                agent=safe_agent,
+            )
+
+    crew = Crew(
+        agents=[erc_20_agent, safe_agent],
+        tasks=[
+            Tasks.get_transfer_transaction(),
+            Tasks.create_transaction_in_safe(),
+        ],
+        process=Process.sequential,
+        full_output=True,
+        verbose=True,
+    )
+
+    response = crew.kickoff()
+    print(response)
+
+
+def bridge_transaction_create_and_sign():
+    class Tasks:
+        def get_transfer_quote():
+            return Task(description="I want to send 10 CoolToken (0x57c94aa4a136506d3b88d84473bf3dc77f5b51da) to polygon")
+
+    crew = Crew(
+        agents=[erc_20_agent, bridge_agent, ethereum_agent],
+        tasks=[Tasks.get_transfer_quote()],
+        verbose=True,
+        full_output=True,
+        process=Process.hierarchical,
+        manager_llm=llm
+    )
+    response = crew.kickoff()
+    print(response)
+
+
+if __name__ == "__main__":
+    # encode_and_sign()
+    bridge_transaction_create_and_sign()
