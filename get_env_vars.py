@@ -1,6 +1,6 @@
 import os
 
-def get_env_vars() -> tuple[str, str, str, str, str]:
+def get_env_vars() -> tuple[str, str]:
     rpc_url = os.getenv("RPC_URL")
     if not rpc_url:
         raise ValueError("RPC_URL is not set")
