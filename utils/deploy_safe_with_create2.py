@@ -9,7 +9,7 @@ from utils.cache import cache
 from utils.send_tx import send_tx
 from utils.constants import MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
-def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: list[str], threshold: int) -> tuple[str, Safe]:
+def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: list[str], threshold: int) -> Safe:
     w3 = client.w3
 
     salt_nonce = generate_salt_nonce()
@@ -30,7 +30,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     # Check if safe is already deployed
     if w3.eth.get_code(safe_address) != w3.to_bytes(hexstr="0x"):
         print("Safe already deployed", safe_address)
-        return safe_address, Safe(safe_address, client)
+        return Safe(safe_address, client)
     
     print("Prepared safe address: ", safe_address)
 
@@ -69,7 +69,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     if tx_receipt.status != 1:
         raise ValueError("Transaction failed")
 
-    return safe_address, Safe(safe_address, client)
+    return Safe(safe_address, client)
 
 def generate_salt_nonce() -> int:
     salt = cache(lambda: str(random.getrandbits(256) - 1), "./.cache/salt.txt")
