@@ -9,7 +9,15 @@ readme = "README.md"
 python = "^3.10"
 crewai = "^0.10.0"
 pyright = "^1.1.350"
+click = "^8.1.7"
+pytest = "^7.4.3"
+python-dotenv = "^1.0.1"
+safe-eth-py = "^5.8.0"
+eth-account = "^0.11.0"
+web3 = "^6.15.1"
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.8.0"
 
 [build-system]
 requires = ["poetry-core"]
