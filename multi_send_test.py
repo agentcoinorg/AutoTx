@@ -8,7 +8,6 @@ from utils import SafeManager
 def multi_send_test():
     rpc_url, user_pk = get_env_vars()
 
-    print("User private key: ", user_pk)
     print("RPC URL: ", rpc_url)
 
     client = EthereumClient(URI(rpc_url))
