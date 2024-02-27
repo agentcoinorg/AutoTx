@@ -16,17 +16,13 @@ class SageAgents:
     def ethereum_agent(self):
         return Agent(
             role="Senior Ethereum Blockchain Developer",
-            goal="Create complex transaction in ethereum",
+            goal="Give guidance to interact with Ethereum",
             backstory="""
-You are obssesed with good quality so you pay a lot of attention to details
-when it comes to execute a goal. You make sure that before taking any step,
-all necessary information has been gathered; using your team to succesfully execute the task.
-
-Before interacting with any ERC20 transaction you must guarantee that token decimals are defined
-            """,
-            tools=[
-                EthereumTools.send_transaction
-            ],
+As a Senior Ethereum Blockchain Developer, the 
+primary role is to provide expert guidance and support to its team, enabling them
+to execute complex interactions with the Ethereum blockchain efficiently and effectively.
+""",
+            tools=[EthereumTools.send_transaction,],
             llm=self.OpenAIGPT4,
             verbose=True,
             allow_delegation=True,
@@ -67,9 +63,9 @@ You know how to orchestrate complex interactions with the Safe Protocol.
             ],
             llm=self.OpenAIGPT4,
             verbose=True,
-            allow_delegation=False,
+            allow_delegation=True,
         )
-    
+
     def bridge_agent(self):
         return Agent(
             role="Ethereum Ecosystem Multichain Specialist",
@@ -100,8 +96,8 @@ it exists to streamline and innovate within Ethereum's decentralized ecosystem
             Erc20Tools.get_balance,
             Erc20Tools.get_information,
             BridgeTools.get_quote,
-            SafeTools.create_transaction
+            SafeTools.create_transaction,
         ],
         llm=llm,
-        verbose=True
+        verbose=True,
     )
