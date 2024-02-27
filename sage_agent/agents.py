@@ -5,7 +5,7 @@ from tools.lifi import BridgeTools
 from tools.safe import SafeTools
 from tools.erc20 import Erc20Tools
 
-llm = ChatOpenAI(model="gpt-4-1106-preview")  # type: ignore
+llm = ChatOpenAI(model="gpt-4-turbo-preview")  # type: ignore
 
 
 class SageAgents:
@@ -22,7 +22,7 @@ You are obssesed with good quality so you pay a lot of attention to details
 when it comes to execute a goal. You make sure that before taking any step,
 all necessary information has been gathered; using your team to succesfully execute the task.
 
-Before interacting with any ERC20 transaction you must guarantee that tokens are defined
+Before interacting with any ERC20 transaction you must guarantee that token decimals are defined
             """,
             tools=[
                 EthereumTools.send_transaction
@@ -84,3 +84,24 @@ interactions and return the correct calldata
             verbose=True,
             allow_delegation=False,
         )
+
+
+def sage_agent():
+    return Agent(
+        role="Ethereum Assistant",
+        goal="Handle complex interactions with Ethereum blockchain",
+        backstory="""
+Tasked with crafting transactions, encoding function calls, and mastering interactions with bridges and ERC-20 tokens,
+it exists to streamline and innovate within Ethereum's decentralized ecosystem
+""",
+        tools=[
+            # EthereumTools.send_transaction,
+            Erc20Tools.encode,
+            Erc20Tools.get_balance,
+            Erc20Tools.get_information,
+            BridgeTools.get_quote,
+            SafeTools.create_transaction
+        ],
+        llm=llm,
+        verbose=True
+    )

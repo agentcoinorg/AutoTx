@@ -24,26 +24,24 @@ example payload:
 }
 """
 class SafeTools:
-    # @tool("Create multisend")
-    # def create_multisend():
-    #     pass
-
     @tool("Create transaction")
     def create_transaction(payload):
         """
-        :param payload: str, a string representation of a ethereum transaction
+Creates transaction in safe. It recieves an array of transactions, which will be
+converted to a multisend transaction if necessary, if not, it just create a single transaction
+
+        :param payload: str, a string representations of an array of ethereum transactions
 
         example payload:
-        {
+        [{
             to: str
             value: str
             data: str
-        }
+        }]
 
         :return safe_transaction_hash: str, hash of the recently created safe transaction
         """
         
-        print(payload)
         return "0xSAFE_TRANSACTION_HASH"
 
     @tool("Execute signed transaction in safe")
@@ -64,6 +62,3 @@ class SafeTools:
         """
         return "0xSIGNATURE"
 
-    # @tool("Deploy")
-    # def deploy():
-    #     pass

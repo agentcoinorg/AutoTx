@@ -11,8 +11,8 @@ class BridgeTools:
         {
             fromChain: str, The sending chain. Can be the chain id or chain key
             toChain: str, The receiving chain. Can be the chain id or chain key
-            fromToken: str, The token that should be transferred. Can be the address or the symbol
-            toToken: str, The token that should be transferred to. Can be the address or the symbol
+            fromToken: str, The token that should be transferred. Must be the symbol
+            toToken: str, The token that should be transferred to. Must be the symbol
             fromAmount: str, The amount that should be sent including all decimals
         }
 
