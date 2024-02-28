@@ -17,6 +17,7 @@ def send_tx(w3: Web3, tx: TxParams, account: Account) -> bytes:
 
     signed_tx = account.sign_transaction(tx)
     tx_hash = w3.eth.send_raw_transaction(bytes(signed_tx.rawTransaction))
+    print("Send TX: ", tx_hash.hex())
     tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
     assert tx_receipt["status"] == 1, "Error with tx %s - %s" % (tx_hash.hex(), tx)
     return tx_hash

@@ -7,7 +7,7 @@ from web3.types import TxParams
 from utils.cache import cache
 
 from utils.send_tx import send_tx
-from utils.constants import MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
+from utils.constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
 def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: list[str], threshold: int) -> Safe:
     w3 = client.w3
@@ -44,11 +44,12 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     if safe_address != safe_creation_tx.safe_address:
         raise ValueError("Create2 address mismatch")
 
-    send_tx(
+    tx_hash = send_tx(
         w3,
         {
             "to": safe_creation_tx.safe_address,
             "value": safe_creation_tx.payment,
+            "gasPrice": int(w3.eth.gas_price * GAS_PRICE_MULTIPLIER)
         },
         account=account,
     )
@@ -61,10 +62,10 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
         safe_creation_tx.safe_setup_data,
         salt_nonce,
         safe_creation_tx.gas,
-        w3.eth.gas_price,
+        int(w3.eth.gas_price * GAS_PRICE_MULTIPLIER),
     )
 
-    print("Deploying safe address: ", safe_address)
+    print("Deploying safe address: ", safe_address, ", tx: ", ethereum_tx_sent.tx_hash.hex())
     tx_receipt = w3.eth.wait_for_transaction_receipt(ethereum_tx_sent.tx_hash)
     if tx_receipt.status != 1:
         raise ValueError("Transaction failed")
