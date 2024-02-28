@@ -11,13 +11,16 @@ def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, Tx
     nonce = web3.eth.get_transaction_count(bytes_address)
 
     tx = {
+        'from': account.address,
         'to': to,
         'value': value,
-        'gas': 30000, # TODO: Estimate gas
         'gasPrice': int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
         'nonce': nonce,
         'chainId': web3.eth.chain_id
     }
+
+    gas = web3.eth.estimate_gas(tx)
+    tx.update({'gas': gas})
 
     signed_tx = account.sign_transaction(tx)
 
