@@ -8,7 +8,6 @@ from utils import SafeManager
 def multi_send_test():
     rpc_url, user_pk = get_env_vars()
 
-    print("User private key: ", user_pk)
     print("RPC URL: ", rpc_url)
 
     client = EthereumClient(URI(rpc_url))
@@ -20,39 +19,38 @@ def multi_send_test():
     print("User Address: ", user.address)
     print("Agent Address: ", agent.address)
 
-    _ = send_eth(user, agent.address, 1, web3)
+    print("User ETH Balance: ", get_eth_balance(user.address, web3))
     print("Agent ETH Balance: ", get_eth_balance(agent.address, web3))
 
     manager = SafeManager.deploy_safe(rpc_url, user, agent, [user.address, agent.address], 1)
-    manager.deploy_multicall()
     
-    print("Before ETH Balance: ", manager.balance_of())
+    print("Safe Before Transfer ETH Balance: ", manager.balance_of() / 10**18)
 
-    _ = send_eth(user, manager.address, 3.1, web3)
-    
-    print("After ETH Balance: ", manager.balance_of())
+    tx_hash, _ = send_eth(user, manager.address, int(0.01 * 10 ** 18), web3)
+    tx_hash, _ = send_eth(user, agent.address, int(0.01 * 10 ** 18), web3)
+
+    print("Safe After Transfer ETH Balance: ", manager.balance_of() / 10**18)
 
     random_address = Account.create().address
 
     token_address = deploy_mock_erc20(web3, user)
 
-    print("Safe ERC20 before transfer: ", manager.balance_of(token_address))
+    print("Safe ERC20 before transfer: ", int(manager.balance_of(token_address) / 10**18))
 
-    transfer_tx = transfer_erc20(web3, token_address, user, manager.address, 100)
+    transfer_tx = transfer_erc20(web3, token_address, user, manager.address, int(100 * 10**18))
+    print("Transfer ERC20 TX: ", transfer_tx.hex())
     manager.wait(transfer_tx)
 
-    print("Safe ERC20 after transfer: ", manager.balance_of(token_address))
+    print("Safe ERC20 after transfer: ", int(manager.balance_of(token_address) / 10**18))
 
     tx_hash = manager.send_txs([
-        build_transfer_erc20(web3, token_address, manager.address, random_address, 5),
-        build_transfer_erc20(web3, token_address, manager.address, random_address, 1),
-        build_transfer_eth(web3, manager.address, random_address, 1),
-        build_transfer_eth(web3, manager.address, random_address, 1),
-        build_transfer_eth(web3, manager.address, random_address, 1)
+        build_transfer_erc20(web3, token_address, manager.address, random_address, int(4 * 10**18)),
+        build_transfer_erc20(web3, token_address, manager.address, random_address, int(1 * 10**18)),
     ])
 
     manager.wait(tx_hash)
 
-    print("Safe ERC20 after multisend: ", manager.balance_of(token_address))
-    print("Random addr ERC20 after multisend: ", get_erc20_balance(web3, token_address, random_address))
-    print("Random addr ETH Balance after multisend: ", get_eth_balance(random_address, web3))
+    print("Random addr", random_address)
+    print("Safe ERC20 after multisend: ", int(manager.balance_of(token_address) / 10**18))
+    print("Random addr ERC20 after multisend: ", int(get_erc20_balance(web3, token_address, random_address) / 10**18))
+    print("Random addr ETH Balance after multisend: ", int(get_eth_balance(random_address, web3) / 10**18))

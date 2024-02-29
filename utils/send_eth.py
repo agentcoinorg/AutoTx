@@ -3,23 +3,30 @@ from eth_typing import Address
 from web3 import Web3
 from web3.types import TxReceipt
 
+from utils.constants import GAS_PRICE_MULTIPLIER
+
 def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, TxReceipt]:
     bytes_address: Address = Address(bytes.fromhex(account.address[2:]))
 
     nonce = web3.eth.get_transaction_count(bytes_address)
 
     tx = {
+        'from': account.address,
         'to': to,
-        'value': web3.to_wei(value, 'ether'),
-        'gas': 2000000,
-        'gasPrice': web3.to_wei('50', 'gwei'),
+        'value': value,
+        'gasPrice': int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
         'nonce': nonce,
-        'chainId': 31337
+        'chainId': web3.eth.chain_id
     }
+
+    gas = web3.eth.estimate_gas(tx)
+    tx.update({'gas': gas})
 
     signed_tx = account.sign_transaction(tx)
 
     web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+    print("Send ETH (" + str(int(value / 10 ** 18)) + ") TX: ", signed_tx.hash.hex())
 
     receipt = web3.eth.wait_for_transaction_receipt(signed_tx.hash)
 
