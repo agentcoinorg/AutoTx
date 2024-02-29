@@ -1,5 +1,6 @@
 from crewai import Agent
 from langchain_openai import ChatOpenAI
+from tools.uniswap import UniswapTools
 from tools.ethereum import EthereumTools
 from tools.lifi import BridgeTools
 from tools.safe import SafeTools
@@ -13,29 +14,31 @@ class SageAgents:
         self.OpenAIGPT35 = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
         self.OpenAIGPT4 = ChatOpenAI(model="gpt-4-turbo-preview")
 
-    def ethereum_agent(self):
-        return Agent(
-            role="Senior Ethereum Blockchain Developer",
-            goal="Give guidance to interact with Ethereum",
-            backstory="""
-As a Senior Ethereum Blockchain Developer, the 
-primary role is to provide expert guidance and support to its team, enabling them
-to execute complex interactions with the Ethereum blockchain efficiently and effectively.
-""",
-            tools=[EthereumTools.send_transaction,],
-            llm=self.OpenAIGPT4,
-            verbose=True,
-            allow_delegation=True,
-        )
+#     def ethereum_agent(self):
+#         return Agent(
+#             role="Senior Ethereum Blockchain Developer",
+#             goal="Give guidance to interact with Ethereum",
+#             backstory="""
+# As a Senior Ethereum Blockchain Developer, the 
+# primary role is to provide expert guidance and support to its team, enabling them
+# to execute complex interactions with the Ethereum blockchain efficiently and effectively.
+# """,
+#             tools=[
+#                 EthereumTools.send_transaction,
+#             ],
+#             llm=self.OpenAIGPT4,
+#             verbose=True,
+#             allow_delegation=True,
+#         )
 
     def erc_20_agent(self):
         return Agent(
-            role="ERC 20 Smart Contracts Assistant",
-            goal="Get all needed information from ERC20 Tokens",
+            role="ERC20 Specialist",
+            goal="Streamline ERC20 token interactions for efficient and error-free operations.",
             backstory="""
-You're proefficient when it comes to interact with ERC 20 tokens,
-Your main goal is to provide the correct tooling to interact with those,
-by gathering information and encoding transactions
+Crafted from the need to navigate the ERC20 token standards,
+this agent automates and simplifies token transfers, approvals,
+and balance queries, supporting high-stakes DeFi operations.
             """,
             tools=[
                 Erc20Tools.encode,
@@ -50,16 +53,15 @@ by gathering information and encoding transactions
     def safe_agent(self):
         return Agent(
             role="Gnosis Safe Smart Wallet Assistant",
-            goal="Interact with Safe Smart Contracts",
+            goal="Securely manage multisig transactions and configurations on Gnosis Safe contracts.",
             backstory="""
-You are a developer with strong knowledge when it comes to interact with Safe Smart Contracts.
-You know how to orchestrate complex interactions with the Safe Protocol.
+A seasoned blockchain security expert, designed to ensure flawless execution of multisig
+transactions and optimal configurations for DeFi operations security.
         """,
             tools=[
                 SafeTools.create_transaction,
                 SafeTools.execute_transaction,
                 SafeTools.sign_transaction,
-                # SafeTools.create_multisend
             ],
             llm=self.OpenAIGPT4,
             verbose=True,
@@ -81,22 +83,37 @@ interactions and return the correct calldata
             allow_delegation=False,
         )
 
+    def uniswap_agent(self):
+        return Agent(
+            role="Uniswap Protocol Interactor",
+            goal="Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol",
+            backstory="""
+            An autonomous agent skilled in Ethereum blockchain interactions,
+            specifically tailored for the Uniswap V3 protocol.
+            """,
+            verbose=True,
+            tools=[UniswapTools.encode_swap, UniswapTools.query_pools],
+            llm=self.OpenAIGPT4
+        )
+
 
 def sage_agent():
     return Agent(
         role="Ethereum Assistant",
         goal="Handle complex interactions with Ethereum blockchain",
         backstory="""
-Tasked with crafting transactions, encoding function calls, and mastering interactions with bridges and ERC-20 tokens,
+Tasked with crafting transactions, encoding function calls, and mastering interactions  with contracts in Ethereum,
 it exists to streamline and innovate within Ethereum's decentralized ecosystem
 """,
         tools=[
-            # EthereumTools.send_transaction,
+            EthereumTools.send_transaction,
             Erc20Tools.encode,
             Erc20Tools.get_balance,
             Erc20Tools.get_information,
             BridgeTools.get_quote,
             SafeTools.create_transaction,
+            UniswapTools.encode_swap,
+            UniswapTools.query_pools,
         ],
         llm=llm,
         verbose=True,

@@ -11,7 +11,7 @@ class Erc20Tools:
         :param name: str, name of the function to encode
         :param arguments: str, value of arguments to execute function
 
-        :result encodedFunction: str, calldata to execute function
+        :result calldata: str, calldata to execute function
         """
         return "0xSUPER_COOL_CALL_DATA"
     
