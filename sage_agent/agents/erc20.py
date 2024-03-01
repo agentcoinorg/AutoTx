@@ -1,6 +1,7 @@
 from typing import Optional
 from langchain_core.tools import Tool, tool
 from crewai import Agent
+from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
 import json
 
@@ -52,23 +53,19 @@ def get_information(address):
     return json.dumps(token)
 
 
-class Erc20Agent:
-    agent: Agent
+default_tools = [
+    encode,
+    get_balance,
+    get_information,
+]
 
+
+class Erc20Agent(Agent):
     def __init__(self) -> Agent:
-        self.agent = Agent(
-            role="ERC20 Specialist",
-            goal="Streamline ERC20 token interactions for efficient and error-free operations.",
-            backstory="""
-Crafted from the need to navigate the ERC20 token standards,
-this agent automates and simplifies token transfers, approvals,
-and balance queries, supporting high-stakes DeFi operations.
-            """,
-            tools=[
-                encode,
-                get_balance,
-                get_information,
-            ],
+        config: AgentConfig = agents_config["erc20"].model_dump()
+        super().__init__(
+            **config,
+            tools=default_tools,
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
