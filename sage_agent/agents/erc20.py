@@ -1,5 +1,4 @@
-from typing import Optional
-from langchain_core.tools import Tool, tool
+from langchain_core.tools import tool
 from crewai import Agent
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm

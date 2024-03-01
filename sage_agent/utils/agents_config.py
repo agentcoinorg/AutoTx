@@ -15,8 +15,10 @@ class Agents(RootModel):
     def __getitem__(self, attr):
         return self.root.get(attr)
 
+    def items(self):
+        return self.root.items()
+
 
 agents_config: Agents = Agents.model_validate(
     json.loads(open("sage_agent/config/agents.json", "r").read())
 )
-print(agents_config)
