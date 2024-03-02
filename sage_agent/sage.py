@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
@@ -29,46 +30,48 @@ class Sage:
             agents=self.agents,
             tasks=tasks,
             verbose=self.config.verbose,
-            process=Process.hierarchical,
-            manager_llm=open_ai_llm,
+            process=Process.sequential,
+            # manager_llm=open_ai_llm,
         )
         return crew.kickoff()
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
             """
-            You are an expert in decentralized systems, especially Ethereum.
-            Your primary experience lies in converting user-given prompts into concrete tasks for AI agents that specialize
-            in direct interactions with smart contracts on Ethereum. The focus is on preparing the necessary calldata for smart contract function calls,
-            emphasizing the consolidation of steps into comprehensive tasks whenever practical.
+            As an expert in decentralized systems, especially Ethereum, you excel at converting user-given prompts into structured tasks
+            for AI agents specializing in direct smart contract interactions; you must explicitly include any user-provided details, 
+            such as token addresses and contract addresses, in the corresponding tasks to ensure all necessary information is accounted for and utilized appropriately.
 
-            The decision on which agent delegate tasks to will be based on each agent's role, goal and available tools, as outlined below:
+            Your primary focus is on crafting the necessary calldata for smart contract function calls,
+            with an emphasis on streamlining steps into comprehensive, logically ordered tasks.
+
+            When executing transactions, especially those involving multiple contract interactions, it is crucial to compile all encoded transactions into a single comprehensive action, ensuring that contract addresses are prominently included.
+
+            The allocation of tasks to specific agents is determined by their respective roles, goals, and available tools. as outlined blow:
             {agents_information}
+            
+            Your approach aims to enhance efficiency by merging steps that naturally complement each other. It is vital to ensure that each task is defined with clarity
+            and precision, especially when it involves encoding transactions or interacting with contracts. Essential details, particularly contract addresses, must be
+            explicitly mentioned in the tasks to prevent omissions.
 
+            Given the prompt below, your task is to synthesize it into a series of streamlined, ordered tasks. Each task should identify the most appropriate agent
+            or execution, with a clear description, expected output, and context for integration. Remember, tasks involving transaction creation or smart contract interactions must explicitly include contract addresses as part of the task description.
 
-            Your approach should streamline the process by combining steps that naturally fit together,
-            aiming for efficiency without sacrificing clarity or detail.
-
-            Given the following prompt, please analyze and synthesize it into a series of streamlined tasks.
-            For each task, identify the most suitable agent for execution. Clearly describe the task, specify the expected output,
-            and note any tasks that provide context. Aim to consolidate steps into single tasks where feasible,
-            especially if they involve sequential actions by the same agent.
             Please format your response as an array of JSON objects, like so:
 
             {{
                 tasks : [{{
-                    "task": "A clear, concise statement of what the task entails",
-                    "agent": "The agent that best fits to execute the task",
-                    "expected_output": "Clear and detailed definition of expected output for the task, if applicable",
-                    "context": "Index of tasks that will have their output used as context for this task, if applicable"
+                    "task": str // Concise description of task to be done with details needed given by user
+                    "agent": str // The agent that best fits to execute the task
+                    "expected_output": str // Description of expected output for the task
+                    "context": [int] // Index of tasks that will have their output used as context for this task, if applicable. Eg. [1, 3] or None
+                    "extra_information": str // Any extra information with description given by the user needed to execute the task, if applicable.
                 }}]
             }}
 
-
             This is the prompt: {prompt}
 
-            Please minimize emphasis on transaction execution/monitoring or gas estimation, as these aspects are managed separately by the system.
-            Instead, focus on preparing transaction data and other preparatory steps that can logically be grouped together
+            Please minimize emphasis on transaction execution/monitoring or gas estimation, as these aspects are managed separately.
             """
         )
         agent_descriptions = []
@@ -96,9 +99,41 @@ class Sage:
         )
 
         response = openai.chat.completions.create(
-            model="gpt-4-1106-preview",
+            model="gpt-4-turbo-preview",
             response_format={"type": "json_object"},
             messages=[{"role": "user", "content": formatted_template}],
         )
-        print(response.choices[0].message.content)
-        return [Task(description=prompt)]
+
+        response = response.choices[0].message.content
+        print(response)
+        if not response:
+            # TODO: Handle bad response
+            pass
+
+        return self.sanitize_tasks_response(response)
+
+    def sanitize_tasks_response(self, response: str) -> list[Task]:
+        tasks = json.loads(response)["tasks"]
+        sanitized_tasks: list[Task] = []
+        for task in tasks:
+            context: list[Task] = (
+                [sanitized_tasks[c] for c in task["context"]] if task["context"] else []
+            )
+
+            get_agent_by_name = lambda a: a.name == task["agent"]
+            agent = next(filter(get_agent_by_name, self.agents), None)
+            description = task["task"]
+
+            if task["extra_information"]:
+                description += "\n" + task["extra_information"]
+
+            sanitized_tasks.append(
+                Task(
+                    description=description,
+                    agent=agent,
+                    expected_output=task["expected_output"],
+                    context=context,
+                )
+            )
+
+        return sanitized_tasks

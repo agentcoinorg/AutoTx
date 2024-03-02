@@ -1,22 +1,37 @@
 from langchain_core.tools import tool
 from crewai import Agent
+from pydantic import BaseModel, Field
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
 import json
 
 
-@tool("Encode method and arguments to interact with ERC20 contract")
-def encode(name, arguments):
+@tool("Encode transfer function")
+def encode_transfer_function(name, arguments):
     """
-    Encodes method and arguments into calldata. Allowing to interact
-    with the ERC20 using the `data` attribute from transaction
+    Encodes token transfer function calldata with amount in decimals for given token
 
-    :param name: str, name of the function to encode
-    :param arguments: str, value of arguments to execute function
-
-    :result calldata: str, calldata to execute function
+    Args:
+        amount (int): The amount in decimals of token.
+        token_address (str): The address of the token
+    Returns:
+        str: Calldata of the transfer function.
     """
-    return "0xSUPER_COOL_CALL_DATA"
+    return "0x_TRANSFER_CALLDATA"
+
+@tool("Encodes approve function")
+def encode_approve_function(amount: int, token_address: str) -> str:
+    """
+    Encodes token approval function calldata with amount in decimals for given token
+
+    Args:
+        amount (int): The amount in decimals of token.
+        token_address(str): The address of the token
+    Returns:
+        str: Calldata of the approve function.
+    """
+
+    return "0x_APPROVE_CALLDATA"
 
 
 @tool("Check owner balance in ERC20 token")
@@ -53,19 +68,24 @@ def get_information(address):
 
 
 default_tools = [
-    encode,
+    encode_approve_function,
+    encode_transfer_function,
     get_balance,
     get_information,
 ]
 
 
 class Erc20Agent(Agent):
-    def __init__(self) -> Agent:
-        config: AgentConfig = agents_config["erc20"].model_dump()
+    name: str
+
+    def __init__(self):
+        name = "erc20"
+        config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
             tools=default_tools,
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
+            name=name
         )

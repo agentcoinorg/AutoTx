@@ -1,5 +1,6 @@
 from langchain_core.tools import tool
 from crewai import Agent
+from pydantic import Field
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
 
@@ -53,12 +54,16 @@ default_tools = [
 
 
 class SafeAgent(Agent):
+    name: str
+
     def __init__(self):
-        config: AgentConfig = agents_config["safe"].model_dump()
+        name = "safe"
+        config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
             tools=default_tools,
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
+            name=name
         )
