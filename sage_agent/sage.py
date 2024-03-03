@@ -45,8 +45,6 @@ class Sage:
             Your primary focus is on crafting the necessary calldata for smart contract function calls,
             with an emphasis on streamlining steps into comprehensive, logically ordered tasks.
 
-            When executing transactions, especially those involving multiple contract interactions, it is crucial to compile all encoded transactions into a single comprehensive action, ensuring that contract addresses are prominently included.
-
             The allocation of tasks to specific agents is determined by their respective roles, goals, and available tools. as outlined blow:
             {agents_information}
             
@@ -57,14 +55,17 @@ class Sage:
             Given the prompt below, your task is to synthesize it into a series of streamlined, ordered tasks. Each task should identify the most appropriate agent
             or execution, with a clear description, expected output, and context for integration. Remember, tasks involving transaction creation or smart contract interactions must explicitly include contract addresses as part of the task description.
 
+            When it comes to create the transactions, you must create it in the last step and making
+            sure you share the needed contract addresses to interact with.
+
             Please format your response as an array of JSON objects, like so:
 
             {{
                 tasks : [{{
-                    "task": str // Concise description of task to be done with details needed given by user
-                    "agent": str // The agent that best fits to execute the task
-                    "expected_output": str // Description of expected output for the task
-                    "context": [int] // Index of tasks that will have their output used as context for this task, if applicable. Eg. [1, 3] or None
+                    "task": "Concise description of task to be done with details needed given by user"
+                    "agent": "The agent that best fits to execute the task"
+                    "expected_output": "Description of expected output for the task"
+                    "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
                     "extra_information": str // Any extra information with description given by the user needed to execute the task, if applicable.
                 }}]
             }}

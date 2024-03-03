@@ -7,31 +7,42 @@ import json
 
 
 @tool("Encode transfer function")
-def encode_transfer_function(name, arguments):
+def encode_transfer_function(amount: str, reciever: str, token_address: str):
     """
     Encodes token transfer function calldata with amount in decimals for given token
 
     Args:
         amount (int): The amount in decimals of token.
-        token_address (str): The address of the token
+        reciever (str): The address of reciever
+        token_address (str): The address of the token to interact with
     Returns:
         str: Calldata of the transfer function.
     """
-    return "0x_TRANSFER_CALLDATA"
+    encoded_transaction = {
+        "calldata": "0x_TRANSFER_CALLDATA",
+        "token_address": token_address,
+    }
+    return json.dumps(encoded_transaction)
+
 
 @tool("Encodes approve function")
-def encode_approve_function(amount: int, token_address: str) -> str:
+def encode_approve_function(amount: int, spender: str, token_address: str) -> str:
     """
     Encodes token approval function calldata with amount in decimals for given token
 
     Args:
         amount (int): The amount in decimals of token.
-        token_address(str): The address of the token
+        spender (str): The address of the spender
+        token_address (str): The address of the token to interact with
     Returns:
         str: Calldata of the approve function.
     """
 
-    return "0x_APPROVE_CALLDATA"
+    encoded_transaction = {
+        "calldata": "0x_APPROVE_CALLDATA",
+        "token_address": token_address,
+    }
+    return json.dumps(encoded_transaction)
 
 
 @tool("Check owner balance in ERC20 token")
