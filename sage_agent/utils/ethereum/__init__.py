@@ -13,6 +13,9 @@ from .build_transfer_eth import build_transfer_eth
 from .build_transfer_erc20 import build_transfer_erc20
 from .get_erc20_balance import get_erc20_balance
 from .SafeManager import SafeManager
+from .load_w3 import load_w3
+from .build_approve_erc20 import build_approve_erc20
+from .get_erc20_info import get_erc20_info
 
 __all__ = [
     "deploy_safe",
@@ -28,6 +31,9 @@ __all__ = [
     "transfer_erc20",
     "build_transfer_eth",
     "build_transfer_erc20",
+    "build_approve_erc20",
     "get_erc20_balance",
+    "get_erc20_info",
     "SafeManager",
+    "load_w3"
 ]

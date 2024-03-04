@@ -3,7 +3,7 @@ from web3 import Web3
 from web3.types import TxParams
 from web3.middleware import construct_sign_and_send_raw_middleware
 
-from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI, MOCK_ERC20_BYTECODE
+from .mock_erc20 import MOCK_ERC20_ABI, MOCK_ERC20_BYTECODE
 
 def deploy_mock_erc20(web3: Web3, account: Account) -> str:
     account_middleware = construct_sign_and_send_raw_middleware(account)

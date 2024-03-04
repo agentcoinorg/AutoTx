@@ -3,8 +3,7 @@ from eth_account import Account
 from gnosis.eth import EthereumClient
 from gnosis.eth.multicall import Multicall
 
-from sage_agent.utils.ethereum import cache
-
+from .cache import cache
 
 def  deploy_multicall(client: EthereumClient, account: Account) -> str:
     if os.getenv("MULTICALL_ADDRESS"):

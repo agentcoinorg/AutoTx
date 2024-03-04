@@ -3,8 +3,7 @@ from eth_typing import Address
 from web3 import Web3
 from web3.types import TxReceipt
 
-from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
-
+from .constants import GAS_PRICE_MULTIPLIER
 
 def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, TxReceipt]:
     bytes_address: Address = Address(bytes.fromhex(account.address[2:]))

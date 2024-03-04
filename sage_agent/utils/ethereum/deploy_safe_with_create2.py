@@ -3,10 +3,11 @@ from eth_account import Account
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe, ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
-from sage_agent.utils.ethereum.cache import cache
+from web3.types import TxParams
+from .cache import cache
 
-from sage_agent.utils.ethereum.send_tx import send_tx
-from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
+from .send_tx import send_tx
+from .constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
 def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: list[str], threshold: int) -> Safe:
     w3 = client.w3
