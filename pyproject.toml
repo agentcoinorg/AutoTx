@@ -22,6 +22,10 @@ mypy = "^1.8.0"
 pytest = "^8.0.0"
 pytest-vcr = "^1.0.2"
 
+[tool.poetry.scripts]
+start-env = "sage_agent.scripts.start_local_environment:main"
+ask = "sage_agent.main:run"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
