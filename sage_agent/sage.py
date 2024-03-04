@@ -25,6 +25,8 @@ class Sage:
             self.config = config
 
     def run(self, prompt: str):
+        print("Prompt received...")
+        print("Defining tasks...")
         tasks: list[Task] = self.define_tasks(prompt)
         crew = Crew(
             agents=self.agents,
@@ -64,7 +66,7 @@ class Sage:
                 tasks : [{{
                     "task": "Concise description of task to be done with details needed given by user"
                     "agent": "The agent that best fits to execute the task"
-                    "expected_output": "Description of expected output for the task"
+                    "expected_output": str // "Description of expected output for the task"
                     "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
                     "extra_information": str // Any extra information with description given by the user needed to execute the task, if applicable.
                 }}]

@@ -21,8 +21,7 @@ def test_encode_transfer_and_sign_safe_transaction():
 
     multiple_send_prompt = dedent(
         """
-        I want to create a transaction in my safe which sends 10 CoolToken (token address: 0x57c94aa4a136506d3b88d84473bf3dc77f5b51da) to
-        0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 and 5 DAI to 0xAC39C85F4E54797e4909f70a302d9e11E428135D
+        I want to create a transaction in my safe which sends 10 CoolToken (token address: 0x57c94aa4a136506d3b88d84473bf3dc77f5b51da) to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 and 5 DAI to 0xAC39C85F4E54797e4909f70a302d9e11E428135D
         """
     )
 
