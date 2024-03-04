@@ -1,9 +1,9 @@
 from eth_account import Account
 from eth_typing import URI
 from gnosis.eth import EthereumClient
-from get_env_vars import get_env_vars
-from utils import build_transfer_erc20, build_transfer_eth, deploy_mock_erc20, generate_agent_account, get_erc20_balance, get_eth_balance, send_eth, transfer_erc20
-from utils import SafeManager
+from sage_agent.get_env_vars import get_env_vars
+from sage_agent.utils.ethereum import build_transfer_erc20, deploy_mock_erc20, generate_agent_account, get_erc20_balance, get_eth_balance, send_eth, transfer_erc20
+from sage_agent.utils.ethereum import SafeManager
 
 def multi_send_test():
     rpc_url, user_pk = get_env_vars()
