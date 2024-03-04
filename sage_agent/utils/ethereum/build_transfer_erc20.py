@@ -1,7 +1,7 @@
 from web3 import Web3
 from web3.types import TxParams
-from utils.constants import GAS_PRICE_MULTIPLIER
-from utils.mock_erc20 import MOCK_ERC20_ABI
+from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
+from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 def build_transfer_erc20(web3: Web3, token_address: str, from_address: str, to: str, value: int):
     MockERC20 = web3.eth.contract(address=token_address, abi=MOCK_ERC20_ABI)

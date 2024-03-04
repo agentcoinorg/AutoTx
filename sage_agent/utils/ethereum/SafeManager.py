@@ -1,5 +1,5 @@
-from utils import deploy_multicall, deploy_safe_with_create2, get_erc20_balance
-from utils.constants import MULTI_SEND_ADDRESS
+from sage_agent.utils.ethereum import deploy_multicall, deploy_safe_with_create2, get_erc20_balance
+from sage_agent.utils.ethereum.constants import MULTI_SEND_ADDRESS
 from eth_account import Account
 from eth_typing import URI
 from gnosis.eth import EthereumClient

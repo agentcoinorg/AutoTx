@@ -2,9 +2,9 @@ from eth_account import Account
 from web3 import Web3
 from web3.types import TxParams
 from web3.middleware import construct_sign_and_send_raw_middleware
-from utils.constants import GAS_PRICE_MULTIPLIER
+from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 
-from utils.mock_erc20 import MOCK_ERC20_ABI
+from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 def transfer_erc20(web3: Web3, token_address: str, from_account: Account, to: str, value: int):
     account_middleware = construct_sign_and_send_raw_middleware(from_account)

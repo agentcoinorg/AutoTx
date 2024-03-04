@@ -3,7 +3,7 @@ from eth_typing import URI
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 
-from utils.constants import MASTER_COPY_ADDRESS
+from sage_agent.utils.ethereum.constants import MASTER_COPY_ADDRESS
 
 SAFE_ADDRESS_FILE = "./cache/safe.txt"
 
