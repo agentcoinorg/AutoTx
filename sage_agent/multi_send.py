@@ -44,8 +44,8 @@ def multi_send_test():
     print("Safe ERC20 after transfer: ", int(manager.balance_of(token_address) / 10**18))
 
     tx_hash = manager.send_txs([
-        build_transfer_erc20(web3, token_address, manager.address, random_address, int(4 * 10**18)),
-        build_transfer_erc20(web3, token_address, manager.address, random_address, int(1 * 10**18)),
+        build_transfer_erc20(web3, token_address, random_address, int(4 * 10**18)),
+        build_transfer_erc20(web3, token_address, random_address, int(1 * 10**18)),
     ])
 
     manager.wait(tx_hash)

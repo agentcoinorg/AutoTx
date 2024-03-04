@@ -13,12 +13,9 @@ from .build_transfer_eth import build_transfer_eth
 from .build_transfer_erc20 import build_transfer_erc20
 from .get_erc20_balance import get_erc20_balance
 from .SafeManager import SafeManager
-from web3 import Web3
 from .load_w3 import load_w3
 from .build_approve_erc20 import build_approve_erc20
 from .get_erc20_info import get_erc20_info
-
-provider = Web3.HTTPProvider(f"https://sepolia.infura.io/v3/0bb7b9fb2c90413bbc4198ad6cfb87b1")
 
 __all__ = [
     "deploy_safe",
