@@ -8,7 +8,7 @@
 ### Installation:
 1. Clone the repository
 2. Create a `.env` and copy the content from `.env.example` file
-3. Add the `OPENAI_API_KEY` and `INFURA_API_KEY` values.
+3. Add the `OPENAI_API_KEY` and `FORK_RPC_URL` values.
 4. Start poetry shell and install dependencies
 > poetry shell  
 > poetry install
