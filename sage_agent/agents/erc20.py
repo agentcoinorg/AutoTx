@@ -1,7 +1,9 @@
 from langchain_core.tools import tool
 from crewai import Agent
-from pydantic import BaseModel, Field
 from sage_agent.utils.agents_config import AgentConfig, agents_config
+from sage_agent.utils.ethereum import build_approve_erc20, build_transfer_erc20, get_erc20_balance
+from sage_agent.utils.ethereum import load_w3
+from sage_agent.utils.ethereum.get_erc20_info import get_erc20_info
 from sage_agent.utils.llm import open_ai_llm
 import json
 
@@ -16,13 +18,11 @@ def encode_transfer_function(amount: str, reciever: str, token_address: str):
         reciever (str): The address of reciever
         token_address (str): The address of the token to interact with
     Returns:
-        str: Calldata of the transfer function.
+        str: Transaction data of the transfer function.
     """
-    encoded_transaction = {
-        "calldata": "0x_TRANSFER_CALLDATA",
-        "token_address": token_address,
-    }
-    return json.dumps(encoded_transaction)
+    tx = build_transfer_erc20(load_w3(), token_address, reciever, int(amount))
+
+    return json.dumps(tx)
 
 
 @tool("Encodes approve function")
@@ -35,14 +35,12 @@ def encode_approve_function(amount: int, spender: str, token_address: str) -> st
         spender (str): The address of the spender
         token_address (str): The address of the token to interact with
     Returns:
-        str: Calldata of the approve function.
+        str: Transaction data of the approve function.
     """
 
-    encoded_transaction = {
-        "calldata": "0x_APPROVE_CALLDATA",
-        "token_address": token_address,
-    }
-    return json.dumps(encoded_transaction)
+    tx = build_approve_erc20(load_w3(), spender, token_address, amount)
+
+    return json.dumps(tx)
 
 
 @tool("Check owner balance in ERC20 token")
@@ -55,7 +53,8 @@ def get_balance(address, owner):
 
     :result balance: int, the balance of owner in erc20 contract
     """
-    return "12455"
+
+    return get_erc20_balance(load_w3(), address, owner)
 
 
 @tool("Get decimals, name and symbol for an ERC")
@@ -74,7 +73,9 @@ def get_information(address):
         "symbol": "$$$"
     }
     """
-    token = {"decimals": 6, "name": "COOL TOKEN", "symbol": "$$$"}
+    name, symbol, decimals = get_erc20_info(load_w3(), address)
+
+    token = {"decimals": decimals, "name": name, "symbol": symbol}
     return json.dumps(token)
 
 

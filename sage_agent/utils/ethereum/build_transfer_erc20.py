@@ -1,11 +1,11 @@
 from web3 import Web3
 from web3.types import TxParams
-from utils.constants import GAS_PRICE_MULTIPLIER
-from utils.mock_erc20 import MOCK_ERC20_ABI
+from .constants import GAS_PRICE_MULTIPLIER
+from .mock_erc20 import MOCK_ERC20_ABI
 
-def build_transfer_erc20(web3: Web3, token_address: str, from_address: str, to: str, value: int):
+def build_transfer_erc20(web3: Web3, token_address: str, to: str, value: int):
     MockERC20 = web3.eth.contract(address=token_address, abi=MOCK_ERC20_ABI)
 
-    tx: TxParams = MockERC20.functions.transfer(to, value).build_transaction({"from": from_address, "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)})
+    tx: TxParams = MockERC20.functions.transfer(to, value).build_transaction({"gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)})
 
     return tx
