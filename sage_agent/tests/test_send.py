@@ -36,8 +36,8 @@ def test_encode_transfer_and_sign_safe_transaction():
     # {
     #     "erc20": Erc20Agent
     # }
-    sage = Sage([erc20_agent, safe_agent, uniswap_agent], None)
-    sage.run(swap_prompt)
+    sage = Sage([erc20_agent], None)
+    sage.run(multiple_send_prompt)
 
 
 
