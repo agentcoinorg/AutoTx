@@ -3,7 +3,7 @@ from .get_eth_balance import get_eth_balance
 from .send_eth import send_eth
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .generate_agent_account import generate_agent_account
-from .constants import MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS, MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
+from .config import contracts_config
 from .deploy_multicall import deploy_multicall
 from .send_tx import send_tx
 from .cache import cache
@@ -21,16 +21,12 @@ from .get_erc20_info import get_erc20_info
 provider = Web3.HTTPProvider(f"https://sepolia.infura.io/v3/0bb7b9fb2c90413bbc4198ad6cfb87b1")
 
 __all__ = [
-    "provider",
     "deploy_safe",
     "get_eth_balance",
     "send_eth",
     "deploy_safe_with_create2",
     "generate_agent_account",
-    "MASTER_COPY_ADDRESS",
-    "PROXY_FACTORY_ADDRESS",
-    "MULTI_SEND_ADDRESS",
-    "GAS_PRICE_MULTIPLIER",
+    "contracts_config",
     "deploy_multicall",
     "send_tx",
     "cache",

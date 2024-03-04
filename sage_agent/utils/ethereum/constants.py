@@ -1,4 +1,6 @@
-MASTER_COPY_ADDRESS = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
-PROXY_FACTORY_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
-MULTI_SEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
+from sage_agent.utils.ethereum.config import contracts_config
+
+MASTER_COPY_ADDRESS = contracts_config["safe"]["master_copy_address"]
+PROXY_FACTORY_ADDRESS = contracts_config["safe"]["proxy_factory_address"]
+MULTI_SEND_ADDRESS = contracts_config["safe"]["multisend_address"]
 GAS_PRICE_MULTIPLIER = 1.1
