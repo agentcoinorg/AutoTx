@@ -5,8 +5,10 @@ from sage_agent.agents.safe import SafeAgent
 from sage_agent.agents.uniswap import UniswapAgent
 from sage_agent.multi_send import multi_send_test
 from sage_agent.sage import Sage
+from sage_agent.patch import patch_langchain
 
 load_dotenv()
+patch_langchain()
 
 @click.command()
 @click.option('--prompt',
