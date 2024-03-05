@@ -3,6 +3,9 @@ from sage_agent.agents.erc20 import Erc20Agent
 from sage_agent.agents.safe import SafeAgent
 from sage_agent.agents.uniswap import UniswapAgent
 from sage_agent.sage import Sage
+from sage_agent.patch import patch_langchain
+
+patch_langchain()
 
 def test_encode_transfer_and_sign_safe_transaction():
     prompt_simple = dedent(
