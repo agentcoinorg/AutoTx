@@ -6,6 +6,7 @@ from sage_agent.agents.uniswap import UniswapAgent
 from sage_agent.multi_send import multi_send_test
 from sage_agent.sage import Sage
 from sage_agent.patch import patch_langchain
+from sage_agent.swap import swap_test
 
 load_dotenv()
 patch_langchain()
@@ -17,7 +18,8 @@ patch_langchain()
     help='Prompt'
 )
 def run(prompt: str):
-    multi_send_test()
+    # multi_send_test()
+    swap_test()
     # erc20_agent = Erc20Agent()
     # safe_agent = SafeAgent()
     # uniswap_agent = UniswapAgent()

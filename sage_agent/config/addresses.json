@@ -1,14 +1,16 @@
 {
-    "safe": {
-        "master_copy_address": "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552",
-        "proxy_factory_address": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
-        "multisend_address": "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
-    },
-    "erc20": {
-        "usdc": ""
-    },
-    "uniswap": {
-        "v3_factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984"
-    }
+  "safe": {
+    "master_copy_address": "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552",
+    "proxy_factory_address": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "multisend_address": "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
+  },
+  "erc20": {
+    "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "dai": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+  },
+  "uniswap": {
+    "v3_factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "swap_router": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
   }
-  
+}
