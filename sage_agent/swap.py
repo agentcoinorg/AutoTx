@@ -20,6 +20,7 @@ from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 weth_address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 usdc_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 dai_address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+wbtc_address = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
 
 fee = 3000  # 0.3%
 slippage = 0.01
@@ -34,54 +35,47 @@ def get_swap_information(
     token_out_decimals = token_out.functions.decimals().call()
     if exact_input:
         amount_compared_with_token = amount * price
-        minimum_amount_in = int(amount_compared_with_token * 10**token_out_decimals)
-        amount_out = int(minimum_amount_in - (minimum_amount_in * slippage))
+        minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
+        amount_out = int(minimum_amount_out - (minimum_amount_out * slippage))
 
         return (amount_out, int(amount * 10**token_in_decimals), "exactInputSingle")
     else:
         amount_compared_with_token = amount / price
-        minimum_amount_in = int(amount_compared_with_token * 10**token_in_decimals)
-        amount_out = int(minimum_amount_in + (minimum_amount_in * slippage))
+        max_amount_in = int(amount_compared_with_token * 10**token_in_decimals)
+        amount_in = int(max_amount_in + (max_amount_in * slippage))
         return (
             int(amount * 10**token_out_decimals),
-            amount_out,
+            amount_in,
             "exactOutputSingle",
         )
 
 
 def build_swap_transaction(
     etherem_client: EthereumClient,
-    amount_out: int,
+    amount: int,
     token_in_address: str,
     token_out_address: str,
     _from: str,
+    exact_input: bool,
 ) -> TxParams:
-    oracle = UniswapV3Oracle(etherem_client, ROUTER_ADDRESS)
-    router = oracle.router
-    oracle.weth_address
+    uniswap = UniswapV3Oracle(etherem_client, ROUTER_ADDRESS)
+    router = uniswap.router
     web3 = etherem_client.w3
 
     token_in_is_eth = False
-    if token_in_address == str(oracle.weth_address):
+    if token_in_address == str(uniswap.weth_address):
         token_in_is_eth = True
 
     token_in = web3.eth.contract(address=token_in_address, abi=MOCK_ERC20_ABI)
     token_out = web3.eth.contract(address=token_out_address, abi=MOCK_ERC20_ABI)
-    price = oracle.get_price(token_in_address, token_out_address)
+    price = uniswap.get_price(token_in_address, token_out_address)
 
     (amount_out, amount_in, method) = get_swap_information(
-        amount_out, token_in, token_out, price, True
+        amount, token_in, token_out, price, exact_input
     )
 
     print("Amount in: ", amount_in)
     print("Amount out: ", amount_out)
-    # token_out_decimals = token_out.functions.decimals().call()
-
-    # amount_out_in_decimals = amount_out * 10**token_out_decimals
-    # token_in_decimals = token_in.functions.decimals().call()
-
-    # minimum_amount_in = int((amount_out / price) * 10**token_in_decimals)
-    # amount_in_plus_fee = int((minimum_amount_in * fee / 1000) + minimum_amount_in)
 
     transactions: list[TxParams] = []
     if not token_in_is_eth:
@@ -91,7 +85,6 @@ def build_swap_transaction(
                 token_in.functions.approve(ROUTER_ADDRESS, amount_in).build_transaction(
                     {
                         "from": _from,
-                        "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
                     }
                 )
             )
@@ -103,17 +96,13 @@ def build_swap_transaction(
                 token_out_address,
                 fee,
                 _from,
-                amount_out,
-                amount_in,
+                amount_out if method == "exactOutputSingle" else amount_in,
+                amount_in if method == "exactOutputSingle" else amount_out,
                 sqrt_price_limit,
             )
-        ).build_transaction(
-            {
-                "value": amount_in if token_in_is_eth else 0,
-                "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-            }
-        )
+        ).build_transaction({"value": amount_in if token_in_is_eth else 0, "gas": None})
     )
+
     return transactions
 
 
@@ -141,22 +130,22 @@ def swap_test():
 
     # print("Safe After Transfer ETH Balance: ", manager.balance_of() / 10**18)
 
-    token_out_contract = web3.eth.contract(address=usdc_address, abi=MOCK_ERC20_ABI)
+    token_out_contract = web3.eth.contract(address=dai_address, abi=MOCK_ERC20_ABI)
     token_out_decimals = token_out_contract.functions.decimals().call()
     balance = token_out_contract.functions.balanceOf(manager.address).call()
     print("Balance of safe before the swap: ", balance / 10**token_out_decimals)
 
     # 2.- Encode swap transaction
-    amount_to_swap = 1
+    amount_to_swap = 1000
     encoded_swap: list[TxParams] = build_swap_transaction(
-        client, amount_to_swap, weth_address, usdc_address, manager.address
+        client, amount_to_swap, usdc_address, dai_address, manager.address, True
     )
     print(encoded_swap)
 
+
+    # 3.- Execute transaction in safe
     tx_hash = manager.send_txs(encoded_swap)
     manager.wait(tx_hash)
-
-    # 3.- Create transaction in safe
     balance = token_out_contract.functions.balanceOf(manager.address).call()
     print("Safe After Swap ETH Balance: ", manager.balance_of() / 10**18)
     print("Balance of safe after the swap: ", balance / 10**token_out_decimals)
