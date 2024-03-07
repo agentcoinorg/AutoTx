@@ -31,13 +31,13 @@ sqrt_price_limit = 0
 def get_swap_information(
     amount: int, token_in: Contract, token_out: Contract, price: int, exact_input: bool
 ):
+    print("price: ", price)
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
     if exact_input:
         amount_compared_with_token = amount * price
         minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
         amount_out = int(minimum_amount_out - (minimum_amount_out * slippage))
-
         return (amount_out, int(amount * 10**token_in_decimals), "exactInputSingle")
     else:
         amount_compared_with_token = amount / price
@@ -123,7 +123,7 @@ def swap_test():
     manager = SafeManager.deploy_safe(
         rpc_url, user, agent, [user.address, agent.address], 1
     )
-    print("Safe Before Transfer ETH Balance: ", manager.balance_of() / 10**18)
+    # print("Safe Before Transfer ETH Balance: ", manager.balance_of() / 10**18)
 
     # send_eth(user, manager.address, int(4 * 10**18), web3)
     # send_eth(user, agent.address, int(4 * 10**18), web3)
@@ -132,13 +132,17 @@ def swap_test():
 
     token_out_contract = web3.eth.contract(address=dai_address, abi=MOCK_ERC20_ABI)
     token_out_decimals = token_out_contract.functions.decimals().call()
-    balance = token_out_contract.functions.balanceOf(manager.address).call()
-    print("Balance of safe before the swap: ", balance / 10**token_out_decimals)
+    token_out_balance = token_out_contract.functions.balanceOf(manager.address).call()
+    print("Balance of token out safe before the swap: ", token_out_balance / 10**token_out_decimals)
 
+    token_in_contract = web3.eth.contract(address=usdc_address, abi=MOCK_ERC20_ABI)
+    token_in_decimals = token_in_contract.functions.decimals().call()
+    token_in_balance = token_in_contract.functions.balanceOf(manager.address).call()
+    print("Balance of token in safe before the swap: ", token_in_balance / 10**token_in_decimals)
     # 2.- Encode swap transaction
-    amount_to_swap = 1000
+    amount_to_swap = 25
     encoded_swap: list[TxParams] = build_swap_transaction(
-        client, amount_to_swap, usdc_address, dai_address, manager.address, True
+        client, amount_to_swap, dai_address, usdc_address, manager.address, True
     )
     print(encoded_swap)
 
@@ -146,6 +150,8 @@ def swap_test():
     # 3.- Execute transaction in safe
     tx_hash = manager.send_txs(encoded_swap)
     manager.wait(tx_hash)
-    balance = token_out_contract.functions.balanceOf(manager.address).call()
+    token_out_balance_new = token_out_contract.functions.balanceOf(manager.address).call()
+    token_in_balance_new = token_in_contract.functions.balanceOf(manager.address).call()
     print("Safe After Swap ETH Balance: ", manager.balance_of() / 10**18)
-    print("Balance of safe after the swap: ", balance / 10**token_out_decimals)
+    print("Balance token out of safe after the swap: ", token_out_balance_new / 10**token_out_decimals)
+    print("Balance token in of safe after the swap: ", token_in_balance_new / 10**token_in_decimals)
