@@ -1,64 +1,85 @@
+from typing import Any
 from langchain_core.tools import tool
 from crewai import Agent
-from pydantic import Field
+from pydantic import BaseModel, Field
+from sage_agent.agents.safe import Transaction, convert_tx_params_to_transaction
+from sage_agent.swap import build_swap_transaction
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
-import json
+from sage_agent.utils.ethereum.config import contracts_config
+from web3.types import TxParams
+
+from sage_agent.utils.user import get_configuration
 
 
-@tool(
-    "Queries the Uniswap pool for a given token pair to obtain necessary parameters for a swap."
-)
-def query_pools(token_in_address: str, token_out_address: str, fee: int) -> dict:
+class SwapInput(BaseModel):
+    amount: int = Field(
+        description="Amount given by the user to trade. The function will take care of converting the amount to needed decimals"
+    )
+    token_in: str = Field(description="Symbol of token input")
+    token_out: str = Field(description="Symbol of token output")
+    exact_input: bool = Field(
+        description="If true, the amount is for `token_in`, else, amout is for `token_out`"
+    )
+
+
+@tool("Build needed transactions to execute swap")
+def build_swap(
+    amount: int, token_in: str, token_out: str, exact_input: str
+) -> Transaction:
     """
-    Queries the Uniswap pool for a given token pair to obtain necessary parameters for a swap.
+    Encodes approve, if necessary and swap transactions. The function will only add the approve transaction
+    if the address does not have enough allowance
 
     Args:
-        token_in_address (str): The address of the input token contract.
-        token_out_address (str): The address of the output token contract.
-        fee (int): The fee tier of the pool to query.
+        amount (int): Amount given by the user to trade. The function will take care of converting the amount
+        to needed decimals.
+        token_in (str): Symbol of token input.
+        token_out (str): Symbol of token output.
+        exact_input (str): True | False -> If True, the amount is for `token_in`, else, amout is for `token_out`.
 
     Returns:
-        dict: A dictionary containing details about the pool, such as the pool address and any other necessary swap parameters.
-
-    Description:
-        Queries the specified Uniswap pool for the given token pair (input and output tokens) at the specified fee tier. It returns a dictionary with the pool's address and other relevant information that might be needed for calculating the swap
+        Array of encoded transaction(s)
     """
+    # print(amount)
+    # print(token_in)
+    # print(token_out)
+    # print(exact_input)
 
-    return {"pool_address": "0x_POOL_ADDRESS", "metadata": {}}
+    # amount = args.amount
+    # token_in = args.token_in.lower()
+    # token_out = args.token_out.lower()
+    # exact_input = args.exact_input
+
+    # # print(token_in)
+    # # print(token_out)
+
+    # print(amount)
+    token_in = token_in.lower()
+    token_out = token_out.lower()
+    tokens = contracts_config["erc20"]
+    exact_input = exact_input.lower() in ["true", "True"]
+
+    token_in_address = tokens["weth"] if token_in == "eth" else tokens[token_in]
+    token_out_address = tokens["weth"] if token_out == "eth" else tokens[token_out]
+
+    # print(available_tokens)
+    # print(token_in)
+    # print(token_out)
+    # # if token_in != "eth" and token_in not in available_tokens:
+    # #     print("wrong token for token in!")
+
+    # # if token_out != "eth" and token_out not in available_tokens:
+    # #     print("wrong token for token out!")
+    (_, _, client) = get_configuration()
+    swap_transactions = build_swap_transaction(
+        client, amount, token_in_address, token_out_address, "0x65D6359706D7a27e674a2C2D33b67cF6FB496Cd7", exact_input
+    )
+
+    return [convert_tx_params_to_transaction(tx) for tx in swap_transactions]
 
 
-@tool(
-    "Encodes a swap transaction for a specified amount of input tokens to output tokens using a Uniswap pool."
-)
-def encode_swap(
-    pool_address: str,
-    amount_in: int,
-    slippage_tolerance: float,
-    recipient_address: str,
-    deadline: int,
-) -> str:
-    """
-    Encodes a swap transaction for a specified amount of input tokens to output tokens using a Uniswap pool.
-
-    Args:
-        pool_address (str): The address of the Uniswap pool to interact with.
-        amount_in (int): The amount of input tokens to swap.
-        slippage_tolerance (float): The maximum acceptable slippage for the swap, in percentage terms.
-        recipient_address (str): The address of the recipient for the output tokens.
-        deadline (int): The latest timestamp (in Unix time) by which the transaction must be confirmed.
-
-    Returns:
-        str: The encoded data for the swap transaction, ready to be signed and sent to the Ethereum network.
-
-    Description:
-        This tool takes the necessary parameters for performing a token swap on Uniswap and encodes them into a transaction. It requires the address of the Uniswap pool, the amount of tokens to be swapped, and details such as slippage tolerance and transaction deadline. The function returns the encoded transaction data.
-    """
-
-    return "0x_SWAP_CALLDATA"
-
-
-default_tools = [query_pools, encode_swap]
+default_tools = [build_swap]
 
 
 class UniswapAgent(Agent):

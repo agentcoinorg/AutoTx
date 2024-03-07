@@ -30,6 +30,11 @@ def test_encode_transfer_and_sign_safe_transaction():
 
     swap_prompt = dedent(
         """
+        I want to swap 1 ETH to USDC in my safe
+        """
+    )
+    swap_prompt_complex = dedent(
+        """
         I want to swap 10 USDC to DAI and send 3 DAI to 0x1816d5Dd8a4081D64bd1518532440125438c79A6 from my safe with address 0x57c94aa4a136506d3b88d84473bf3dc77f5b51da
         """
     )
@@ -39,7 +44,7 @@ def test_encode_transfer_and_sign_safe_transaction():
     # {
     #     "erc20": Erc20Agent
     # }
-    sage = Sage([erc20_agent, safe_agent, uniswap_agent], None)
+    sage = Sage([safe_agent, uniswap_agent], None)
     sage.run(swap_prompt)
 
 

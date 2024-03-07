@@ -31,7 +31,6 @@ sqrt_price_limit = 0
 def get_swap_information(
     amount: int, token_in: Contract, token_out: Contract, price: int, exact_input: bool
 ):
-    print("price: ", price)
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
     if exact_input:
@@ -57,7 +56,7 @@ def build_swap_transaction(
     token_out_address: str,
     _from: str,
     exact_input: bool,
-) -> TxParams:
+) -> list[TxParams]:
     uniswap = UniswapV3Oracle(etherem_client, ROUTER_ADDRESS)
     router = uniswap.router
     web3 = etherem_client.w3
@@ -102,7 +101,7 @@ def build_swap_transaction(
             )
         ).build_transaction({"value": amount_in if token_in_is_eth else 0, "gas": None})
     )
-
+    print(transactions)
     return transactions
 
 
@@ -121,7 +120,7 @@ def swap_test():
 
     # 1.- Get safe
     manager = SafeManager.deploy_safe(
-        rpc_url, user, agent, [user.address, agent.address], 1
+        client, user, agent, [user.address, agent.address], 1
     )
     # print("Safe Before Transfer ETH Balance: ", manager.balance_of() / 10**18)
 
@@ -133,12 +132,19 @@ def swap_test():
     token_out_contract = web3.eth.contract(address=dai_address, abi=MOCK_ERC20_ABI)
     token_out_decimals = token_out_contract.functions.decimals().call()
     token_out_balance = token_out_contract.functions.balanceOf(manager.address).call()
-    print("Balance of token out safe before the swap: ", token_out_balance / 10**token_out_decimals)
+    print(
+        "Balance of token out safe before the swap: ",
+        token_out_balance / 10**token_out_decimals,
+    )
 
     token_in_contract = web3.eth.contract(address=usdc_address, abi=MOCK_ERC20_ABI)
     token_in_decimals = token_in_contract.functions.decimals().call()
     token_in_balance = token_in_contract.functions.balanceOf(manager.address).call()
-    print("Balance of token in safe before the swap: ", token_in_balance / 10**token_in_decimals)
+    print(
+        "Balance of token in safe before the swap: ",
+        token_in_balance / 10**token_in_decimals,
+    )
+
     # 2.- Encode swap transaction
     amount_to_swap = 25
     encoded_swap: list[TxParams] = build_swap_transaction(
@@ -146,12 +152,19 @@ def swap_test():
     )
     print(encoded_swap)
 
-
     # 3.- Execute transaction in safe
     tx_hash = manager.send_txs(encoded_swap)
     manager.wait(tx_hash)
-    token_out_balance_new = token_out_contract.functions.balanceOf(manager.address).call()
+    token_out_balance_new = token_out_contract.functions.balanceOf(
+        manager.address
+    ).call()
     token_in_balance_new = token_in_contract.functions.balanceOf(manager.address).call()
     print("Safe After Swap ETH Balance: ", manager.balance_of() / 10**18)
-    print("Balance token out of safe after the swap: ", token_out_balance_new / 10**token_out_decimals)
-    print("Balance token in of safe after the swap: ", token_in_balance_new / 10**token_in_decimals)
+    print(
+        "Balance token out of safe after the swap: ",
+        token_out_balance_new / 10**token_out_decimals,
+    )
+    print(
+        "Balance token in of safe after the swap: ",
+        token_in_balance_new / 10**token_in_decimals,
+    )
