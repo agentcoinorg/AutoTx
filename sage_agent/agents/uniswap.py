@@ -73,7 +73,12 @@ def build_swap(
     # #     print("wrong token for token out!")
     (_, _, client) = get_configuration()
     swap_transactions = build_swap_transaction(
-        client, amount, token_in_address, token_out_address, "0x65D6359706D7a27e674a2C2D33b67cF6FB496Cd7", exact_input
+        client,
+        amount,
+        token_in_address,
+        token_out_address,
+        "0x65D6359706D7a27e674a2C2D33b67cF6FB496Cd7",
+        exact_input,
     )
 
     return [convert_tx_params_to_transaction(tx) for tx in swap_transactions]
@@ -90,7 +95,7 @@ class UniswapAgent(Agent):
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
-            tools=default_tools,
+            tools=[build_swap],
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
