@@ -44,7 +44,7 @@ class Sage:
             for AI agents specializing in direct smart contract interactions; you must explicitly include any user-provided details, 
             such as token addresses and contract addresses, in the corresponding tasks to ensure all necessary information is accounted for and utilized appropriately.
 
-            Your primary focus is on crafting the necessary calldata for smart contract function calls,
+            Your primary focus is on preparing transactions for smart contract function calls,
             with an emphasis on streamlining steps into comprehensive, logically ordered tasks.
 
             The allocation of tasks to specific agents is determined by their respective roles, goals, and available tools. as outlined blow:
@@ -57,8 +57,7 @@ class Sage:
             Given the prompt below, your task is to synthesize it into a series of streamlined, ordered tasks. Each task should identify the most appropriate agent
             or execution, with a clear description, expected output, and context for integration. Remember, tasks involving transaction creation or smart contract interactions must explicitly include contract addresses as part of the task description.
 
-            When it comes to create the transactions, you must create it in the last step and making
-            sure you share the needed contract addresses to interact with.
+            When it comes to executing the transactions, you can use the Safe agent to execute one or more transactions.
 
             Please format your response as an array of JSON objects, like so:
 
@@ -75,15 +74,20 @@ class Sage:
             This is the prompt: {prompt}
 
             Please minimize emphasis on transaction execution/monitoring or gas estimation, as these aspects are managed separately.
+            Only use the agents provided in the list above.
             """
         )
         agent_descriptions = []
         for agent_name, agent_details in agents_config.items():
             agent_info = agent_details.model_dump()
-            agent_module = importlib.import_module(f"sage_agent.agents.{agent_name}")
+            # Find agent with agent_name
+            agent = next(filter(lambda a: a.name == agent_name, self.agents), None)
+
+            if not agent:
+                raise Exception(f"Agent {agent_name} not found")
 
             try:
-                agent_default_tools: list[StructuredTool] = agent_module.default_tools
+                agent_default_tools: list[StructuredTool] = agent.tools
                 tools_available = "\n".join(
                     [
                         f"- Name: {tool.name} - Description: {tool.description} \n"

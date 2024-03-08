@@ -1,67 +1,51 @@
-from langchain_core.tools import tool
+from eth_account import Account
 from crewai import Agent
-from pydantic import Field
+from pydantic import BaseModel, Field
 from sage_agent.utils.agents_config import AgentConfig, agents_config
+from sage_agent.utils.ethereum.SafeManager import SafeManager
 from sage_agent.utils.llm import open_ai_llm
+from crewai_tools import BaseTool
 
+class ExecuteTransactionsSchema(BaseModel):
+    transactions: str = Field(..., description="A list of transactions to be executed")
 
-@tool("Create transaction")
-def create_transaction(payload):
-    """
-    Creates transaction in safe. It recieves an array of transactions, which will be
-    converted to a multisend transaction if necessary, if not, it just create a single transaction
+class ExecuteTransactionsTool(BaseTool):
+    name: str = "Execute a list of transactions in safe"
+    description: str = "Executes a list of transactions in safe"
+    safe: SafeManager | None = Field(None)
+    agent: Account | None = Field(None)
+    model_config = {"arbitrary_types_allowed": True}
+    
+    def __init__(self, safe: SafeManager, agent: Account):
+        super().__init__()
+        self.safe = safe
+        self.agent = agent
 
-    :param payload: str, a string representations of an array of ethereum transactions
+    def _run(self, transactions: list[dict]) -> str:
+        """
+        :param transactions: list[dict], list of the transactions to be executed
 
-    example payload:
-    [{
-        to: str
-        value: str
-        data: str
-    }]
+        :return hash: str, hash of the executed multi-send transaction
+        """
+        for tx in transactions:
+            tx["from"] = self.safe.address
 
-    :return safe_transaction_hash: str, hash of the recently created safe transaction
-    """
+        tx_hash = self.safe.send_txs(transactions)
+        self.safe.wait(tx_hash)
 
-    return "0xSAFE_TRANSACTION_HASH"
-
-
-@tool("Execute signed transaction in safe")
-def execute_transaction(safe_transaction_hash):
-    """
-    :param safe_transaction_hash: str, hash of the transaction to be executed
-
-    :return hash: str, hash of transaction executed
-    """
-    return "0xEXECUTED_TRANSACTION_HASH"
-
-
-@tool("Sign transaction")
-def sign_transaction(safe_transaction_hash):
-    """
-    :param safe_transaction_hash: str, hash of the transaction to be signed
-
-    :return signature: str, signature added to transaction from hash given
-    """
-    return "0xSIGNATURE"
-
-
-default_tools = [
-    create_transaction,
-    execute_transaction,
-    sign_transaction,
-]
-
+        return tx_hash.hex()
 
 class SafeAgent(Agent):
     name: str
 
-    def __init__(self):
+    def __init__(self, safe: SafeManager, agent: Account):
         name = "safe"
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
-            tools=default_tools,
+            tools=[
+                ExecuteTransactionsTool(safe, agent),
+            ],
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
