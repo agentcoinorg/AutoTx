@@ -32,6 +32,9 @@ class SafeManager:
 
         return manager
 
+    def connect_multisend(self, address: str):
+        self.multisend = MultiSend(self.client, address=address)
+
     def connect_multicall(self, address: str):
         self.client.multicall = Multicall(self.client, address)
 

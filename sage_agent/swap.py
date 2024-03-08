@@ -61,9 +61,7 @@ def build_swap_transaction(
     router = uniswap.router
     web3 = etherem_client.w3
 
-    token_in_is_eth = False
-    if token_in_address == str(uniswap.weth_address):
-        token_in_is_eth = True
+    token_in_is_eth = token_in_address == str(uniswap.weth_address)
 
     token_in = web3.eth.contract(address=token_in_address, abi=MOCK_ERC20_ABI)
     token_out = web3.eth.contract(address=token_out_address, abi=MOCK_ERC20_ABI)
