@@ -1,10 +1,7 @@
 from langchain_core.tools import tool
 from crewai import Agent
-from pydantic import Field
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
-import json
-
 
 @tool(
     "Queries the Uniswap pool for a given token pair to obtain necessary parameters for a swap."
@@ -57,10 +54,6 @@ def encode_swap(
 
     return "0x_SWAP_CALLDATA"
 
-
-default_tools = [query_pools, encode_swap]
-
-
 class UniswapAgent(Agent):
     name: str
 
@@ -69,7 +62,7 @@ class UniswapAgent(Agent):
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
-            tools=default_tools,
+            tools=[query_pools, encode_swap],
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
