@@ -6,7 +6,6 @@ from crewai import Agent, Crew, Process, Task
 from sage_agent.utils.agents_config import agents_config
 from sage_agent.utils.llm import open_ai_llm
 import openai
-import importlib
 from langchain_core.tools import StructuredTool
 
 
@@ -64,9 +63,6 @@ class Sage:
             agent = next(filter(lambda a: a.name == agent_name, self.agents), None)
 
             if not agent:
-                raise Exception(f"Agent {agent_name} not found")
-
-            if agent_name not in [a.name for a in self.agents]:
                 continue
 
             try:
