@@ -1,6 +1,8 @@
-from textwrap import dedent
-import click
 from dotenv import load_dotenv
+load_dotenv()
+
+import click
+from textwrap import dedent
 from sage_agent.agents.erc20 import Erc20Agent
 from sage_agent.agents.safe import SafeAgent
 from sage_agent.agents.uniswap import UniswapAgent
@@ -8,14 +10,10 @@ from sage_agent.sage import Sage
 from sage_agent.patch import patch_langchain
 from sage_agent.utils.ethereum import deploy_mock_erc20
 from sage_agent.utils.ethereum.SafeManager import SafeManager
-from sage_agent.utils.ethereum.build_transfer_erc20 import build_transfer_erc20
-from sage_agent.utils.ethereum.generate_agent_account import generate_agent_account
-from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI, MOCK_ERC20_BYTECODE
 from sage_agent.utils.ethereum.send_eth import send_eth
 from sage_agent.utils.ethereum.transfer_erc20 import transfer_erc20
 from sage_agent.utils.configuration import get_configuration
 
-load_dotenv()
 patch_langchain()
 
 
