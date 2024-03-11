@@ -1,5 +1,7 @@
-import click
 from dotenv import load_dotenv
+load_dotenv()
+
+import click
 from eth_account import Account
 from sage_agent. get_env_vars import get_env_vars
 from sage_agent.agents.erc20 import Erc20Agent
@@ -14,7 +16,6 @@ from sage_agent.utils.ethereum.generate_agent_account import generate_agent_acco
 from sage_agent.utils.ethereum.send_eth import send_eth
 from sage_agent.utils.ethereum.transfer_erc20 import transfer_erc20
 
-load_dotenv()
 patch_langchain()
 
 @click.command()
