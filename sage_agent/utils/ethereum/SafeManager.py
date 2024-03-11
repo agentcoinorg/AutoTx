@@ -23,9 +23,7 @@ class SafeManager:
         return self.safe.address
 
     @classmethod
-    def deploy_safe(cls, rpc_url: str, user: Account, agent: Account, owners: list[str], threshold: int):
-        client = EthereumClient(URI(rpc_url))
-
+    def deploy_safe(cls, client: EthereumClient, user: Account, agent: Account, owners: list[str], threshold: int):
         safe = deploy_safe_with_create2(client, user, owners, threshold)
 
         manager = cls(client, user, agent, safe)
@@ -33,6 +31,9 @@ class SafeManager:
         manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
 
         return manager
+
+    def connect_multisend(self, address: str):
+        self.multisend = MultiSend(self.client, address=address)
 
     def connect_multicall(self, address: str):
         self.client.multicall = Multicall(self.client, address)

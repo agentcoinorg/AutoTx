@@ -1,6 +1,6 @@
 import json
 from typing import Dict
-from pydantic import BaseModel, RootModel
+from pydantic import RootModel
 
 class ContractsAddresses(RootModel):
     root: Dict[str, Dict[str, str]]

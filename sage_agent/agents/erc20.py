@@ -9,22 +9,26 @@ from sage_agent.utils.ethereum.get_erc20_info import get_erc20_info
 from sage_agent.utils.llm import open_ai_llm
 import json
 from crewai_tools import BaseTool
+from sage_agent.utils.ethereum.config import contracts_config
 
 @tool("Prepare transfer transaction")
-def prepare_transfer_transaction(amount: str, reciever: str, token_address: str):
+def prepare_transfer_transaction(amount: float, reciever: str, token: str):
     """
     Prepares a transfer transaction for given amount in decimals for given token
 
     Args:
-        amount (int): The amount formatted in unit digits
+        amount (float): Amount given by the user to transfer. The function will take
+        care of converting the amount to needed decimals.
         reciever (str): The address of reciever
-        token_address (str): The address of the token to interact with
+        token (str): Symbol of token to transfer
     Returns:
-        str: The JSON representation of the transaction
+        Transaction object with filled data to execute transfer
     """
-    tx = build_transfer_erc20(load_w3(), token_address, reciever, int(amount))
+    tokens = contracts_config["erc20"]
+    token_address = tokens[token.lower()]
+    tx = build_transfer_erc20(load_w3(), token_address, reciever, amount)
 
-    return json.dumps(tx)
+    return tx
 
 @tool("Parse token units")
 def parse_token_units(amount: int, decimals: int):
@@ -104,7 +108,7 @@ class GetTokenAddressTool(BaseTool):
     def _run(self, symbol: str) -> str:
         for address in self.token_addresses:
             token = json.loads(get_information(address))
-            if token["symbol"] == symbol:
+            if token["symbol"] == symbol.lower():
                 return address
         
         raise ValueError(f"Token with symbol {symbol} not found")

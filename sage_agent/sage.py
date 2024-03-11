@@ -4,9 +4,7 @@ from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
 from sage_agent.utils.agents_config import agents_config
-from sage_agent.utils.llm import open_ai_llm
 import openai
-import importlib
 from langchain_core.tools import StructuredTool
 
 
@@ -25,7 +23,6 @@ class Sage:
             self.config = config
 
     def run(self, prompt: str):
-        print("Prompt received...")
         print("Defining tasks...")
         tasks: list[Task] = self.define_tasks(prompt)
         crew = Crew(
@@ -33,48 +30,27 @@ class Sage:
             tasks=tasks,
             verbose=self.config.verbose,
             process=Process.sequential,
-            # manager_llm=open_ai_llm,
         )
         return crew.kickoff()
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
             """
-            As an expert in decentralized systems, especially Ethereum, you excel at converting user-given prompts into structured tasks
-            for AI agents specializing in direct smart contract interactions; you must explicitly include any user-provided details, 
-            such as token addresses and contract addresses, in the corresponding tasks to ensure all necessary information is accounted for and utilized appropriately.
-
-            Your primary focus is on preparing transactions for smart contract function calls,
-            with an emphasis on streamlining steps into comprehensive, logically ordered tasks.
-
-            The allocation of tasks to specific agents is determined by their respective roles, goals, and available tools. as outlined blow:
-            {agents_information}
-            
-            Your approach aims to enhance efficiency by merging steps that naturally complement each other. It is vital to ensure that each task is defined with clarity
-            and precision, especially when it involves encoding transactions or interacting with contracts. Essential details, particularly contract addresses, must be
-            explicitly mentioned in the tasks to prevent omissions.
-
-            Given the prompt below, your task is to synthesize it into a series of streamlined, ordered tasks. Each task should identify the most appropriate agent
-            or execution, with a clear description, expected output, and context for integration. Remember, tasks involving transaction creation or smart contract interactions must explicitly include contract addresses as part of the task description.
-
-            When it comes to executing the transactions, you can use the Safe agent to execute one or more transactions.
-
-            Please format your response as an array of JSON objects, like so:
-
+            Based on the following prompt: {prompt}
+              
+            You must convert instructions into specific tasks with the following JSON format:
             {{
                 tasks : [{{
                     "task": "Concise description of task to be done with details needed given by user"
                     "agent": "The agent that best fits to execute the task"
-                    "expected_output": str // "Description of expected output for the task"
+                    "expected_output":"Description of expected output for the task"
                     "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
-                    "extra_information": str // Any extra information with description given by the user needed to execute the task, if applicable.
+                    "extra_information": Any extra information as string with description given by the user needed to execute the task, if applicable.
                 }}]
             }}
 
-            This is the prompt: {prompt}
-
-            Please minimize emphasis on transaction execution/monitoring or gas estimation, as these aspects are managed separately.
-            Only use the agents provided in the list above.
+            The specific tasks will be created based on the available agents role, goal and available tools:
+            {agents_information}
             """
         )
         agent_descriptions = []
@@ -84,17 +60,17 @@ class Sage:
             agent = next(filter(lambda a: a.name == agent_name, self.agents), None)
 
             if not agent:
-                raise Exception(f"Agent {agent_name} not found")
+                continue
 
             try:
                 agent_default_tools: list[StructuredTool] = agent.tools
                 tools_available = "\n".join(
                     [
-                        f"- Name: {tool.name} - Description: {tool.description} \n"
+                        f"  - Name: {tool.name}\n  - Description: {tool.description} \n"
                         for tool in agent_default_tools
                     ]
                 )
-                description = f"{agent_name}: Role - {agent_info['role']}, Goal - {agent_info['goal']}. Tools available: {tools_available}"
+                description = f"Agent name: {agent_name.lower()}\nRole: {agent_info['role']}\nTools available:\n{tools_available}"
                 agent_descriptions.append(description)
             except AttributeError:
                 raise Exception(f"No default tools defined in agent: {agent_name}")
@@ -105,12 +81,12 @@ class Sage:
             agents_information=agents_information, prompt=prompt
         )
 
+        # TODO: Improve how we pass messages. We should use system role
         response = openai.chat.completions.create(
             model="gpt-4-turbo-preview",
             response_format={"type": "json_object"},
             messages=[{"role": "user", "content": formatted_template}],
         )
-
         response = response.choices[0].message.content
         print(response)
         if not response:
