@@ -5,14 +5,14 @@ from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 from web3.contract.contract import Contract
 
 from web3.types import TxParams
+from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 
-from sage_agent.utils.ethereum.constants import ROUTER_ADDRESS
 from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 
-fee = 3000  # 0.3%
-slippage = 0.01
-sqrt_price_limit = 0
+FEE = 3000  # 0.3%
+SLIPPAGE = 0.01
+SQRT_PRICE_LIMIT = 0
 
 
 def get_swap_information(
@@ -23,12 +23,12 @@ def get_swap_information(
     if exact_input:
         amount_compared_with_token = amount * price
         minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
-        amount_out = int(minimum_amount_out - (minimum_amount_out * slippage))
+        amount_out = int(minimum_amount_out - (minimum_amount_out * SLIPPAGE))
         return (amount_out, int(amount * 10**token_in_decimals), "exactInputSingle")
     else:
         amount_compared_with_token = amount / price
         max_amount_in = int(amount_compared_with_token * 10**token_in_decimals)
-        amount_in = int(max_amount_in + (max_amount_in * slippage))
+        amount_in = int(max_amount_in + (max_amount_in * SLIPPAGE))
         return (
             int(amount * 10**token_out_decimals),
             amount_in,
@@ -44,7 +44,7 @@ def build_swap_transaction(
     _from: str,
     exact_input: bool,
 ) -> list[TxParams]:
-    uniswap = UniswapV3Oracle(etherem_client, ROUTER_ADDRESS)
+    uniswap = UniswapV3Oracle(etherem_client)
     web3 = etherem_client.w3
 
     token_in_is_eth = token_in_address == str(uniswap.weth_address)
@@ -59,12 +59,15 @@ def build_swap_transaction(
 
     transactions: list[TxParams] = []
     if not token_in_is_eth:
-        allowance = token_in.functions.allowance(_from, ROUTER_ADDRESS).call()
+        allowance = token_in.functions.allowance(_from, uniswap.router_address).call()
         if allowance <= amount_in:
             transactions.append(
-                token_in.functions.approve(ROUTER_ADDRESS, amount_in).build_transaction(
+                token_in.functions.approve(
+                    uniswap.router_address, amount_in
+                ).build_transaction(
                     {
                         "from": _from,
+                        "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
                     }
                 )
             )
@@ -74,12 +77,18 @@ def build_swap_transaction(
             (
                 token_in_address,
                 token_out_address,
-                fee,
+                FEE,
                 _from,
                 amount_out if method == "exactOutputSingle" else amount_in,
                 amount_in if method == "exactOutputSingle" else amount_out,
-                sqrt_price_limit,
+                SQRT_PRICE_LIMIT,
             )
-        ).build_transaction({"value": amount_in if token_in_is_eth else 0, "gas": None})
+        ).build_transaction(
+            {
+                "value": amount_in if token_in_is_eth else 0,
+                "gas": None,
+                "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+            }
+        )
     )
     return transactions

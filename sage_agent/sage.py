@@ -4,7 +4,6 @@ from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
 from sage_agent.utils.agents_config import agents_config
-from sage_agent.utils.llm import open_ai_llm
 import openai
 from langchain_core.tools import StructuredTool
 
@@ -24,7 +23,6 @@ class Sage:
             self.config = config
 
     def run(self, prompt: str):
-        print("Prompt received...")
         print("Defining tasks...")
         tasks: list[Task] = self.define_tasks(prompt)
         crew = Crew(
@@ -32,7 +30,6 @@ class Sage:
             tasks=tasks,
             verbose=self.config.verbose,
             process=Process.sequential,
-            # manager_llm=open_ai_llm,
         )
         return crew.kickoff()
 
@@ -84,6 +81,7 @@ class Sage:
             agents_information=agents_information, prompt=prompt
         )
 
+        # TODO: Improve how we pass messages. We should use system role
         response = openai.chat.completions.create(
             model="gpt-4-turbo-preview",
             response_format={"type": "json_object"},
