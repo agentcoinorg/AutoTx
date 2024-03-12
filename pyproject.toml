@@ -14,6 +14,7 @@ python-dotenv = "^1.0.1"
 safe-eth-py = "^5.8.0"
 eth-account = "^0.11.0"
 web3 = "^6.15.1"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"

@@ -49,6 +49,14 @@ class ExecuteSwapTool(BaseTool):
         token_in_address = tokens["weth"] if token_in == "eth" else tokens[token_in]
         token_out_address = tokens["weth"] if token_out == "eth" else tokens[token_out]
 
+        print(
+            self.client,
+            amount,
+            token_in_address,
+            token_out_address,
+            self.recipient,
+            is_exact_input,
+        )
         swap_transactions = build_swap_transaction(
             self.client,
             amount,
