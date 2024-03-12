@@ -16,7 +16,7 @@ SQRT_PRICE_LIMIT = 0
 
 
 def get_swap_information(
-    amount: int, token_in: Contract, token_out: Contract, price: int, exact_input: bool
+    amount: float, token_in: Contract, token_out: Contract, price: float, exact_input: bool
 ):
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
@@ -38,7 +38,7 @@ def get_swap_information(
 
 def build_swap_transaction(
     etherem_client: EthereumClient,
-    amount: int,
+    amount: float,
     token_in_address: str,
     token_out_address: str,
     _from: str,

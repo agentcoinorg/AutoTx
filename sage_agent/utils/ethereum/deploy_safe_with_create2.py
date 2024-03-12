@@ -1,9 +1,9 @@
 import random
 from eth_account import Account
+from eth_typing import HexStr
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe, ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
-from web3.types import TxParams
 from .cache import cache
 
 from .send_tx import send_tx
@@ -28,7 +28,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     safe_address = builder.calculate_create2_address(setup_data, salt_nonce)
 
     # Check if safe is already deployed
-    if w3.eth.get_code(safe_address) != w3.to_bytes(hexstr="0x"):
+    if w3.eth.get_code(safe_address) != w3.to_bytes(hexstr=HexStr("0x")):
         print("Safe already deployed", safe_address)
         return Safe(safe_address, client)
     

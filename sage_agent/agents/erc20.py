@@ -3,7 +3,7 @@ from crewai import Agent
 from pydantic import Field
 from web3 import Web3
 from sage_agent.utils.agents_config import AgentConfig, agents_config
-from sage_agent.utils.ethereum import build_approve_erc20, build_transfer_erc20, get_erc20_balance
+from sage_agent.utils.ethereum import build_transfer_erc20, get_erc20_balance
 from sage_agent.utils.ethereum import load_w3
 from sage_agent.utils.ethereum.get_erc20_info import get_erc20_info
 from sage_agent.utils.llm import open_ai_llm
