@@ -30,37 +30,6 @@ def prepare_transfer_transaction(amount: float, reciever: str, token: str):
 
     return tx
 
-@tool("Parse token units")
-def parse_token_units(amount: int, decimals: int):
-    """
-    Parses the amount of token with unit digits
-
-    Args:
-        amount (int): The amount of the token
-        decimals (int): The decimals of the token
-    Returns:
-        int: The amount of token parsed with unit digits
-    """
-    
-    return amount * 10 ** decimals
-
-@tool("Prepare approve transaction")
-def prepare_approve_transaction(amount: int, spender: str, token_address: str) -> str:
-    """
-    Prepares an approve transaction for given amount of token to spender
-
-    Args:
-        amount (int): The amount in decimals of token.
-        spender (str): The address of the spender
-        token_address (str): The address of the token to interact with
-    Returns:
-        str: The JSON representation of the transaction
-    """
-
-    tx = build_approve_erc20(load_w3(), token_address, spender, amount)
-
-    return json.dumps(tx)
-
 
 @tool("Check owner balance in ERC20 token")
 def get_balance(address, owner):
@@ -74,6 +43,7 @@ def get_balance(address, owner):
     """
 
     return get_erc20_balance(load_w3(), address, owner)
+
 
 @tool("Get decimals, name and symbol for an ERC")
 def get_information(address):
@@ -123,10 +93,8 @@ class Erc20Agent(Agent):
             **config,
             tools=[
                 prepare_transfer_transaction,
-                prepare_approve_transaction,
                 get_balance,
                 get_information,
-                parse_token_units,
                 GetTokenAddressTool(token_addresses),
             ],
             llm=open_ai_llm,
