@@ -56,7 +56,7 @@ def test_swap_through_safe():
         client, 5000, dai_address, usdc_address, manager.address, True
     )
 
-    hash = manager.send_txs(txs)
+    hash = manager.send_multisend_tx(txs)
     manager.wait(hash)
 
     show_address_balances(client.w3, user.address)

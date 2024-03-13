@@ -29,6 +29,8 @@ def run(prompt: str):
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
     )
+    # manager.connect_tx_service(EthereumNetwork.SEPOLIA, "https://safe-transaction-sepolia.safe.global/")
+    # manager.disconnect_tx_service()
 
     # # Send 1 ETH to the agent, so it can execute transactions
     if manager.balance_of(None) < 1 * 10**18:

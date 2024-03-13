@@ -41,7 +41,7 @@ class ExecuteTransactionsTool(BaseTool):
         """
         sanitized_transaction: list[TxParams] = self.sanitize_transactions(transactions)
 
-        tx_hash = self.safe.send_txs(sanitized_transaction)
+        tx_hash = self.safe.send_multisend_tx(sanitized_transaction)
         self.safe.wait(tx_hash)
 
         return tx_hash.hex()
