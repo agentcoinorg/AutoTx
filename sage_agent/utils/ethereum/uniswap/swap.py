@@ -1,5 +1,6 @@
 from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
+import requests
 
 
 from web3.contract.contract import Contract
@@ -10,8 +11,7 @@ from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 
-FEE = 3000  # 0.3%
-SLIPPAGE = 0.01
+SLIPPAGE = 0.05
 SQRT_PRICE_LIMIT = 0
 
 
@@ -36,6 +36,57 @@ def get_swap_information(
         )
 
 
+def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
+    token_in_lower = token_in_address.lower()
+    token_out_lower = token_out_address.lower()
+    reversed = token_in_lower > token_out_lower
+
+    (token0, token1) = (
+        (token_out_lower, token_in_lower)
+        if reversed
+        else (token_in_lower, token_out_lower)
+    )
+
+    data = {
+        "query": """
+            query GetPools($token0: String, $token1: String) {
+                pools(
+                    where: {
+                        token0: $token0
+                        token1: $token1
+                    }
+                ) {
+                    id
+                    feeTier
+                    sqrtPrice
+                    liquidity
+                    token0 {
+                        id
+                        symbol
+                    }
+                    token1 {
+                        id
+                        symbol
+                    }
+                }
+            }
+        """,
+        "variables": {"token0": token0, "token1": token1},
+    }
+    url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3"
+    response = requests.post(url, json=data)
+
+    if response.status_code == 200:
+        if not "data" in response.json():
+            raise Exception(f"Request failed with response: {response.json()}")
+        pools = response.json()["data"]["pools"]
+
+        max_liquidity_pool = max(pools, key=lambda x: int(x["liquidity"]))
+        return int(max_liquidity_pool["feeTier"])
+    else:
+        raise Exception(f"Request failed with status code: {response.status_code}")
+
+
 def build_swap_transaction(
     etherem_client: EthereumClient,
     amount: int,
@@ -52,7 +103,6 @@ def build_swap_transaction(
     token_in = web3.eth.contract(address=token_in_address, abi=MOCK_ERC20_ABI)
     token_out = web3.eth.contract(address=token_out_address, abi=MOCK_ERC20_ABI)
     price = uniswap.get_price(token_in_address, token_out_address)
-
     (amount_out, amount_in, method) = get_swap_information(
         amount, token_in, token_out, price, exact_input
     )
@@ -60,7 +110,7 @@ def build_swap_transaction(
     transactions: list[TxParams] = []
     if not token_in_is_eth:
         allowance = token_in.functions.allowance(_from, uniswap.router_address).call()
-        if allowance <= amount_in:
+        if allowance < amount_in:
             transactions.append(
                 token_in.functions.approve(
                     uniswap.router_address, amount_in
@@ -72,23 +122,23 @@ def build_swap_transaction(
                 )
             )
 
-    transactions.append(
-        uniswap.router.functions[method](
-            (
-                token_in_address,
-                token_out_address,
-                FEE,
-                _from,
-                amount_out if method == "exactOutputSingle" else amount_in,
-                amount_in if method == "exactOutputSingle" else amount_out,
-                SQRT_PRICE_LIMIT,
-            )
-        ).build_transaction(
-            {
-                "value": amount_in if token_in_is_eth else 0,
-                "gas": None,
-                "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-            }
+    fee = get_best_fee_tier(token_in_address, token_out_address)
+    swap_transaction = uniswap.router.functions[method](
+        (
+            token_in_address,
+            token_out_address,
+            fee,
+            _from,
+            amount_out if method == "exactOutputSingle" else amount_in,
+            amount_in if method == "exactOutputSingle" else amount_out,
+            SQRT_PRICE_LIMIT,
         )
+    ).build_transaction(
+        {
+            "value": amount_in if token_in_is_eth else 0,
+            "gas": None,
+            "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+        }
     )
+    transactions.append(swap_transaction)
     return transactions
