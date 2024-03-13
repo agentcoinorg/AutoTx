@@ -2,7 +2,7 @@ from typing import Optional
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
-from .constants import MULTI_SEND_ADDRESS
+from .constants import MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
 from eth_account import Account
 from eth_typing import URI
 from gnosis.eth import EthereumClient, EthereumNetwork
@@ -16,7 +16,7 @@ from gnosis.safe.api import TransactionServiceApi
 class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
-    gas_multiplier: float | None = None
+    gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
 
     def __init__(
         self, 
@@ -40,14 +40,12 @@ class SafeManager:
     @classmethod
     def deploy_safe(
         cls, 
-        rpc_url: str, 
+        client: EthereumClient, 
         user: Account, 
         agent: Account, 
         owners: list[str], 
         threshold: int
     ):
-        client = EthereumClient(URI(rpc_url))
-
         safe = deploy_safe_with_create2(client, user, owners, threshold)
 
         manager = cls(client, user, agent, safe)
