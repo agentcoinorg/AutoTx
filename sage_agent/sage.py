@@ -1,17 +1,16 @@
+import ast
 from dataclasses import dataclass
 import json
 from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
+from crewai.task import TaskOutput
 from sage_agent.utils.agents_config import agents_config
 import openai
 from langchain_core.tools import StructuredTool
 from web3.types import TxParams
 
 from sage_agent.utils.ethereum import SafeManager
-
-transactions: list[TxParams] = []
-
 
 @dataclass(kw_only=True)
 class Config:
@@ -22,6 +21,7 @@ class Sage:
     manager: SafeManager
     agents: list[Agent]
     config: Config = Config(verbose=False)
+    transactions: list[TxParams] = []
 
     def __init__(
         self, manager: SafeManager, agents: list[Agent], config: Optional[Config]
@@ -39,9 +39,17 @@ class Sage:
             tasks=tasks,
             verbose=self.config.verbose,
             process=Process.sequential,
+            full_output=True,
         ).kickoff()
 
-        self.manager.send_txs(transactions)
+        self.manager.send_txs(self.transactions)
+
+    def task_callback(self, output: TaskOutput):
+        created_transactions = ast.literal_eval(output.raw_output)
+        if isinstance(created_transactions, dict):
+            self.transactions.append(created_transactions)
+        else:
+            self.transactions.extend(created_transactions)
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
@@ -126,6 +134,7 @@ class Sage:
                     agent=agent,
                     expected_output=task["expected_output"],
                     context=context,
+                    callback=self.task_callback
                 )
             )
 

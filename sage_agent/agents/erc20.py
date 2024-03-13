@@ -10,7 +10,6 @@ from sage_agent.utils.llm import open_ai_llm
 import json
 from crewai_tools import BaseTool
 from sage_agent.utils.ethereum.config import contracts_config
-from sage_agent.sage import transactions
 
 @tool("Prepare transfer transaction")
 def prepare_transfer_transaction(amount: float, reciever: str, token: str):
@@ -28,8 +27,6 @@ def prepare_transfer_transaction(amount: float, reciever: str, token: str):
     tokens = contracts_config["erc20"]
     token_address = tokens[token.lower()]
     tx = build_transfer_erc20(load_w3(), token_address, reciever, amount)
-
-    transactions.append(tx)
 
     return tx
 
