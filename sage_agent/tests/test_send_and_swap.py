@@ -4,7 +4,7 @@ from sage_agent.utils.ethereum import (
 )
 from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
 from sage_agent.utils.configuration import get_configuration
-from sage_agent.utils.ethereum.helpers.show_balances import (
+from sage_agent.utils.ethereum.helpers.show_address_balances import (
     show_address_balances,
     weth_address,
     usdc_address,

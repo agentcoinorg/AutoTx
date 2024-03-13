@@ -19,8 +19,8 @@ def multi_send_test():
     print("User Address: ", user.address)
     print("Agent Address: ", agent.address)
 
-    print("User ETH Balance: ", get_eth_balance(user.address, web3))
-    print("Agent ETH Balance: ", get_eth_balance(agent.address, web3))
+    print("User ETH Balance: ", get_eth_balance(web3, user.address))
+    print("Agent ETH Balance: ", get_eth_balance(web3, agent.address))
 
     manager = SafeManager.deploy_safe(rpc_url, user, agent, [user.address, agent.address], 1)
     
@@ -53,4 +53,4 @@ def multi_send_test():
     print("Random addr", random_address)
     print("Safe ERC20 after multisend: ", int(manager.balance_of(token_address) / 10**18))
     print("Random addr ERC20 after multisend: ", int(get_erc20_balance(web3, token_address, random_address) / 10**18))
-    print("Random addr ETH Balance after multisend: ", int(get_eth_balance(random_address, web3) / 10**18))
+    print("Random addr ETH Balance after multisend: ", int(get_eth_balance(web3, random_address) / 10**18))
