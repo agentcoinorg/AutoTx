@@ -1,20 +1,16 @@
-from textwrap import dedent
-
 import pytest
 from sage_agent.utils.ethereum import (
     SafeManager,
-    get_erc20_balance,
-    send_eth,
 )
 from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
 from sage_agent.utils.configuration import get_configuration
-from sage_agent.utils.ethereum.config import contracts_config
-from sage_agent.utils.ethereum.helpers.show_balances import show_address_balances
-
-dai_address = contracts_config["erc20"]["dai"]
-weth_address = contracts_config["erc20"]["weth"]
-usdc_address = contracts_config["erc20"]["usdc"]
-wbtc_address = contracts_config["erc20"]["wbtc"]
+from sage_agent.utils.ethereum.helpers.show_balances import (
+    show_address_balances,
+    weth_address,
+    usdc_address,
+    dai_address,
+    wbtc_address,
+)
 
 
 @pytest.mark.skip()
@@ -48,7 +44,7 @@ def test_swap(configuration):
 
 
 @pytest.mark.skip()
-def test_swap_and_through_safe():
+def test_swap_through_safe():
     (user, agent, client) = get_configuration()
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
