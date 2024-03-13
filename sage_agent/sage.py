@@ -6,6 +6,11 @@ from crewai import Agent, Crew, Process, Task
 from sage_agent.utils.agents_config import agents_config
 import openai
 from langchain_core.tools import StructuredTool
+from web3.types import TxParams
+
+from sage_agent.utils.ethereum import SafeManager
+
+transactions: list[TxParams] = []
 
 
 @dataclass(kw_only=True)
@@ -14,24 +19,29 @@ class Config:
 
 
 class Sage:
+    manager: SafeManager
     agents: list[Agent]
     config: Config = Config(verbose=False)
 
-    def __init__(self, agents: list[Agent], config: Optional[Config]):
+    def __init__(
+        self, manager: SafeManager, agents: list[Agent], config: Optional[Config]
+    ):
         self.agents = agents
+        self.manager = manager
         if config:
             self.config = config
 
     def run(self, prompt: str):
         print("Defining tasks...")
         tasks: list[Task] = self.define_tasks(prompt)
-        crew = Crew(
+        Crew(
             agents=self.agents,
             tasks=tasks,
             verbose=self.config.verbose,
             process=Process.sequential,
-        )
-        return crew.kickoff()
+        ).kickoff()
+
+        self.manager.send_txs(transactions)
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
