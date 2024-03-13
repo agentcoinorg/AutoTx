@@ -24,7 +24,8 @@ pytest = "^8.0.0"
 pytest-vcr = "^1.0.2"
 
 [tool.poetry.scripts]
-start-env = "sage_agent.scripts.start_local_environment:main"
+start-env = "sage_agent.scripts.local_environment:start"
+reset-env = "sage_agent.scripts.local_environment:reset"
 ask = "sage_agent.main:run"
 
 [build-system]

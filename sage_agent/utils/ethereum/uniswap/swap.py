@@ -123,23 +123,22 @@ def build_swap_transaction(
             )
 
     fee = get_best_fee_tier(token_in_address, token_out_address)
-    transactions.append(
-        uniswap.router.functions[method](
-            (
-                token_in_address,
-                token_out_address,
-                fee,
-                _from,
-                amount_out if method == "exactOutputSingle" else amount_in,
-                amount_in if method == "exactOutputSingle" else amount_out,
-                SQRT_PRICE_LIMIT,
-            )
-        ).build_transaction(
-            {
-                "value": amount_in if token_in_is_eth else 0,
-                "gas": None,
-                "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-            }
+    swap_transaction = uniswap.router.functions[method](
+        (
+            token_in_address,
+            token_out_address,
+            fee,
+            _from,
+            amount_out if method == "exactOutputSingle" else amount_in,
+            amount_in if method == "exactOutputSingle" else amount_out,
+            SQRT_PRICE_LIMIT,
         )
+    ).build_transaction(
+        {
+            "value": amount_in if token_in_is_eth else 0,
+            "gas": None,
+            "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+        }
     )
+    transactions.append(swap_transaction)
     return transactions
