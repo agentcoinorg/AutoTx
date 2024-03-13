@@ -11,7 +11,7 @@ from sage_agent.patch import patch_langchain
 from sage_agent.utils.ethereum import deploy_mock_erc20
 from sage_agent.utils.ethereum.SafeManager import SafeManager
 from sage_agent.utils.ethereum.send_eth import send_eth
-from sage_agent.utils.ethereum.helpers.show_balances import show_address_balances
+from sage_agent.utils.ethereum.helpers.show_address_balances import show_address_balances
 from sage_agent.utils.configuration import get_configuration
 
 patch_langchain()
