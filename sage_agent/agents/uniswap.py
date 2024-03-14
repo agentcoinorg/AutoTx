@@ -5,6 +5,7 @@ from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
 from sage_agent.utils.agents_config import AgentConfig, agents_config
 from sage_agent.utils.llm import open_ai_llm
 from sage_agent.utils.ethereum.config import contracts_config
+from sage_agent.sage import transactions
 from web3.types import TxParams
 from crewai_tools import BaseTool
 from gnosis.eth import EthereumClient
@@ -57,6 +58,8 @@ class ExecuteSwapTool(BaseTool):
             self.recipient,
             is_exact_input,
         )
+
+        transactions.extend(swap_transactions)
 
         return swap_transactions
 
