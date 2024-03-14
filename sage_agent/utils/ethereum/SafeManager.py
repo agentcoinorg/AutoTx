@@ -86,7 +86,6 @@ class SafeManager:
             value=sum(tx["value"] for tx in txs),
             data=safe_multisend_data,
             operation=SafeOperation.DELEGATE_CALL.value,
-            gas_price=self.gas_price(),
             safe_nonce=self.track_nonce(safe_nonce)
         )
 

@@ -50,7 +50,7 @@ def test_swap_through_safe():
         client, user, agent, [user.address, agent.address], 1
     )
 
-    show_address_balances(client.w3, user.address)
+    show_address_balances(client.w3, manager.address)
 
     txs = build_swap_transaction(
         client, 5000, dai_address, usdc_address, manager.address, True
@@ -59,4 +59,4 @@ def test_swap_through_safe():
     hash = manager.send_multisend_tx(txs)
     manager.wait(hash)
 
-    show_address_balances(client.w3, user.address)
+    show_address_balances(client.w3, manager.address)
