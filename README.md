@@ -52,11 +52,6 @@ To run all tests in specific file, use the following command:
 To run a specific test, use the following command:
 > poetry run pytest -s ./sage_agent/tests/test_send_and_swap.py::test_swap
 
-Most tests start by fetching the configuration.
-The configuration deploys a gnosis safe. 
-The configuration consists of the following tuple: (user, agent, client, manager)
-Where user is the user's account, agent is the agent's account, client is the EthereumClient instance and manager is the SafeManager instance.
-
 ## How it works
 When you run AutoTx, it will prompt you to input a prompt.
 The prompt is then sent to the OpenAI API, which turns the prompt into a list of crew-ai tasks.
@@ -67,7 +62,6 @@ Each agent has a set of tools (functions) at it's disposal.
 Agents can be found in the `sage_agent/agents` directory.
 List of current agents:
 - Erc20Agent
-- SafeAgent
 - UniswapAgent
 
 ## How to customize
@@ -119,7 +113,7 @@ class MyTool(BaseTool):
 
         :return name_of_result: str, description of the result
         """
-        return str
+        return "some string"
 ```
 Use the above when you need to add state and/or dependencies to the tool.
 Then add the tool to the agent:
@@ -132,8 +126,8 @@ super().__init__(
 ```
 
 ### Adding agents
-To add a new agent, create a new file in the `sage_agent/agents` directory.
-Then create a new agent class.
+To add a new agent first add a new entry in ./sage_agent/config/agents.json. Fill in the role, goal and backstory.
+Then create a new file in the `sage_agent/agents` directory and add a new class that inherits from the `Agent` class.
 Example: 
 ```python
 class MyAgent(Agent):
