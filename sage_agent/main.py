@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 import click
@@ -12,7 +11,7 @@ from sage_agent.patch import patch_langchain
 from sage_agent.utils.ethereum import deploy_mock_erc20
 from sage_agent.utils.ethereum.SafeManager import SafeManager
 from sage_agent.utils.ethereum.send_eth import send_eth
-from sage_agent.utils.ethereum.helpers.show_balances import show_safe_balances
+from sage_agent.utils.ethereum.helpers.show_address_balances import show_address_balances
 from sage_agent.utils.configuration import get_configuration
 
 patch_langchain()
@@ -29,6 +28,8 @@ def run(prompt: str):
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
     )
+    # manager.connect_tx_service(EthereumNetwork.SEPOLIA, "https://safe-transaction-sepolia.safe.global/")
+    # manager.disconnect_tx_service()
 
     # # Send 1 ETH to the agent, so it can execute transactions
     if manager.balance_of(None) < 1 * 10**18:
@@ -38,7 +39,7 @@ def run(prompt: str):
         # Send 5 ETH to the safe, so it can execute transactions
         send_eth(user, manager.address, int(5 * 10**18), web3)
 
-    show_safe_balances(manager)
+    show_address_balances(web3, manager.address)
 
     erc20_agent = Erc20Agent([token_address])
     safe_agent = SafeAgent(manager, agent)
@@ -48,7 +49,7 @@ def run(prompt: str):
 
     sage.run(prompt)
 
-    show_safe_balances(manager)
+    show_address_balances(web3, manager.address)
 
 
 if __name__ == "__main__":

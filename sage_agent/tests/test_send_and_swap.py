@@ -4,7 +4,7 @@ from sage_agent.utils.ethereum import (
 )
 from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
 from sage_agent.utils.configuration import get_configuration
-from sage_agent.utils.ethereum.helpers.show_balances import (
+from sage_agent.utils.ethereum.helpers.show_address_balances import (
     show_address_balances,
     weth_address,
     usdc_address,
@@ -50,13 +50,13 @@ def test_swap_through_safe():
         client, user, agent, [user.address, agent.address], 1
     )
 
-    show_address_balances(client.w3, user.address)
+    show_address_balances(client.w3, manager.address)
 
     txs = build_swap_transaction(
         client, 5000, dai_address, usdc_address, manager.address, True
     )
 
-    hash = manager.send_txs(txs)
+    hash = manager.send_multisend_tx(txs)
     manager.wait(hash)
 
-    show_address_balances(client.w3, user.address)
+    show_address_balances(client.w3, manager.address)
