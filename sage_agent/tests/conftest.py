@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import pytest
 
 from sage_agent.utils.configuration import get_configuration

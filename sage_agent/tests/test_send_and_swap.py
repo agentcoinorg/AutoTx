@@ -1,4 +1,3 @@
-import pytest
 from sage_agent.utils.ethereum import (
     SafeManager,
 )
@@ -6,14 +5,11 @@ from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
 from sage_agent.utils.configuration import get_configuration
 from sage_agent.utils.ethereum.helpers.show_address_balances import (
     show_address_balances,
-    weth_address,
     usdc_address,
     dai_address,
     wbtc_address,
 )
 
-
-@pytest.mark.skip()
 def test_swap(configuration):
     (user, _, client, _) = configuration
 
@@ -42,8 +38,6 @@ def test_swap(configuration):
 
     show_address_balances(client.w3, user.address)
 
-
-@pytest.mark.skip()
 def test_swap_through_safe():
     (user, agent, client) = get_configuration()
     manager = SafeManager.deploy_safe(
