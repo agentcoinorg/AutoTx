@@ -9,6 +9,7 @@ def start():
         [
             "docker",
             "run",
+            "-d",
             "--name",
             container_name,
             "-p",

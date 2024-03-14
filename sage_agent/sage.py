@@ -41,7 +41,7 @@ class Sage:
             process=Process.sequential,
         ).kickoff()
 
-        self.manager.send_txs(transactions)
+        self.manager.send_multisend_tx(transactions)
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
