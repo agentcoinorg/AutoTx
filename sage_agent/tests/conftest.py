@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import pytest
 
 from sage_agent.agents.erc20 import Erc20Agent

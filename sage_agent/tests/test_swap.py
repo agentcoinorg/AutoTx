@@ -1,4 +1,3 @@
-import pytest
 from sage_agent.utils.ethereum import (
     get_erc20_balance,
 )
