@@ -1,8 +1,11 @@
+from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.helpers.show_address_balances import (
     usdc_address,
     wbtc_address,
 )
+
+patch_langchain()
 
 
 def test_auto_tx_swap(configuration, auto_tx):
@@ -60,7 +63,7 @@ def test_auto_tx_swap_and_send(configuration, auto_tx):
     assert reciever_usdc_balance == 0
 
     auto_tx.run(
-        f"Sell ETH and get 0.05 WBTC, buy 1000 USDC with WBTC and send 50 USDC to {reciever}"
+        f"Sell ETH to get 0.05 WBTC, buy 1000 USDC with WBTC and send 50 USDC to {reciever}"
     )
 
     wbtc_safe_address = manager.balance_of(wbtc_address)
