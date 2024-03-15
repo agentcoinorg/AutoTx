@@ -1,22 +1,22 @@
 from sage_agent.utils.ethereum import (
-    SafeManager,
+    get_erc20_balance,
 )
 from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
-from sage_agent.utils.configuration import get_configuration
 from sage_agent.utils.ethereum.helpers.show_address_balances import (
-    show_address_balances,
+    weth_address,
     usdc_address,
-    dai_address,
     wbtc_address,
 )
+
 
 def test_swap(configuration):
     (user, _, client, _) = configuration
 
-    show_address_balances(client.w3, user.address)
+    balance = get_erc20_balance(client.w3, wbtc_address, user.address)
+    assert balance == 0
 
     txs = build_swap_transaction(
-        client, 0.05, wbtc_address, usdc_address, user.address, True
+        client, 0.05, weth_address, wbtc_address, user.address, False
     )
 
     for i, tx in enumerate(txs):
@@ -24,7 +24,7 @@ def test_swap(configuration):
             {
                 **tx,
                 "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": 150000,
+                "gas": 200000,
             }
         )
 
@@ -36,21 +36,22 @@ def test_swap(configuration):
             print(f"Transaction #{i} failed ")
             break
 
-    show_address_balances(client.w3, user.address)
+    new_balance = get_erc20_balance(client.w3, wbtc_address, user.address)
+    assert new_balance == 0.05 * 10**8
 
-def test_swap_through_safe():
-    (user, agent, client) = get_configuration()
-    manager = SafeManager.deploy_safe(
-        client, user, agent, [user.address, agent.address], 1
-    )
 
-    show_address_balances(client.w3, manager.address)
+def test_swap_through_safe(configuration):
+    (_, _, client, manager) = configuration
+
+    balance = manager.balance_of(usdc_address)
+    assert balance == 0
 
     txs = build_swap_transaction(
-        client, 5000, dai_address, usdc_address, manager.address, True
+        client, 6000, weth_address, usdc_address, manager.address, False
     )
 
     hash = manager.send_multisend_tx(txs)
     manager.wait(hash)
 
-    show_address_balances(client.w3, manager.address)
+    new_balance = manager.balance_of(usdc_address)
+    assert new_balance == 6000 * 10**6
