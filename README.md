@@ -47,10 +47,10 @@ To run all tests, use the following command:
 > poetry run pytest -s
 
 To run all tests in specific file, use the following command:
-> poetry run pytest -s ./autotx/tests/test_send_and_swap.py
+> poetry run pytest -s ./autotx/tests/test_swap.py
 
 To run a specific test, use the following command:
-> poetry run pytest -s ./autotx/tests/test_send_and_swap.py::test_swap
+> poetry run pytest -s ./autotx/tests/test_swap.py::test_swap
 
 ## How it works
 When you run AutoTx, it will prompt you to input a prompt.
