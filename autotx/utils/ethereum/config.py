@@ -12,5 +12,5 @@ class ContractsAddresses(RootModel):
         return self.root.items()
 
 contracts_config: ContractsAddresses = ContractsAddresses.model_validate(
-    json.loads(open("sage_agent/config/addresses.json", "r").read())
+    json.loads(open("autotx/config/addresses.json", "r").read())
 )

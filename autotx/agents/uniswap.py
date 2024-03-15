@@ -1,11 +1,11 @@
 from textwrap import dedent
 from crewai import Agent
 from pydantic import ConfigDict, Field
-from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
-from sage_agent.utils.agents_config import AgentConfig, agents_config
-from sage_agent.utils.llm import open_ai_llm
-from sage_agent.utils.ethereum.config import contracts_config
-from sage_agent.sage import transactions
+from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
+from autotx.utils.agents_config import AgentConfig, agents_config
+from autotx.utils.llm import open_ai_llm
+from autotx.utils.ethereum.config import contracts_config
+from autotx.AutoTx import transactions
 from web3.types import TxParams
 from crewai_tools import BaseTool
 from gnosis.eth import EthereumClient

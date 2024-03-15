@@ -1,5 +1,5 @@
 from web3 import Web3
-from sage_agent.get_env_vars import get_env_vars
+from autotx.get_env_vars import get_env_vars
 
 def load_w3() -> Web3:
     rpc_url, _ = get_env_vars()

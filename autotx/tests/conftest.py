@@ -3,18 +3,18 @@ load_dotenv()
 
 import pytest
 
-from sage_agent.agents.erc20 import Erc20Agent
-from sage_agent.agents.uniswap import UniswapAgent
-from sage_agent.sage import Sage
-from sage_agent.scripts.local_environment import reset, start
-from sage_agent.utils.configuration import get_configuration
-from sage_agent.utils.ethereum import (
+from autotx.agents.erc20 import Erc20Agent
+from autotx.agents.uniswap import UniswapAgent
+from autotx.AutoTx import AutoTx
+from autotx.scripts.local_environment import reset, start
+from autotx.utils.configuration import get_configuration
+from autotx.utils.ethereum import (
     SafeManager,
     deploy_mock_erc20,
     send_eth,
     transfer_erc20,
 )
-from sage_agent.utils.ethereum.config import contracts_config
+from autotx.utils.ethereum.config import contracts_config
 
 
 @pytest.fixture(autouse=True)
@@ -53,7 +53,7 @@ def auto_tx(configuration):
     erc20_agent = Erc20Agent()
     uniswap_agent = UniswapAgent(client, manager.address)
 
-    return Sage(manager, [erc20_agent, uniswap_agent], None)
+    return AutoTx(manager, [erc20_agent, uniswap_agent], None)
 
 
 @pytest.fixture()

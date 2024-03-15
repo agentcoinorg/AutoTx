@@ -2,9 +2,9 @@ import json
 from eth_account import Account
 from crewai import Agent
 from pydantic import ConfigDict, Field
-from sage_agent.utils.agents_config import AgentConfig, agents_config
-from sage_agent.utils.ethereum.SafeManager import SafeManager
-from sage_agent.utils.llm import open_ai_llm
+from autotx.utils.agents_config import AgentConfig, agents_config
+from autotx.utils.ethereum.SafeManager import SafeManager
+from autotx.utils.llm import open_ai_llm
 from crewai_tools import BaseTool
 from web3.types import TxParams
 import ast

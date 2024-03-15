@@ -20,5 +20,5 @@ class Agents(RootModel):
 
 
 agents_config: Agents = Agents.model_validate(
-    json.loads(open("sage_agent/config/agents.json", "r").read())
+    json.loads(open("autotx/config/agents.json", "r").read())
 )

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "sage-agent"
+name = "autotx"
 version = "0.1.0"
 description = ""
 authors = ["Nestor Amesty <nestor09amesty@gmail.com>"]
@@ -24,9 +24,9 @@ pytest = "^8.0.0"
 pytest-vcr = "^1.0.2"
 
 [tool.poetry.scripts]
-start-env = "sage_agent.scripts.local_environment:start"
-reset-env = "sage_agent.scripts.local_environment:reset"
-ask = "sage_agent.main:run"
+start-env = "autotx.scripts.local_environment:start"
+reset-env = "autotx.scripts.local_environment:reset"
+ask = "autotx.main:run"
 
 [build-system]
 requires = ["poetry-core"]
