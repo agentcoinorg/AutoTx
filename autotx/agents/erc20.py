@@ -30,7 +30,7 @@ def prepare_transfer_transaction(amount: float, reciever: str, token: str):
 
     transactions.append(tx)
 
-    return tx
+    return f"Transaction to send {amount} {token} has been prepared"
 
 
 @tool("Check owner balance in ERC20 token")
@@ -59,7 +59,7 @@ class Erc20Agent(Agent):
             **config,
             tools=[
                 prepare_transfer_transaction,
-                get_balance,
+                # get_balance,
             ],
             llm=open_ai_llm,
             verbose=True,

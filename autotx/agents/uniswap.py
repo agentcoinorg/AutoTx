@@ -19,14 +19,15 @@ class ExecuteSwapTool(BaseTool):
         if the address does not have enough allowance
 
         Args:
-            amount (float): Amount given by the user to trade. The function will take care of converting the amount
+            amount (str): Amount given by the user to trade. The function will take care of converting the amount
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
-            exact_input (str): True | False -> If True, the amount is for `token_in`, else, amout is for `token_out`.
-
-        Returns:
-            Array of encoded transaction(s)
+            exact_input (str): A flag indicating the direction of the trade with respect to the amount specified:
+                - If True, the amount refers to the exact quantity of `token_in` that the user wishes to swap.
+                - If False, the amount refers to the exact quantity of `token_out` that the user wishes to receive.
+                This distinction is crucial for determining how the swap transaction is structured, particularly
+                in specifying the limits of token exchange rates and the adjustment of transaction parameters.
         """
     )
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -39,7 +40,7 @@ class ExecuteSwapTool(BaseTool):
         self.recipient = recipient
 
     def _run(
-        self, amount: float, token_in: str, token_out: str, exact_input: str
+        self, amount: str, token_in: str, token_out: str, exact_input: str
     ) -> list[TxParams]:
         token_in = token_in.lower()
         token_out = token_out.lower()
@@ -52,7 +53,7 @@ class ExecuteSwapTool(BaseTool):
 
         swap_transactions = build_swap_transaction(
             self.client,
-            amount,
+            float(amount),
             token_in_address,
             token_out_address,
             self.recipient,
@@ -61,7 +62,10 @@ class ExecuteSwapTool(BaseTool):
 
         transactions.extend(swap_transactions)
 
-        return swap_transactions
+        if is_exact_input:
+            return f"Transaction to sell {amount} {token_in} for {token_out} has been prepared"
+        else:
+            return f"Transaction to buy {amount} {token_out} with {token_in} has been prepared"
 
 
 class UniswapAgent(Agent):
@@ -76,5 +80,5 @@ class UniswapAgent(Agent):
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
-            name=name
+            name=name,
         )

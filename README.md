@@ -10,6 +10,7 @@ This project is build on top of crew-ai, langchain, web3.py, gnosis safe and ope
 Make sure you have the following:
 - [python](https://www.python.org/downloads/)
 - [poetry](https://python-poetry.org/docs/#installation)
+- [docker](https://www.docker.com/)
 
 ### Installation:
 1. Clone the repository
