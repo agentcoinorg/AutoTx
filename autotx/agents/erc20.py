@@ -59,7 +59,6 @@ class Erc20Agent(Agent):
             **config,
             tools=[
                 prepare_transfer_transaction,
-                # get_balance,
             ],
             llm=open_ai_llm,
             verbose=True,
