@@ -6,9 +6,9 @@ import requests
 from web3.contract.contract import Contract
 
 from web3.types import TxParams
-from sage_agent.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
+from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 
-from sage_agent.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
+from autotx.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 
 SLIPPAGE = 0.05

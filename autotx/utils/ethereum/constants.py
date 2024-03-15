@@ -1,4 +1,4 @@
-from sage_agent.utils.ethereum.config import contracts_config
+from autotx.utils.ethereum.config import contracts_config
 
 MASTER_COPY_ADDRESS = contracts_config["safe"]["master_copy_address"]
 PROXY_FACTORY_ADDRESS = contracts_config["safe"]["proxy_factory_address"]

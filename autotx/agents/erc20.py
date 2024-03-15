@@ -1,14 +1,14 @@
 from langchain_core.tools import tool
 from crewai import Agent
-from sage_agent.utils.agents_config import AgentConfig, agents_config
-from sage_agent.utils.ethereum import (
+from autotx.utils.agents_config import AgentConfig, agents_config
+from autotx.utils.ethereum import (
     build_transfer_erc20,
     get_erc20_balance,
 )
-from sage_agent.utils.ethereum import load_w3
-from sage_agent.utils.llm import open_ai_llm
-from sage_agent.utils.ethereum.config import contracts_config
-from sage_agent.sage import transactions
+from autotx.utils.ethereum import load_w3
+from autotx.utils.llm import open_ai_llm
+from autotx.utils.ethereum.config import contracts_config
+from autotx.AutoTx import transactions
 
 
 @tool("Prepare transfer transaction")

@@ -3,8 +3,8 @@ from typing import Optional
 
 from web3 import Web3
 
-from sage_agent.utils.ethereum import get_erc20_balance
-from sage_agent.utils.ethereum.config import contracts_config
+from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.config import contracts_config
 
 dai_address = contracts_config["erc20"]["dai"]
 weth_address = contracts_config["erc20"]["weth"]

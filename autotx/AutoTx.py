@@ -3,12 +3,12 @@ import json
 from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
-from sage_agent.utils.agents_config import agents_config
+from autotx.utils.agents_config import agents_config
 import openai
 from langchain_core.tools import StructuredTool
 from web3.types import TxParams
 
-from sage_agent.utils.ethereum import SafeManager
+from autotx.utils.ethereum import SafeManager
 
 transactions: list[TxParams] = []
 
@@ -18,7 +18,7 @@ class Config:
     verbose: bool
 
 
-class Sage:
+class AutoTx:
     manager: SafeManager
     agents: list[Agent]
     config: Config = Config(verbose=False)

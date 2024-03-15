@@ -41,16 +41,16 @@ To run AutoTx, use the following command:
 The above command will start the AutoTx agent and prompt you to input a prompt.
 
 ## Testing
-Tests are located in the `sage_agent/tests` directory.
+Tests are located in the `autotx/tests` directory.
 
 To run all tests, use the following command:
 > poetry run pytest -s
 
 To run all tests in specific file, use the following command:
-> poetry run pytest -s ./sage_agent/tests/test_send_and_swap.py
+> poetry run pytest -s ./autotx/tests/test_send_and_swap.py
 
 To run a specific test, use the following command:
-> poetry run pytest -s ./sage_agent/tests/test_send_and_swap.py::test_swap
+> poetry run pytest -s ./autotx/tests/test_send_and_swap.py::test_swap
 
 ## How it works
 When you run AutoTx, it will prompt you to input a prompt.
@@ -59,7 +59,7 @@ Tasks are then passed to crew-ai which start executing them one by one with the 
 The agents are responsible for interpreting the user's intent and executing the tasks.
 The agents use the gnosis safe to propose or execute transactions.
 Each agent has a set of tools (functions) at it's disposal.
-Agents can be found in the `sage_agent/agents` directory.
+Agents can be found in the `autotx/agents` directory.
 List of current agents:
 - Erc20Agent
 - UniswapAgent
@@ -67,7 +67,7 @@ List of current agents:
 ## How to customize
 
 ### Adding tools to existing agents
-You can find the agents in the `sage_agent/agents` directory.
+You can find the agents in the `autotx/agents` directory.
 There are two ways of adding tools to an agent:
 
 #### With the `@tool` decorator:
@@ -126,8 +126,8 @@ super().__init__(
 ```
 
 ### Adding agents
-To add a new agent first add a new entry in ./sage_agent/config/agents.json. Fill in the role, goal and backstory.
-Then create a new file in the `sage_agent/agents` directory and add a new class that inherits from the `Agent` class.
+To add a new agent first add a new entry in ./autotx/config/agents.json. Fill in the role, goal and backstory.
+Then create a new file in the `autotx/agents` directory and add a new class that inherits from the `Agent` class.
 Example: 
 ```python
 class MyAgent(Agent):
@@ -148,14 +148,14 @@ class MyAgent(Agent):
         )
 ```
 AutoTx class accepts a list of agents as an argument, so be sure to add the new agent to the list.
-Go to `sage_agent/main.py` and add the new agent to the list of agents:
+Go to `autotx/main.py` and add the new agent to the list of agents:
 ```python
     my_agent = MyAgent()
     autotx = AutoTx(..., [..., my_agent], ...)
 ```
 
 ### Adding tests
-To add a new test, create a new file in the `sage_agent/tests` directory.
+To add a new test, create a new file in the `autotx/tests` directory.
 
 Then create a new test function.
 

@@ -1,5 +1,5 @@
-from sage_agent.utils.ethereum import get_erc20_balance
-from sage_agent.utils.ethereum.helpers.show_address_balances import (
+from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.helpers.show_address_balances import (
     usdc_address,
     wbtc_address,
 )

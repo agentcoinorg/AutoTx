@@ -1,8 +1,8 @@
-from sage_agent.utils.ethereum import (
+from autotx.utils.ethereum import (
     get_erc20_balance,
 )
-from sage_agent.utils.ethereum.uniswap.swap import build_swap_transaction
-from sage_agent.utils.ethereum.helpers.show_address_balances import (
+from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
+from autotx.utils.ethereum.helpers.show_address_balances import (
     weth_address,
     usdc_address,
     wbtc_address,
