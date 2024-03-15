@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "3.10.12"
 crewai = "0.19.0"
+crewai-tools = "0.0.15"
 pyright = "^1.1.350"
 click = "^8.1.7"
 python-dotenv = "^1.0.1"
