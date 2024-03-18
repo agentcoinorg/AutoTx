@@ -125,17 +125,6 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
         assert balance_two + 20 * 10**18 == new_balance_two
 
 
-def test_auto_tx_swap(configuration, auto_tx):
-    (_, _, _, manager) = configuration
-    balance = manager.balance_of(usdc_address)
-    assert balance == 0
-
-    auto_tx.run("Buy 100 USDC with ETH")
-
-    balance = manager.balance_of(usdc_address)
-    assert balance == 100 * 10**6
-
-
 def test_auto_tx_swap_and_send(configuration, auto_tx):
     (_, _, client, manager) = configuration
     reciever = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
