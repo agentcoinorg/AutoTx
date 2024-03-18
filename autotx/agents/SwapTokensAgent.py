@@ -1,15 +1,15 @@
 from textwrap import dedent
+from typing import Callable
 from crewai import Agent
 from pydantic import ConfigDict, Field
+from autotx import AutoTx
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 from autotx.utils.agents_config import AgentConfig, agents_config
 from autotx.utils.llm import open_ai_llm
 from autotx.utils.ethereum.config import contracts_config
-from autotx.AutoTx import transactions
 from web3.types import TxParams
 from crewai_tools import BaseTool
 from gnosis.eth import EthereumClient
-
 
 class ExecuteSwapTool(BaseTool):
     name: str = "Build needed transactions to execute swap"
@@ -33,11 +33,13 @@ class ExecuteSwapTool(BaseTool):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     recipient: str | None = Field(None)
     client: EthereumClient | None = Field(None)
+    autotx: AutoTx = Field(None)
 
-    def __init__(self, client: EthereumClient, recipient: str):
+    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
         super().__init__()
         self.client = client
         self.recipient = recipient
+        self.autotx = autotx
 
     def _run(
         self, amount: str, token_in: str, token_out: str, exact_input: str
@@ -60,7 +62,7 @@ class ExecuteSwapTool(BaseTool):
             is_exact_input,
         )
 
-        transactions.extend(swap_transactions)
+        self.autotx.transactions.extend(swap_transactions)
 
         if is_exact_input:
             return f"Transaction to sell {amount} {token_in} for {token_out} has been prepared"
@@ -71,14 +73,19 @@ class ExecuteSwapTool(BaseTool):
 class SwapTokensAgent(Agent):
     name: str
 
-    def __init__(self, client: EthereumClient, recipient: str):
+    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
         name = "swap-tokens"
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
-            tools=[ExecuteSwapTool(client, recipient)],
+            tools=[ExecuteSwapTool(autotx, client, recipient)],
             llm=open_ai_llm,
             verbose=True,
             allow_delegation=False,
             name=name,
         )
+
+def build_agent_factory(client: EthereumClient, recipient: str) -> Callable[[AutoTx], Agent]:
+    def agent_factory(autotx: AutoTx) -> SwapTokensAgent:
+        return SwapTokensAgent(autotx, client, recipient)
+    return agent_factory

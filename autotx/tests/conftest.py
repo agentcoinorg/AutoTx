@@ -4,8 +4,8 @@ load_dotenv()
 
 import pytest
 
-from autotx.agents.SendTokensAgent import SendTokensAgent
-from autotx.agents.SwapTokensAgent import SwapTokensAgent
+from autotx.agents import SendTokensAgent
+from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.scripts.local_environment import stop, start
 from autotx.utils.configuration import get_configuration
@@ -51,10 +51,10 @@ def configuration():
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
 
-    send_tokens_agent = SendTokensAgent()
-    swap_tokens_agent = SwapTokensAgent(client, manager.address)
-
-    return AutoTx(manager, [send_tokens_agent, swap_tokens_agent], None)
+    return AutoTx(manager, [
+        SendTokensAgent.build_agent_factory(),
+        SwapTokensAgent.build_agent_factory(client, manager.address),
+    ], None)
 
 
 @pytest.fixture()

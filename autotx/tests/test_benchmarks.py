@@ -20,6 +20,22 @@ def test_auto_tx_send_eth(configuration, auto_tx, mock_erc20):
     balance = get_eth_balance(client.w3, reciever)
     assert balance == 1 * 10**18
 
+def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
+    (_, _, client, _) = configuration
+    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+
+    balance = get_erc20_balance(client.w3, mock_erc20, reciever)
+    assert balance == 0
+
+    auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1")
+
+    balance = get_eth_balance(client.w3, reciever)
+    assert balance == 1 * 10**18
+
+    auto_tx.run("Send 0.5 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1")
+
+    balance = get_eth_balance(client.w3, reciever)
+    assert balance == 1.5 * 10**18
 
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
