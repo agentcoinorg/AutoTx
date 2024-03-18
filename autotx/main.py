@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import click
-from autotx.agents.SendTokensAgent import SendTokensAgent
-from autotx.agents.SwapTokensAgent import SwapTokensAgent
+from autotx.agents import SendTokensAgent
+from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum.SafeManager import SafeManager
@@ -37,10 +37,10 @@ def run(prompt: str):
 
     show_address_balances(web3, manager.address)
 
-    send_tokens_agent = SendTokensAgent()
-    swap_tokens_agent = SwapTokensAgent(client, manager.address)
-
-    autotx = AutoTx(manager, [send_tokens_agent, swap_tokens_agent], None)
+    autotx = AutoTx(manager, [
+        SendTokensAgent.build_agent_factory(),
+        SwapTokensAgent.build_agent_factory(client, manager.address),
+    ], None)
     autotx.run(prompt)
 
     show_address_balances(web3, manager.address)

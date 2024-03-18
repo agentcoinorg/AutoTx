@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import json
 from textwrap import dedent
 from typing import Optional
+import typing
 from crewai import Agent, Crew, Process, Task
 from autotx.utils.agents_config import agents_config
 import openai
@@ -10,26 +11,23 @@ from web3.types import TxParams
 
 from autotx.utils.ethereum import SafeManager
 
-transactions: list[TxParams] = []
-
-
 @dataclass(kw_only=True)
 class Config:
     verbose: bool
-
 
 class AutoTx:
     manager: SafeManager
     agents: list[Agent]
     config: Config = Config(verbose=False)
+    transactions: list[TxParams] = []
 
     def __init__(
-        self, manager: SafeManager, agents: list[Agent], config: Optional[Config]
+        self, manager: SafeManager, agent_factories: list[typing.Callable[['AutoTx'], Agent]], config: Optional[Config]
     ):
-        self.agents = agents
         self.manager = manager
         if config:
             self.config = config
+        self.agents = [factory(self) for factory in agent_factories]
 
     def run(self, prompt: str):
         print("Defining tasks...")
@@ -41,7 +39,8 @@ class AutoTx:
             process=Process.sequential,
         ).kickoff()
 
-        self.manager.send_multisend_tx(transactions)
+        self.manager.send_multisend_tx(self.transactions)
+        self.transactions.clear()
 
     def define_tasks(self, prompt: str) -> list[Task]:
         template = dedent(
