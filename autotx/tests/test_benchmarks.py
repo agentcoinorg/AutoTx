@@ -1,11 +1,24 @@
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 from autotx.utils.ethereum.helpers.show_address_balances import (
     usdc_address,
     wbtc_address,
 )
 
 patch_langchain()
+
+
+def test_auto_tx_send_eth(configuration, auto_tx, mock_erc20):
+    (_, _, client, _) = configuration
+    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    balance = get_erc20_balance(client.w3, mock_erc20, reciever)
+    assert balance == 0
+
+    auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1")
+
+    balance = get_eth_balance(client.w3, reciever)
+    assert balance == 1 * 10**18
 
 
 def test_auto_tx_swap(configuration, auto_tx):
@@ -22,7 +35,7 @@ def test_auto_tx_swap(configuration, auto_tx):
         "Exchange Ethereum for 100 USDC",
         "Initiate a conversion from ETH to 100 USDC",
         "Complete a deal to purchase 100 USDC using ETH",
-        "Carry out a swap of ETH for 100 USDC"
+        "Carry out a swap of ETH for 100 USDC",
     ]
 
     for prompt in prompts:
@@ -35,7 +48,7 @@ def test_auto_tx_swap(configuration, auto_tx):
         assert balance + 100 * 10**6 == new_balance
 
 
-def test_auto_tx_send(configuration, auto_tx, mock_erc20):
+def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
     reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
@@ -51,7 +64,7 @@ def test_auto_tx_send(configuration, auto_tx, mock_erc20):
         f"Forward 10 TT to the specific address {reciever}",
         f"Allocate 10 TT to be sent to {reciever}",
         f"Complete sending 10 TT to the address {reciever}",
-        f"Initiate the transfer of 10 TT to address {reciever}"
+        f"Initiate the transfer of 10 TT to address {reciever}",
     ]
 
     for prompt in prompts:
@@ -81,7 +94,7 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
         f"Allocate 10 TT for {reciever_one} and 20 TT for {reciever_two}",
         f"Initiate the transfer of 10 TT to {reciever_one} and 20 TT to {reciever_two}",
         f"Complete the transaction of sending 10 TT to the Ethereum address {reciever_one} and 20 TT to the Ethereum address {reciever_two}",
-        f"Move 10 TT to {reciever_one} and 20 TT to {reciever_two} in two separate transactions"
+        f"Move 10 TT to {reciever_one} and 20 TT to {reciever_two} in two separate transactions",
     ]
 
     for prompt in prompts:
@@ -94,6 +107,17 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
         new_balance_two = get_erc20_balance(client.w3, mock_erc20, reciever_two)
         assert balance_one + 10 * 10**18 == new_balance_one
         assert balance_two + 20 * 10**18 == new_balance_two
+
+
+def test_auto_tx_swap(configuration, auto_tx):
+    (_, _, _, manager) = configuration
+    balance = manager.balance_of(usdc_address)
+    assert balance == 0
+
+    auto_tx.run("Buy 100 USDC with ETH")
+
+    balance = manager.balance_of(usdc_address)
+    assert balance == 100 * 10**6
 
 
 def test_auto_tx_swap_and_send(configuration, auto_tx):
@@ -111,7 +135,7 @@ def test_auto_tx_swap_and_send(configuration, auto_tx):
         f"Perform a swap from ETH to 0.05 WBTC, next swap that WBTC to 1000 USDC, and then make a transfer of 50 USDC to the address {reciever}",
         f"Exchange Ethereum for 0.05 WBTC, subsequently convert that WBTC to 1000 USDC, and proceed to send 50 USDC to the designated address {reciever}",
         f"Start by swapping ETH for 0.05 WBTC, follow up by converting this WBTC to 1000 USDC, and conclude the process by transferring 50 USDC to {reciever}",
-        f"Initiate with the conversion of ETH to 0.05 WBTC, follow through by swapping the 0.05 WBTC for 1000 USDC, and finalize by sending 50 USDC to {reciever}"
+        f"Initiate with the conversion of ETH to 0.05 WBTC, follow through by swapping the 0.05 WBTC for 1000 USDC, and finalize by sending 50 USDC to {reciever}",
     ]
 
     for prompt in prompts:

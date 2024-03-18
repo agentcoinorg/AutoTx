@@ -6,13 +6,15 @@ from autotx.utils.ethereum import (
     get_erc20_balance,
 )
 from autotx.utils.ethereum import load_w3
+from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
 from autotx.utils.llm import open_ai_llm
 from autotx.utils.ethereum.config import contracts_config
 from autotx.AutoTx import transactions
+from web3.constants import ADDRESS_ZERO
 
 
-@tool("Prepare transfer transaction")
-def prepare_transfer_transaction(amount: float, reciever: str, token: str):
+@tool("Transfer ERC20 token")
+def transfer_erc20_token(amount: float, reciever: str, token: str):
     """
     Prepares a transfer transaction for given amount in decimals for given token
 
@@ -22,7 +24,7 @@ def prepare_transfer_transaction(amount: float, reciever: str, token: str):
         reciever (str): The address of reciever
         token (str): Symbol of token to transfer
     Returns:
-        Transaction object with filled data to execute transfer
+        Message to confirm that transaction has been prepared
     """
     tokens = contracts_config["erc20"]
     token_address = tokens[token.lower()]
@@ -32,6 +34,23 @@ def prepare_transfer_transaction(amount: float, reciever: str, token: str):
 
     return f"Transaction to send {amount} {token} has been prepared"
 
+@tool("Transfer ETH")
+def transfer_eth(amount: float, reciever: str):
+    """
+    Prepares a transfer transaction for given amount in decimals for ETH
+
+    Args:
+        amount (float): Amount given by the user to transfer. The function will take
+        care of converting the amount to needed decimals.
+        reciever (str): The address of reciever
+    Returns:
+        Message to confirm that transaction has been prepared
+    """
+    tx = build_transfer_eth(load_w3(), ADDRESS_ZERO, reciever, amount)
+
+    transactions.append(tx)
+
+    return f"Transaction to send {amount} ETH has been prepared"
 
 @tool("Check owner balance in ERC20 token")
 def get_balance(token: str, owner: str):
@@ -49,16 +68,17 @@ def get_balance(token: str, owner: str):
     return get_erc20_balance(load_w3(), token_address, owner)
 
 
-class Erc20Agent(Agent):
+class SendTokensAgent(Agent):
     name: str
 
     def __init__(self):
-        name = "erc20"
+        name = "send-tokens"
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,
             tools=[
-                prepare_transfer_transaction,
+                transfer_erc20_token,
+                transfer_eth,
             ],
             llm=open_ai_llm,
             verbose=True,

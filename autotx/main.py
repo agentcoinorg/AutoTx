@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import click
-from autotx.agents.erc20 import Erc20Agent
-from autotx.agents.uniswap import UniswapAgent
+from autotx.agents.SendTokensAgent import SendTokensAgent
+from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum.SafeManager import SafeManager
@@ -37,10 +37,10 @@ def run(prompt: str):
 
     show_address_balances(web3, manager.address)
 
-    erc20_agent = Erc20Agent()
-    uniswap_agent = UniswapAgent(client, manager.address)
+    send_tokens_agent = SendTokensAgent()
+    swap_tokens_agent = SwapTokensAgent(client, manager.address)
 
-    autotx = AutoTx(manager, [erc20_agent, uniswap_agent], None)
+    autotx = AutoTx(manager, [send_tokens_agent, swap_tokens_agent], None)
     autotx.run(prompt)
 
     show_address_balances(web3, manager.address)
