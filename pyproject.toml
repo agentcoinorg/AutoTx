@@ -26,7 +26,7 @@ pytest-vcr = "^1.0.2"
 
 [tool.poetry.scripts]
 start-env = "autotx.scripts.local_environment:start"
-reset-env = "autotx.scripts.local_environment:reset"
+stop-env = "autotx.scripts.local_environment:stop"
 ask = "autotx.main:run"
 
 [build-system]
