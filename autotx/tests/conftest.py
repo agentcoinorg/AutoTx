@@ -7,7 +7,7 @@ import pytest
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
-from autotx.scripts.local_environment import reset, start
+from autotx.scripts.local_environment import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
     SafeManager,
@@ -33,7 +33,7 @@ def start_and_stop_local_fork():
 
     yield
 
-    reset()
+    stop()
 
 
 @pytest.fixture()
