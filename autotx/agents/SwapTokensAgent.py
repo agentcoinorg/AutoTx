@@ -68,11 +68,11 @@ class ExecuteSwapTool(BaseTool):
             return f"Transaction to buy {amount} {token_out} with {token_in} has been prepared"
 
 
-class UniswapAgent(Agent):
+class SwapTokensAgent(Agent):
     name: str
 
     def __init__(self, client: EthereumClient, recipient: str):
-        name = "uniswap"
+        name = "swap-tokens"
         config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
             **config,

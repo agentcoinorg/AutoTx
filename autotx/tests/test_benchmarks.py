@@ -1,5 +1,6 @@
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 from autotx.utils.ethereum.helpers.show_address_balances import (
     usdc_address,
     wbtc_address,
@@ -7,19 +8,19 @@ from autotx.utils.ethereum.helpers.show_address_balances import (
 
 patch_langchain()
 
+def test_auto_tx_send_eth(configuration, auto_tx, mock_erc20):
+    (_, _, client, _) = configuration
+    reciever = "0x5908B91CA451E114e3198aEF68E4bBb761Ee1513"
 
-def test_auto_tx_swap(configuration, auto_tx):
-    (_, _, _, manager) = configuration
-    balance = manager.balance_of(usdc_address)
+    balance = get_erc20_balance(client.w3, mock_erc20, reciever)
     assert balance == 0
 
-    auto_tx.run("Buy 100 USDC with ETH")
+    auto_tx.run("Send 1 ETH to 0x5908B91CA451E114e3198aEF68E4bBb761Ee1513")
 
-    balance = manager.balance_of(usdc_address)
-    assert balance == 100 * 10**6
+    balance = get_eth_balance(client.w3, reciever)
+    assert balance == 1 * 10**18
 
-
-def test_auto_tx_send(configuration, auto_tx, mock_erc20):
+def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
     reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
 
@@ -31,7 +32,6 @@ def test_auto_tx_send(configuration, auto_tx, mock_erc20):
     get_erc20_balance(client.w3, mock_erc20, reciever)
     balance = get_erc20_balance(client.w3, mock_erc20, reciever)
     assert balance == 10 * 10**18
-
 
 def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
@@ -50,6 +50,15 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
     balance_two = get_erc20_balance(client.w3, mock_erc20, reciever_two)
     assert balance_two == 20 * 10**18
 
+def test_auto_tx_swap(configuration, auto_tx):
+    (_, _, _, manager) = configuration
+    balance = manager.balance_of(usdc_address)
+    assert balance == 0
+
+    auto_tx.run("Buy 100 USDC with ETH")
+
+    balance = manager.balance_of(usdc_address)
+    assert balance == 100 * 10**6
 
 def test_auto_tx_swap_and_send(configuration, auto_tx):
     (_, _, client, manager) = configuration
