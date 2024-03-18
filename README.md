@@ -24,10 +24,9 @@ Make sure you have the following:
 5. Start local environment
 > poetry run start-env
 
-The above command will start a local blockchain node that is a fork of the `FORK_RPC_URL` node. 
-Addresses and private keys of test accounts that are loaded up with Ether will be printed to the console.
+The above command will start a local blockchain node that is a fork of the `FORK_RPC_URL` node. To stop it simply run `poetry run stop-env`.
 
-Make sure to copy a private key and set it as the `USER_PRIVATE_KEY` environment variable or just use the default one from the `.env.example` file.
+Addresses and private keys of test accounts loaded with ETH are deterministic and will be printed to the docker container's logs. The first test account's private key is set as the `USER_PRIVATE_KEY` environment variable by default in the `.env.example` file.
 
 ### Environment variables:
 - `USER_PRIVATE_KEY` - The private key of the user's wallet. Used for loading up other accounts with Ether.

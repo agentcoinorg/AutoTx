@@ -6,7 +6,7 @@ import pytest
 from autotx.agents.erc20 import Erc20Agent
 from autotx.agents.uniswap import UniswapAgent
 from autotx.AutoTx import AutoTx
-from autotx.scripts.local_environment import reset, start
+from autotx.scripts.local_environment import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
     SafeManager,
@@ -32,7 +32,7 @@ def start_and_stop_local_fork():
 
     yield
 
-    reset()
+    stop()
 
 
 @pytest.fixture()
