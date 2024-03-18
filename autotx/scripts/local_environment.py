@@ -22,5 +22,5 @@ def start():
     )
 
 
-def reset():
+def stop():
     subprocess.run(["docker", "container", "rm", container_name, "-f"], check=True)
