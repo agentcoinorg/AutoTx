@@ -62,8 +62,8 @@ The agents use the gnosis safe to propose or execute transactions.
 Each agent has a set of tools (functions) at it's disposal.
 Agents can be found in the `autotx/agents` directory.
 List of current agents:
-- Erc20Agent
-- UniswapAgent
+- SendTokensAgent
+- SwapTokensAgent
 
 ## How to customize
 
