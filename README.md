@@ -1,7 +1,7 @@
 # AutoTx
 ![](./docs/img/banner.png)
 
-AutoTx is a personal assitant that plans and creates on-chain transactions for you. These transactions bundles can be reviewed, and submitted to a smart account for on-chain execution.
+AutoTx is a personal assitant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
 
 ## Example Prompts
 * `Send 1 ETH to 0x...`  
@@ -15,9 +15,9 @@ AutoTx is a personal assitant that plans and creates on-chain transactions for y
 | Send Tokens | ERC20, ETH |
 | Swap Tokens | Uniswap |
 
-## Smart Accounts
+## Accounts
 
-Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx has its own EOA wallet, which it uses as a signer when submitting transaction bundles to the smart account.
+Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses an EOA to submit transaction bundles to a smart account.
 
 ## Getting Started
 Make sure you have the following:
