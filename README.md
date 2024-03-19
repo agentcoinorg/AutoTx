@@ -1,10 +1,23 @@
 # AutoTx
+![](./docs/img/banner.png)
 
-AutoTx is a tool that allows users to automate their interactions with blockchains. 
-To accomplish this, it uses autonomous LLM-based agents to interpret the user's intent and execute transactions through a gnosis safe.
-AutoTx has its own wallet which it uses as a signer for proposing or executing transactions through a shared gnosis safe.
+AutoTx is a personal assitant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
 
-This project is build on top of crew-ai, langchain, web3.py, gnosis safe and openai.
+## Example Prompts
+* `Send 1 ETH to 0x...`  
+* `Buy 100 USDC with ETH`  
+* `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
+
+## Capabilities
+
+| Capability | Integrations |
+|-|-|
+| Send Tokens | ERC20, ETH |
+| Swap Tokens | Uniswap |
+
+## Accounts
+
+Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses an EOA to submit transaction bundles to a smart account.
 
 ## Getting Started
 Make sure you have the following:
