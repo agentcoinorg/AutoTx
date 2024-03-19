@@ -46,17 +46,19 @@ class AutoTx:
         template = dedent(
             """
             Based on the following prompt: {prompt}
-              
-            You must convert instructions into specific tasks with the following JSON format:
+
+            You must convert instructions into specific tasks
+
+            The response must have the following format:
+            ```json
             {{
                 tasks : [{{
-                    "task": "Concise description of task to be done with details needed given by user"
+                    "task": "Concise description of task to be done with all needed details"
                     "agent": "The agent that best fits to execute the task"
                     "expected_output":"Description of expected output for the task"
-                    "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
-                    "extra_information": Any extra information as string with description given by the user needed to execute the task, if applicable.
                 }}]
             }}
+            ```
 
             The specific tasks will be created based on the available agents role, goal and available tools:
             {agents_information}
@@ -108,10 +110,6 @@ class AutoTx:
         tasks = json.loads(response)["tasks"]
         sanitized_tasks: list[Task] = []
         for task in tasks:
-            context: list[Task] = (
-                [sanitized_tasks[c] for c in task["context"]] if task["context"] else []
-            )
-
             get_agent_by_name = lambda a: a.name == task["agent"]
             agent = next(filter(get_agent_by_name, self.agents), None)
             description = task["task"]
@@ -124,7 +122,6 @@ class AutoTx:
                     description=description,
                     agent=agent,
                     expected_output=task["expected_output"],
-                    context=context,
                 )
             )
 
