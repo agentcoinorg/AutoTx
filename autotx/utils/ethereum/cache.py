@@ -1,6 +1,7 @@
 import os
+from typing import Callable
 
-def cache(func: callable, file_name: str) -> str:
+def cache(func: Callable, file_name: str) -> str:
     try:
         with open(file_name, "r") as file:
             return file.read().strip()  # Use strip() to remove newline characters
