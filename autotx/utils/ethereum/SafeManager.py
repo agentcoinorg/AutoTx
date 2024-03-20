@@ -1,4 +1,9 @@
 from typing import Optional
+
+from web3 import Web3
+
+from autotx.utils.ethereum.cache import cache
+from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
@@ -21,13 +26,11 @@ class SafeManager:
     def __init__(
         self, 
         client: EthereumClient, 
-        user: Account, 
         agent: Account, 
         safe: Safe
     ):
         self.client = client
         self.web3 = self.client.w3
-        self.user = user
         self.agent = agent
         self.safe = safe
         self.use_tx_service = False
@@ -36,7 +39,7 @@ class SafeManager:
     @property
     def address(self) -> str:
         return self.safe.address
-
+    
     @classmethod
     def deploy_safe(
         cls, 
@@ -45,10 +48,25 @@ class SafeManager:
         agent: Account, 
         owners: list[str], 
         threshold: int
-    ):
-        safe = deploy_safe_with_create2(client, user, owners, threshold)
+    ) -> 'SafeManager':
+        safe_address = cache(lambda: deploy_safe_with_create2(client, user, owners, threshold), "./.cache/safe.txt")
 
-        manager = cls(client, user, agent, safe)
+        manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
+
+        manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
+
+        return manager
+    
+    @classmethod
+    def connect(
+        cls, 
+        client: EthereumClient, 
+        safe_address: str,
+        agent: Account, 
+    ) -> 'SafeManager':
+        safe = Safe(Web3.to_checksum_address(safe_address), client)
+
+        manager = cls(client, agent, safe)
 
         manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
 
@@ -71,7 +89,7 @@ class SafeManager:
         self.client.multicall = Multicall(self.client, address)
 
     def  deploy_multicall(self):
-        multicall_addr = deploy_multicall(self.client, self.user)
+        multicall_addr = deploy_multicall(self.client, self.agent)
         self.connect_multicall(multicall_addr)
     
     def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
@@ -208,3 +226,7 @@ class SafeManager:
             return self.safe_nonce
         else:
             return safe_nonce
+    
+    @staticmethod
+    def is_valid_safe(client: EthereumClient, address: str) -> bool:
+        return is_valid_safe(client, address)

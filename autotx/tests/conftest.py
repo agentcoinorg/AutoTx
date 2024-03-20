@@ -21,7 +21,7 @@ from autotx.utils.ethereum.config import contracts_config
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
     start()
-    (user, agent, client) = get_configuration()
+    (user, agent, client, _safe_address) = get_configuration()
 
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
@@ -38,7 +38,7 @@ def start_and_stop_local_fork():
 
 @pytest.fixture()
 def configuration():
-    (user, agent, client) = get_configuration()
+    (user, agent, client, _safe_address) = get_configuration()
 
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1

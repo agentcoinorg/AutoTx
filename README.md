@@ -53,6 +53,22 @@ To run AutoTx, use the following command:
 
 The above command will start the AutoTx agent and prompt you to input a prompt.
 
+To run AutoTx with a specific prompt:
+> poetry run ask --prompt "I want to send 1 ETH to 0x1234"
+
+To connect to an existing safe:  
+> poetry run safe connect --address 0x1234
+
+In order for the agent to be able to execute or propose transactions, the agent account needs to be added as a signer to the safe.  
+To create a new agent account:  
+> poetry run agent account create  
+
+To display the address and info of the agent account:  
+> poetry run agent account info  
+
+If you want to delete the agent account:  
+> poetry run agent account delete
+
 ## Testing
 Tests are located in the `autotx/tests` directory.
 

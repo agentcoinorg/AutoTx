@@ -1,4 +1,8 @@
+import os
 from dotenv import load_dotenv
+
+from autotx.utils.ethereum import generate_agent_account, delete_agent_account
+from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 
 load_dotenv()
 
@@ -14,16 +18,24 @@ from autotx.utils.configuration import get_configuration
 
 patch_langchain()
 
+@click.group()
+def main():
+    pass
 
-@click.command()
+@main.command()
 @click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
 def run(prompt: str):
-    (user, agent, client) = get_configuration()
+    (user, agent, client, safe_address) = get_configuration()
     web3 = client.w3
 
-    manager = SafeManager.deploy_safe(
-        client, user, agent, [user.address, agent.address], 1
-    )
+    manager: SafeManager
+
+    if safe_address != None and SafeManager.is_valid_safe(client, safe_address):
+        print(f"Safe address connected: {safe_address}")
+        manager = SafeManager.connect(client, safe_address, agent)
+    else:
+        manager = SafeManager.deploy_safe(client, user, agent, [user.address, agent.address], 1)
+
     # manager.connect_tx_service(EthereumNetwork.SEPOLIA, "https://safe-transaction-sepolia.safe.global/")
     # manager.disconnect_tx_service()
 
@@ -45,6 +57,58 @@ def run(prompt: str):
 
     show_address_balances(web3, manager.address)
 
+@main.group()
+def safe():
+    pass
+
+@safe.command(name="connect")
+@click.option("--address", prompt="Address", required=True, help="Safe address")
+def safe_connect(address: str):
+    (_user, _agent, client, _safe_address) = get_configuration()
+    is_valid_safe = SafeManager.is_valid_safe(client, address)
+    if is_valid_safe:
+        # Save the safe address in a file for future use
+        with open("./.cache/safe.txt", "w") as f:
+            f.write(address)
+        # Delete the saved salt file in ./.cache/salt.txt if it exists
+        # This is to avoid using the wrong salt when deploying the safe to a different network
+        try:
+            os.remove("./.cache/salt.txt")
+        except FileNotFoundError:
+            pass
+
+        print(f"Safe address connected: {address}")
+        show_address_balances(client.w3, address)
+        print("Make sure to add the agent account to the safe as a signer (and update the treshold to 1/X) to be able to execute transactions")
+    else:
+        print("The address you provided is not a valid safe address")
+
+@main.group()
+def agent():
+    pass
+
+@agent.group(name="account")
+def agent_account():
+    pass
+
+@agent_account.command(name="create")
+def agent_account_create():
+    print("Creating agent account...")
+    agent_acc = generate_agent_account()
+    print(f"Agent account created with address {agent_acc.address}")
+
+@agent_account.command(name="delete")
+def agent_account_delete():
+    print("Deleting agent account...")
+    delete_agent_account()
+    print("Agent account deleted")
+
+@agent_account.command(name="info")
+def agent_account_info():
+    (_user, agent, client, _safe_address) = get_configuration()
+    web3 = client.w3
+    print(f"Agent address: {agent.address}")
+    show_address_balances(web3, agent.address)
 
 if __name__ == "__main__":
-    run()
+    main()
