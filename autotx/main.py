@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum import generate_agent_account, delete_agent_account
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 
 load_dotenv()
@@ -67,21 +68,21 @@ def safe_connect(address: str):
     (_user, _agent, client, _safe_address) = get_configuration()
     is_valid_safe = SafeManager.is_valid_safe(client, address)
     if is_valid_safe:
-        # Save the safe address in a file for future use
-        with open("./.cache/safe.txt", "w") as f:
-            f.write(address)
-        # Delete the saved salt file in ./.cache/salt.txt if it exists
-        # This is to avoid using the wrong salt when deploying the safe to a different network
-        try:
-            os.remove("./.cache/salt.txt")
-        except FileNotFoundError:
-            pass
+        save_cached_safe_address(address)
 
         print(f"Safe address connected: {address}")
         show_address_balances(client.w3, address)
         print("Make sure to add the agent account to the safe as a signer (and update the treshold to 1/X) to be able to execute transactions")
     else:
         print("The address you provided is not a valid safe address")
+
+@safe.command(name="disconnect")
+def safe_disconnect():
+    result = delete_cached_safe_address()
+    if result:
+        print("Safe address disconnected")
+    else:
+        print("No safe address was connected")
 
 @main.group()
 def agent():

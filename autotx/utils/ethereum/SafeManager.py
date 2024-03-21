@@ -3,6 +3,7 @@ from typing import Optional
 from web3 import Web3
 
 from autotx.utils.ethereum.cache import cache
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
@@ -72,6 +73,9 @@ class SafeManager:
 
         return manager
     
+    def disconnect(self):
+        delete_cached_safe_address()
+    
     def connect_tx_service(self, network: EthereumNetwork, transaction_service_url: str):
         self.use_tx_service = True
         self.network = network
@@ -124,7 +128,9 @@ class SafeManager:
             self.address,
             safe_nonce=self.track_nonce(safe_nonce),
         )
+        print(f"AAAAAAAAaa")
         safe_tx.safe_tx_gas = self.safe.estimate_tx_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation)
+        print(f"BBBBBBBBB")
         safe_tx.base_gas = self.safe.estimate_tx_base_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation, NULL_ADDRESS, safe_tx.safe_tx_gas)
 
         return safe_tx

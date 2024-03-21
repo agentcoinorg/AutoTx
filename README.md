@@ -58,8 +58,12 @@ To run AutoTx with a specific prompt:
 
 To connect to an existing safe:  
 > poetry run safe connect --address 0x1234
+If you want to disconnect from the safe:
+> poetry run safe disconnect
 
 In order for the agent to be able to execute or propose transactions, the agent account needs to be added as a signer to the safe.  
+You need to do this part if you're connecting to an existing safe, otherwise AutoTx will create a new safe for you with the agent account as a signer.
+
 To create a new agent account:  
 > poetry run agent account create  
 
