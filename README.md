@@ -39,8 +39,8 @@ If you have questions or encounter issues, please don't hesitate to [create a ne
 |-|-|-|
 | [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
 | [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with Uniswap. | :rocket: |
-| Bridge Tokens | Bridge tokens from one chain to another. | [draft](https://github.com/polywrap/AutoTx/issues/46) :memo: |
-| NFTs | Basic NFT integration: mint, transfer, set approval, etc. | [draft](https://github.com/polywrap/AutoTx/issues/45) :memo: |
+| Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
+| NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
 | Token Search | Research tokens, liquidity, prices, graphs, etc. | :thought_balloon: |
 | Earn Yield | Stake assets to earn yield. | :thought_balloon: |
