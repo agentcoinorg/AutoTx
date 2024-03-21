@@ -128,9 +128,7 @@ class SafeManager:
             self.address,
             safe_nonce=self.track_nonce(safe_nonce),
         )
-        print(f"AAAAAAAAaa")
         safe_tx.safe_tx_gas = self.safe.estimate_tx_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation)
-        print(f"BBBBBBBBB")
         safe_tx.base_gas = self.safe.estimate_tx_base_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation, NULL_ADDRESS, safe_tx.safe_tx_gas)
 
         return safe_tx
