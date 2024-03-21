@@ -1,39 +1,23 @@
 # AutoTx
-![](./docs/img/banner.png)
-
----
-
 [Discord](https://discord.gg/k7UCsH3ps9) | :star: the repo !  
 
----
+![](./docs/img/banner.png)
 
-## Welcome!
 
-AutoTx is a personal assistant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
+AutoTx is a personal assistant that plans and proposes on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
 
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
 
-## Example Prompts
-* `Send 1 ETH to 0x...`  
-* `Buy 100 USDC with ETH`  
-* `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
+## How It Works
 
-**Future Possibilities:**
-* `Send the most popular meme coin to vitalik.eth`
-* `Purchase mainnet ETH with my USDC on optimism`
-* `What proposals are being voted on right now?`
-* `Donate $100 to environmental impact projects.`
+AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user's prompt, it will first create a plan for how it will satisfy the user's intents. During the plan's execution, individual agents are used to complete tasks described within the plan.
 
-## Need Help?
-
-Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
-
-[![Join us on Discord](https://invidget.switchblade.xyz/k7UCsH3ps9)](https://discord.com/invite/k7UCsH3ps9)
-
-If you have questions or encounter issues, please don't hesitate to [create a new issue](https://github.com/polywrap/AutoTx/issues/new) to get support.
+Agents can add transactions to the bundle, which will later be proposed to the user's smart account for final approval before on-chain execution. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transaction to the user's smart account. AutoTx can create a new smart account for the user, or connect to an existing account (instructions below).
 
 ## Agents
+
+Below is a list of existing and anticipated agents that AutoTx can use. If you'd like to help build one of these agents, see the [How To Contribute](#how-to-contribute) section below.
 
 | Agent | Description | Status |
 |-|-|-|
@@ -51,201 +35,72 @@ If you have questions or encounter issues, please don't hesitate to [create a ne
 | Invest | Participate in LBPs, IDOs, etc. | :thought_balloon: |
 | Social | Use social networks (ex: Farcaster). | :thought_balloon: |
 
-## Accounts
-
-Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses an EOA to submit transaction to a smart account. Users can choose to have a new Safe created for them, or to connect AutoTx to an existing Safe (instructions below).
-
-## Getting Started
-Make sure you have the following:
+# Getting Started
+## Pre-Requisites
+Please install the following:
+- [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [python](https://www.python.org/downloads/)
 - [poetry](https://python-poetry.org/docs/#installation)
 - [docker](https://www.docker.com/)
 
-### Installation:
-1. Clone the repository
+## Installation
+1. Clone the repository via `git clone https://github.com/polywrap/AutoTx` and `cd AutoTx` into the directory.
+2. Create a new .env file via `cp .env.template .env`
+3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
+4. Find the line that says CHAIN_RPC_URL=, and add your unique Ethereum RPC URL `CHAIN_RPC_URL=https://mainnet.infura.io/v3/...` (see https://www.infura.io/)
+5. Start a new poetry shell `poetry shell`
+6. Install python dependencies `poetry install`
 
-TODO: update this
+## Run The Agent
 
-2. Create a `.env` and copy and configure content from the `.env.example` file. The description of the different environment variables can be found below.
+1. AutoTx requires a fork of the blockchain network you want to transaction against. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
+2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (ex: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup.
 
-4. Start poetry shell and install dependencies
-```
-poetry shell  
-poetry install  
-```
+> [!NOTE]  
+> All transactions will happen offline with test network funds. Instructions on how to connect AutoTx with an existing smart account will be added shortly.  
 
-5. Start local environment
-> poetry run start-env
+## Prompts
+AutoTx currently supports prompts such as:
+* `Send 1 ETH to vitalik.eth`  
+* `Buy 100 USDC with ETH`  
+* `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
 
-The above command will start a local blockchain node that is a fork of the `FORK_RPC_URL` node. To stop it simply run `poetry run stop-env`.
+Future possibilities:
+* `Send the most popular meme coin to vitalik.eth`
+* `Purchase mainnet ETH with my USDC on optimism`
+* `What proposals are being voted on right now?`
+* `Donate $100 to environmental impact projects.`
 
-Addresses and private keys of test accounts loaded with ETH are deterministic and will be printed to the docker container's logs. The first test account's private key is set as the `USER_PRIVATE_KEY` environment variable by default in the `.env.example` file.
+## How To Contribute
+Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build, as well as we keep the [repository's issues](https://github.com/polywrap/AutoTx/issues) updated. Connecting with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
-### Environment variables:
-- `USER_PRIVATE_KEY` - The private key of the user's wallet. Used for loading up other accounts with Ether.
-- `RPC_URL` - The URL of the blockchain node. Use `http://127.0.0.1:8545/` if connecting to a local node started by `poetry run start-env`
-- `OPENAI_API_KEY` - The OPENAI API key. Used for interacting with the OpenAI API.
-- `FORK_RPC_URL` - The URL of the blockchain node to fork from. Used by `poetry run start-env` to start a local fork of the blockchain. You can use infura or alchemy for this.
+### Adding Agents
 
-### Run:
-To run AutoTx, use the following command:
-> poetry run ask
+To add agents to AutoTx, we recommend starting with the [`ExampleAgent.py`](./autotx/agents/ExampleAgent.py) starter template. From there you'll want to:
+1. Implement the tools (functions) you want the agent to be able to call.
+2. Add all tools to the agent's `tools=[...]` array.
+3. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
 
-The above command will start the AutoTx agent and prompt you to input a prompt.
+### Testing Agents
 
-To run AutoTx with a specific prompt:
-> poetry run ask --prompt "I want to send 1 ETH to 0x1234"
+Tests are located in the [`./autotx/tests`](./autotx/tests/) directory.
 
-To connect to an existing safe:  
-> poetry run safe connect --address 0x1234
+Use the following commands to run your tests:
+```bash
+# run all tests
+poetry run pytest -s
 
-In order for the agent to be able to execute or propose transactions, the agent account needs to be added as a signer to the safe.  
-To create a new agent account:  
-> poetry run agent account create  
+# run a specific file
+poetry run pytest -s ./autotx/tests/file_name.py
 
-To display the address and info of the agent account:  
-> poetry run agent account info  
-
-If you want to delete the agent account:  
-> poetry run agent account delete
-
-## Testing
-Tests are located in the `autotx/tests` directory.
-
-To run all tests, use the following command:
-> poetry run pytest -s
-
-To run all tests in specific file, use the following command:
-> poetry run pytest -s ./autotx/tests/test_swap.py
-
-To run a specific test, use the following command:
-> poetry run pytest -s ./autotx/tests/test_swap.py::test_swap
-
-## How it works
-When you run AutoTx, it will prompt you to input a prompt.
-The prompt is then sent to the OpenAI API, which turns the prompt into a list of crew-ai tasks.
-Tasks are then passed to crew-ai which start executing them one by one with the use of pre-defined agents.
-The agents are responsible for interpreting the user's intent and executing the tasks.
-The agents use the gnosis safe to propose or execute transactions.
-Each agent has a set of tools (functions) at it's disposal.
-Agents can be found in the `autotx/agents` directory.
-List of current agents:
-- SendTokensAgent
-- SwapTokensAgent
-
-## How to customize
-
-### Adding tools to existing agents
-You can find the agents in the `autotx/agents` directory.
-There are two ways of adding tools to an agent:
-
-#### With the `@tool` decorator:
-```python
-@tool("Name of the tool")
-def my_tool(param1: str, param2: int) -> int:
-    """
-    This is the description of the tool
-
-    :param param1: str, description of param1
-    :param param2: int, description of param2
-
-    :result name_of_result: int, description of the result
-    """
-    return 0
-```
-Use the above when you want a quick and simple way of adding a tool to an agent.
-Then add the tool to the agent:
-```python
- super().__init__(
-    **config,
-    tools=[
-        my_tool,
-    ],
-    ...
-)
+# run a specific test
+poetry run pytest -s ./autotx/tests/file_name.py::function_name
 ```
 
-#### With a custom tool class:
-```python
-class MyTool(BaseTool):
-    name: str = "Name of the tool"
-    description: str = "Description of the tool"
+## Need Help?
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
 
-    def __init__(self):
-        super().__init__()
+[![Join us on Discord](https://invidget.switchblade.xyz/k7UCsH3ps9)](https://discord.com/invite/k7UCsH3ps9)
 
-    def _run(self, param1: str) -> str:
-        """
-        :param param1: str, description of param1
-
-        :return name_of_result: str, description of the result
-        """
-        return "some string"
-```
-Use the above when you need to add state and/or dependencies to the tool.
-Then add the tool to the agent:
-```python
-super().__init__(
-    **config,
-    tools=[MyTool()],
-    ...
-)
-```
-
-### Adding agents
-To add a new agent first add a new entry in ./autotx/config/agents.json. Fill in the role, goal and backstory.
-Then create a new file in the `autotx/agents` directory and add a new class that inherits from the `Agent` class.
-Example: 
-```python
-class MyAgent(Agent):
-    name: str
-
-    def __init__(self):
-        name = "my_agent_name"
-        config: AgentConfig = agents_config[name].model_dump()
-        super().__init__(
-            **config,
-            tools=[
-                // Tools go here
-            ],
-            llm=open_ai_llm,
-            verbose=True,
-            allow_delegation=False,
-            name=name,
-        )
-```
-AutoTx class accepts a list of agents as an argument, so be sure to add the new agent to the list.
-Go to `autotx/main.py` and add the new agent to the list of agents:
-```python
-    my_agent = MyAgent()
-    autotx = AutoTx(..., [..., my_agent], ...)
-```
-
-### Adding tests
-To add a new test, create a new file in the `autotx/tests` directory.
-
-Then create a new test function.
-
-Example: `def test_hello_world(configuration):`
-
-Each test function needs to start with `test_` and accept a `configuration` fixture as an argument.
-
-The `configuration` fixture is a tuple that consists of the following: (user, agent, client, manager).
-Where user is the user's account, agent is the agent's account, client is the EthereumClient instance and manager is the SafeManager instance.
-
-The fixture will take care of creating those accounts and instances for you as well as deploying a gnosis safe.
-
-## Roadmap
-
-### v0.1.0 (Current)
-- [x] Start local environment
-- [x] Create a gnosis safe
-- [x] Send Ether and ERC20 tokens
-- [x] Swap ERC20 tokens
-- [] Support existing safe
-- [] Fetch token addresses from a third-party API
-
-### v0.2.0
-
+If you have questions or encounter issues, please don't hesitate to [create a new issue](https://github.com/polywrap/AutoTx/issues/new) to get support.

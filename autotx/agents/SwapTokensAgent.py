@@ -19,7 +19,7 @@ class ExecuteSwapTool(BaseTool):
         if the address does not have enough allowance
 
         Args:
-            amount (str): Amount given by the user to trade. The function will take care of converting the amount
+            amount (float): Amount given by the user to trade. The function will take care of converting the amount
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
@@ -42,7 +42,7 @@ class ExecuteSwapTool(BaseTool):
         self.autotx = autotx
 
     def _run(
-        self, amount: str, token_in: str, token_out: str, exact_input: str
+        self, amount: float, token_in: str, token_out: str, exact_input: str
     ) -> list[TxParams]:
         token_in = token_in.lower()
         token_out = token_out.lower()
@@ -55,13 +55,12 @@ class ExecuteSwapTool(BaseTool):
 
         swap_transactions = build_swap_transaction(
             self.client,
-            float(amount),
+            amount,
             token_in_address,
             token_out_address,
             self.recipient,
             is_exact_input,
         )
-
         self.autotx.transactions.extend(swap_transactions)
 
         if is_exact_input:
