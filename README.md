@@ -1,23 +1,59 @@
 # AutoTx
 ![](./docs/img/banner.png)
 
+---
+
+[Discord](https://discord.gg/k7UCsH3ps9) | [Website](https://fundpublicgoods.ai) | :star: the repo !  
+
+---
+
+## Welcome!
+
 AutoTx is a personal assitant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
+
+> [!WARNING]  
+> This project is still early and experimental. Exercise caution when using real funds.  
 
 ## Example Prompts
 * `Send 1 ETH to 0x...`  
 * `Buy 100 USDC with ETH`  
 * `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
 
-## Capabilities
+**Future Possibilities:**
+* `Send the most popular meme coin to vitalik.eth`
+* `Purchase mainnet ETH with my USDC on optimism`
+* `What proposals are being voted on right now?`
+* `Donate $100 to environmental impact projects.`
 
-| Capability | Integrations |
-|-|-|
-| Send Tokens | ERC20, ETH |
-| Swap Tokens | Uniswap |
+## Need Help?
+
+Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
+
+[![Join us on Discord](https://invidget.switchblade.xyz/k7UCsH3ps9)](https://discord.com/invite/k7UCsH3ps9)
+
+If you have questions or encounter issues, please don't hesitate to [create a new issue](https://github.com/polywrap/AutoTx/issues/new) to get support.
+
+## Agents
+
+| Agent | Description | Status |
+|-|-|-|
+| [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
+| [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with Uniswap. | :rocket: |
+| Bridge Tokens | Bridge tokens from one chain to another. | [draft](https://github.com/polywrap/AutoTx/issues/46) :memo: |
+| NFTs | Basic NFT integration: mint, transfer, set approval, etc. | [draft](https://github.com/polywrap/AutoTx/issues/45) :memo: |
+| NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
+| Token Search | Research tokens, liquidity, prices, graphs, etc. | :thought_balloon: |
+| Earn Yield | Stake assets to earn yield. | :thought_balloon: |
+| LP | Provide liquidity to AMMs. | :thought_balloon: |
+| Governance | Vote or delegate in DAOs. | :thought_balloon: |
+| Predict | Generate future predictions based on research. | :thought_balloon: |
+| Donate | Donate to public goods projects. | :thought_balloon: |
+| Invest | Participate in LBPs, IDOs, etc. | :thought_balloon: |
+| Social | Use social networks (ex: Farcaster). | :thought_balloon: |
 
 ## Accounts
 
-Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses an EOA to submit transaction bundles to a smart account.
+Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses an EOA to submit transaction to a smart account. Users can choose to have a new Safe created for them, or to connect AutoTx to an existing Safe (instructions below).
 
 ## Getting Started
 Make sure you have the following:
@@ -27,6 +63,8 @@ Make sure you have the following:
 
 ### Installation:
 1. Clone the repository
+
+TODO: update this
 
 2. Create a `.env` and copy and configure content from the `.env.example` file. The description of the different environment variables can be found below.
 
