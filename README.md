@@ -13,7 +13,7 @@ AutoTx is a personal assistant that plans and proposes on-chain transactions for
 
 AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user's prompt, it will first create a plan for how it will satisfy the user's intents. During the plan's execution, individual agents are used to complete tasks described within the plan.
 
-Agents can add transactions to the bundle, which will later be proposed to the user's smart account for final approval before on-chain execution. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transaction to the user's smart account. AutoTx can create a new smart account for the user, or connect to an existing account (instructions below).
+Agents can add transactions to the bundle, which will later be proposed to the user's smart account for final approval before on-chain execution. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account. AutoTx can create a new smart account for the user, or connect to an existing account (instructions below).
 
 ## Agents
 
@@ -53,7 +53,7 @@ Please install the following:
 
 ## Run The Agent
 
-1. AutoTx requires a fork of the blockchain network you want to transaction against. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
+1. AutoTx requires a fork of the blockchain network you want to transact with. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
 2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (ex: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup.
 
 > [!NOTE]  
@@ -72,7 +72,7 @@ Future possibilities:
 * `Donate $100 to environmental impact projects.`
 
 ## How To Contribute
-Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build, as well as we keep the [repository's issues](https://github.com/polywrap/AutoTx/issues) updated. Connecting with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
+Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build! Additionally, checkout the [repository's issues](https://github.com/polywrap/AutoTx/issues) that will remain updated with the project's latest developments. Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
 ### Adding Agents
 

@@ -1,6 +1,7 @@
 import os
 import click
 from dotenv import load_dotenv
+load_dotenv()
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
@@ -11,7 +12,6 @@ from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
 
-load_dotenv()
 patch_langchain()
 
 @click.group()
