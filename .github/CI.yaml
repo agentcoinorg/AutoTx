@@ -1,4 +1,4 @@
-name: benchmarks
+name: CI
 
 on:
   issue_comment:
@@ -8,7 +8,7 @@ jobs:
   run:
     if: |
       github.event.issue.pull_request &&
-      contains(github.event.comment.body, '/workflows/benchmarks')
+      contains(github.event.comment.body, '/workflows/ci')
     runs-on: ubuntu-latest
 
     steps:
@@ -44,10 +44,7 @@ jobs:
         env.IS_OWNER != 'true'
       run: exit 1
 
-    - name: Get test name if provided
-      run: echo TEST_NAME=$(echo "${{ github.event.comment.body }}" | grep -oP '(?<=/workflows/benchmarks\s)\w+') >> $GITHUB_ENV
-
-    - name: Benchmarks PR comment
+    - name: PR comment
       uses: actions/github-script@v6
       with:
         script: |
@@ -55,17 +52,11 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '[Running Benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
+            body: '[Running CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
           })
 
-    - name: Run benchmarks
+    - name: Run CI
       run: |
-        if [ -n "${{ env.TEST_NAME }}" ]; then
-          echo "Running benchmarks for test: ${{ env.TEST_NAME }}"
-          poetry run pytest autotx/tests/test_benchmarks.py::test_auto_tx_${{ env.TEST_NAME }}
-        else
-          echo "Running benchmarks with default settings"
-          poetry run pytest autotx/tests/test_benchmarks.py -s
-        fi
+          poetry run pytest -s
       env:
-        OPENAI_API_KEY: ${{ secrets.BENCHMARK_CI_OPENAI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}

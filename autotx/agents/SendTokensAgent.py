@@ -25,7 +25,7 @@ class TransferERC20TokenTool(BaseTool):
         Args:
             amount (float): Amount given by the user to transfer. The function will take
             care of converting the amount to needed decimals.
-            reciever (str): The address of reciever
+            reciever (str): The receiver's address or ENS domain
             token (str): Symbol of token to transfer
         Returns:
             Message to confirm that transaction has been prepared
@@ -48,7 +48,7 @@ class TransferERC20TokenTool(BaseTool):
         self.autotx.transactions.append(tx)
 
         return f"Transaction to send {amount} {token} has been prepared"
-    
+
 class TransferETHTool(BaseTool):
     name: str = "Transfer ETH"
     description: str = dedent(
@@ -58,7 +58,7 @@ class TransferETHTool(BaseTool):
         Args:
             amount (float): Amount given by the user to transfer. The function will take
             care of converting the amount to needed decimals.
-            reciever (str): The address of reciever
+            reciever (str): The receiver's address or ENS domain
         Returns:
             Message to confirm that transaction has been prepared
         """
@@ -86,7 +86,7 @@ class GetBalanceTool(BaseTool):
         Check owner balance in ERC20 token
 
         :param token: str, token symbol of erc20
-        :param owner: str, address of owner of tokens
+        :param owner: str, the token owner's address or ENS domain
 
         :result balance: int, the balance of owner in erc20 contract
         """
@@ -124,7 +124,7 @@ class SendTokensAgent(Agent):
             allow_delegation=False,
             name=name,
         )
-    
+
 def build_agent_factory() -> Callable[[AutoTx], Agent]:
     def agent_factory(autotx: AutoTx) -> SendTokensAgent:
         return SendTokensAgent(autotx)

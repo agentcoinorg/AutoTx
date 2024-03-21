@@ -1,14 +1,12 @@
-from dataclasses import dataclass
 import json
+from typing import Optional, Callable
+from dataclasses import dataclass
 from textwrap import dedent
-from typing import Optional
-import typing
-from crewai import Agent, Crew, Process, Task
-from autotx.utils.agents_config import agents_config
 import openai
 from langchain_core.tools import StructuredTool
+from crewai import Agent, Crew, Process, Task
 from web3.types import TxParams
-
+from autotx.utils.agents_config import agents_config
 from autotx.utils.ethereum import SafeManager
 
 @dataclass(kw_only=True)
@@ -22,7 +20,7 @@ class AutoTx:
     transactions: list[TxParams] = []
 
     def __init__(
-        self, manager: SafeManager, agent_factories: list[typing.Callable[['AutoTx'], Agent]], config: Optional[Config]
+        self, manager: SafeManager, agent_factories: list[Callable[['AutoTx'], Agent]], config: Optional[Config]
     ):
         self.manager = manager
         if config:
