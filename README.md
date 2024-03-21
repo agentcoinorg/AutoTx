@@ -3,13 +3,13 @@
 
 ---
 
-[Discord](https://discord.gg/k7UCsH3ps9) | [Website](https://fundpublicgoods.ai) | :star: the repo !  
+[Discord](https://discord.gg/k7UCsH3ps9) | :star: the repo !  
 
 ---
 
 ## Welcome!
 
-AutoTx is a personal assitant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
+AutoTx is a personal assistant that plans and creates on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
 
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
@@ -69,8 +69,10 @@ TODO: update this
 2. Create a `.env` and copy and configure content from the `.env.example` file. The description of the different environment variables can be found below.
 
 4. Start poetry shell and install dependencies
-> poetry shell  
-> poetry install
+```
+poetry shell  
+poetry install  
+```
 
 5. Start local environment
 > poetry run start-env
