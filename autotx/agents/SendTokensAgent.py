@@ -2,6 +2,7 @@ from textwrap import dedent
 from typing import Callable
 from crewai import Agent
 from pydantic import ConfigDict, Field
+from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agents_config import AgentConfig, agents_config
@@ -46,6 +47,9 @@ class TransferERC20TokenTool(BaseTool):
         token_address = tokens[token.lower()]
         web3 = load_w3()
 
+        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
+            raise ValueError("Invalid receiver address")
+
         tx = build_transfer_erc20(web3, token_address, reciever, amount)
 
         related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
@@ -79,6 +83,9 @@ class TransferETHTool(BaseTool):
     ) -> str:
         web3 = load_w3()
       
+        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
+            raise ValueError("Invalid receiver address")
+    
         tx = build_transfer_eth(web3, ADDRESS_ZERO, reciever, amount)
       
         related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""

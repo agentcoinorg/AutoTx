@@ -29,8 +29,6 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
         print("Safe already deployed", safe_address)
         return safe_address
     
-    print("Prepared safe address: ", safe_address)
-
     safe_creation_tx = builder.build(
         owners=signers,
         threshold=threshold,
