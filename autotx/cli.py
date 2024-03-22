@@ -23,8 +23,6 @@ def main():
 @click.option("--headless", is_flag=True, help="Headless mode (will not expect further user input)")
 @click.option("--strict", is_flag=True, help="Strict mode (will ask for more information if needed)")
 def run(prompt: str, headless: bool, strict: bool):
-    print("Running AutoTx...", prompt, headless, strict)
-
     (user, agent, client, safe_address) = get_configuration()
     web3 = client.w3
 
