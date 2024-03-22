@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
+
 load_dotenv()
 
 import pytest
@@ -17,11 +19,11 @@ from autotx.utils.ethereum import (
 )
 from autotx.utils.ethereum.config import contracts_config
 
-
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
     start()
     (user, agent, client, _safe_address) = get_configuration()
+    delete_cached_safe_address()
 
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
@@ -35,7 +37,6 @@ def start_and_stop_local_fork():
 
     stop()
 
-
 @pytest.fixture()
 def configuration():
     (user, agent, client, _safe_address) = get_configuration()
@@ -46,7 +47,6 @@ def configuration():
 
     return (user, agent, client, manager)
 
-
 @pytest.fixture()
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
@@ -55,7 +55,6 @@ def auto_tx(configuration):
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
-
 
 @pytest.fixture()
 def mock_erc20(configuration):
