@@ -4,7 +4,7 @@ from eth_typing import URI
 from eth_account import Account
 
 from autotx.utils.ethereum import generate_agent_account
-from autotx.utils.ethereum.get_cached_safe_address import get_cached_safe_address
+from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 
 rpc_url, user_pk = get_env_vars()
 

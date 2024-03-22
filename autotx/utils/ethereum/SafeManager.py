@@ -3,6 +3,7 @@ from typing import Optional
 from web3 import Web3
 
 from autotx.utils.ethereum.cache import cache
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
@@ -71,6 +72,9 @@ class SafeManager:
         manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
 
         return manager
+    
+    def disconnect(self):
+        delete_cached_safe_address()
     
     def connect_tx_service(self, network: EthereumNetwork, transaction_service_url: str):
         self.use_tx_service = True
