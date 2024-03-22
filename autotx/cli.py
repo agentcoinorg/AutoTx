@@ -52,8 +52,10 @@ def run(prompt: str, headless: bool, strict: bool):
         user_test_account = get_test_account()
 
         manager = SafeManager.deploy_safe(client, user_test_account, agent, [user_test_account.address, agent.address], 1)
-        send_eth(user_test_account, manager.address, int(0.1 * 10**18), web3)
         print(f"Smart account deployed: {manager.address}")
+        
+        send_eth(user_test_account, manager.address, int(10 * 10**18), web3)
+        print(f"Sent 10 ETH to smart account for testing purposes")
 
     print("Starting smart account balances:")
     show_address_balances(web3, manager.address)
