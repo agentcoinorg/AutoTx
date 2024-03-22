@@ -1,10 +1,8 @@
 import random
 from eth_account import Account
 from gnosis.eth import EthereumClient
-from gnosis.safe import Safe, ProxyFactory
+from gnosis.safe import ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
-from web3.types import TxParams
-from .cache import cache
 
 from .send_tx import send_tx
 from .constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
@@ -13,7 +11,6 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     w3 = client.w3
 
     salt_nonce = generate_salt_nonce()
-    print("Salt Nonce: ", salt_nonce)
 
     builder = SafeCreate2TxBuilder(
         w3=w3,
@@ -73,7 +70,5 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     return safe_address
 
 def generate_salt_nonce() -> int:
-    salt = cache(lambda: str(random.getrandbits(256) - 1), "./.cache/salt.txt")
-
-    return int(salt)
+    return random.getrandbits(256) - 1
 

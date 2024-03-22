@@ -22,14 +22,6 @@ from autotx.utils.ethereum.config import contracts_config
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
     start()
-    (_, agent, client) = get_configuration()
-    user = get_test_account()
-    
-    manager = SafeManager.deploy_safe(
-        client, user, agent, [user.address, agent.address], 1
-    )
-
-    send_eth(user, manager.address, int(5 * 10**18), client.w3)
 
     yield
 
@@ -39,10 +31,13 @@ def start_and_stop_local_fork():
 def configuration():
     (_, agent, client) = get_configuration()
     user = get_test_account()
-
+    
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
     )
+
+    # Send 10 ETH to the smart account for tests
+    send_eth(user, manager.address, int(10 * 10**18), client.w3)
 
     return (user, agent, client, manager)
 
