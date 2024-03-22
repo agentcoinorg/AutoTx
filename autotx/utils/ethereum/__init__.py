@@ -17,6 +17,7 @@ from .load_w3 import load_w3
 from .build_approve_erc20 import build_approve_erc20
 from .get_erc20_info import get_erc20_info
 from .is_valid_safe import is_valid_safe
+from .get_address import get_address
 
 __all__ = [
     "deploy_safe",
@@ -34,6 +35,7 @@ __all__ = [
     "build_transfer_eth",
     "build_transfer_erc20",
     "build_approve_erc20",
+    "get_address",
     "get_erc20_balance",
     "get_erc20_info",
     "SafeManager",

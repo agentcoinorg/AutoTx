@@ -1,10 +1,10 @@
 import subprocess
 
-container_name = "development_node_container"
+container_name = "autotx_chain_fork"
 
 
 def start():
-    subprocess.run(["docker", "build", "-t", "development_node", "."], check=True)
+    subprocess.run(["docker", "build", "-t", "autotx_chain_fork", "."], check=True)
     subprocess.run(
         [
             "docker",
@@ -16,7 +16,7 @@ def start():
             "8545:8545",
             "--env-file",
             ".env",
-            "development_node",
+            "autotx_chain_fork",
         ],
         check=True,
     )

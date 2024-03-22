@@ -1,17 +1,14 @@
 import os
+import click
 from dotenv import load_dotenv
 
-from autotx.utils.ethereum import generate_agent_account, delete_agent_account
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address, save_cached_safe_address
-from autotx.utils.ethereum.is_valid_safe import is_valid_safe
-
 load_dotenv()
-
-import click
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
+from autotx.utils.ethereum import generate_agent_account, delete_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
