@@ -27,7 +27,7 @@ class InvalidPromptResponse:
 
 DefineGoalResponse = typing.Union[GoalResponse, MissingInfoResponse, InvalidPromptResponse]
 
-persona = dedent(
+PERSONA = dedent(
     """
     You are an AI assistant that helps you define goals and tasks for your agents. 
     You can analyze prompts and provide the user with a goal to be executed by the agents.
@@ -104,7 +104,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str) -> DefineGoa
         model="gpt-4-turbo-preview",
         response_format={"type": "json_object"},
         messages=[
-            { "role": "system", "content": persona },
+            { "role": "system", "content": PERSONA },
             { "role": "user", "content": formatted_template }
         ],
     )
