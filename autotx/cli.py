@@ -23,7 +23,7 @@ def main():
 
 @main.command()
 @click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
-@click.option("--headless", is_flag=True, help="Headless mode (will not expect further user input)")
+@click.option("--headless", is_flag=True, help="Headless mode (will not expect further user input or approval)")
 @click.option("--strict", is_flag=True, help="Strict mode (will ask for more information if needed)")
 def run(prompt: str, headless: bool, strict: bool):
     (smart_account_addr, agent, client) = get_configuration()

@@ -190,7 +190,7 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_multisend_tx(self, txs: list[PreparedTx], safe_nonce: Optional[int] = None):
+    def send_multisend_tx(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None):
         transactions_info = "\n".join(
             [
                 f"{i}. {tx.summary}"
@@ -198,24 +198,36 @@ class SafeManager:
             ]
         )
 
-        if self.use_tx_service:
-            response = input(f"Batched transactions:\n{transactions_info}\n\nDo you want the above transactions to be sent to your smart account? (y/n): ")
+        print(f"Batched transactions:\n{transactions_info}")
 
-            if response.lower() != "y":
-                print("Transactions not sent to your smart account.")
-                return
-        
+        if self.use_tx_service:
+            if require_approval:
+                response = input("Do you want the above transactions to be sent to your smart account? (y/n): ")
+
+                if response.lower() != "y":
+                    print("Transactions not sent to your smart account (declined).")
+                    return
+            else:
+                print("Headless mode enabled. Transactions will be sent to your smart account without approval.")
+
+            print("Sending transactions to your smart account...")
+
             self.post_multisend_transaction([prepared_tx.tx for prepared_tx in txs], safe_nonce)
 
             print("Transactions sent to your smart account for signing.")
             
             return
         else:
-            response = input(f"Batched transactions:\n{transactions_info}\n\nDo you want to execute the above transactions? (y/n): ")
+            if require_approval:
+                response = input("Do you want to execute the above transactions? (y/n): ")
 
-            if response.lower() != "y":
-                print("Transactions not executed.")
-                return
+                if response.lower() != "y":
+                    print("Transactions not executed (declined).")
+                    return
+            else:
+                print("Headless mode enabled. Transactions will be executed without approval.")
+
+            print("Executing transactions...")
 
             self.execute_multisend_tx([prepared_tx.tx for prepared_tx in txs], safe_nonce)
         

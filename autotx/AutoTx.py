@@ -46,7 +46,7 @@ class AutoTx:
             process=Process.sequential,
         ).kickoff()
 
-        self.manager.send_multisend_tx(self.transactions)
+        self.manager.send_multisend_tx(self.transactions, require_approval=not headless)
         self.transactions.clear()
 
     def get_agents_information(self) -> str:
