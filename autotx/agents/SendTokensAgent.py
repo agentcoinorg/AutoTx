@@ -48,7 +48,8 @@ class TransferERC20TokenTool(BaseTool):
 
         tx = build_transfer_erc20(web3, token_address, reciever, amount)
 
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {reciever}({get_address(web3, reciever)})", tx))
+        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {reciever}{related_addr}", tx))
 
         return f"Transaction to send {amount} {token} has been prepared"
 
@@ -80,7 +81,8 @@ class TransferETHTool(BaseTool):
       
         tx = build_transfer_eth(web3, ADDRESS_ZERO, reciever, amount)
       
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {reciever}({get_address(web3, reciever)})", tx))
+        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {reciever}{related_addr}", tx))
 
         return f"Transaction to send {amount} ETH has been prepared"
 
