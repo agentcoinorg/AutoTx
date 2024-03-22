@@ -24,6 +24,7 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
+    user: Account | None = None
 
     def __init__(
         self, 
@@ -54,6 +55,7 @@ class SafeManager:
         safe_address = cache(lambda: deploy_safe_with_create2(client, user, owners, threshold), "./.cache/safe.txt")
 
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
+        manager.user = user
 
         manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
 
@@ -94,7 +96,9 @@ class SafeManager:
         self.client.multicall = Multicall(self.client, address)
 
     def  deploy_multicall(self):
-        multicall_addr = deploy_multicall(self.client, self.agent)
+        if not self.user:
+            raise ValueError("User account not set. This function should not be called in production.")
+        multicall_addr = deploy_multicall(self.client, self.user)
         self.connect_multicall(multicall_addr)
     
     def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
@@ -135,14 +139,17 @@ class SafeManager:
         return safe_tx
     
     def execute_tx(self, tx: TxParams, safe_nonce: Optional[int] = None):
+        if not self.user:
+            raise ValueError("User account not set. This function should not be called in production.")
+
         safe_tx = self.build_tx(tx, safe_nonce)
 
         safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.agent.address)
+        safe_tx.call(tx_sender_address=self.user.address)
 
         tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.agent.key.hex()
+            tx_sender_private_key=self.user.key.hex()
         )
 
         print(f"Executed safe tx hash: {tx_hash.hex()}")
@@ -150,14 +157,17 @@ class SafeManager:
         return tx_hash
 
     def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+        if not self.user:
+            raise ValueError("User account not set. This function should not be called in production.")
+
         safe_tx = self.build_multisend_tx(txs, safe_nonce)
 
         safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.agent.address)
+        safe_tx.call(tx_sender_address=self.user.address)
 
         tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.agent.key.hex()
+            tx_sender_private_key=self.user.key.hex()
         )
 
         return tx_hash

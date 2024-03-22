@@ -51,10 +51,6 @@ def run(prompt: str, headless: bool, strict: bool):
         print("No smart account connected, deploying a new one...")
         user_test_account = get_test_account()
 
-        # Send 1 ETH to the agent, so it can execute transactions
-        print(f"Sending 1 ETH to the agent ({agent.address}) from test account ({user_test_account.address})")
-        send_eth(user_test_account, agent.address, int(1 * 10**18), web3)
-        
         manager = SafeManager.deploy_safe(client, user_test_account, agent, [user_test_account.address, agent.address], 1)
         send_eth(user_test_account, manager.address, int(0.1 * 10**18), web3)
         print(f"Smart account deployed: {manager.address}")
