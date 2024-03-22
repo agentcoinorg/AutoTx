@@ -20,7 +20,11 @@ def main():
 
 @main.command()
 @click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
-def run(prompt: str):
+@click.option("--headless", is_flag=True, help="Headless mode (will not expect further user input)")
+@click.option("--strict", is_flag=True, help="Strict mode (will ask for more information if needed)")
+def run(prompt: str, headless: bool, strict: bool):
+    print("Running AutoTx...", prompt, headless, strict)
+
     (user, agent, client, safe_address) = get_configuration()
     web3 = client.w3
 
@@ -49,7 +53,7 @@ def run(prompt: str):
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
-    autotx.run(prompt)
+    autotx.run(prompt, headless, strict)
 
     show_address_balances(web3, manager.address)
 

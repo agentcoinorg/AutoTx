@@ -35,25 +35,38 @@ persona = dedent(
     """
 )
 
-def build_goal(prompt: str, agents_information: str) -> str:
+def build_goal(prompt: str, agents_information: str, headless: bool, strict: bool) -> str:
     response: DefineGoalResponse | None = None
+    chat_history = f"User: {prompt}"
+
     while True:
-        response = analyze_user_prompt(prompt, agents_information)
+        response = analyze_user_prompt(chat_history, agents_information)
         if response.type == "missing_info":
-            autotx_message = f"Missing information: {response.message}\n"
-            prompt = prompt + "\n" + autotx_message + "\n" + input(autotx_message)
+            autotx_message = f"Missing information: {response.message}\nInput response: "
+            
+            if not strict:
+                return prompt
+
+            if headless:
+                raise Exception(autotx_message)
+            else:
+                chat_history += "\nYou: " + autotx_message + "\nUser: " + input(autotx_message)
+
         elif response.type == "unsupported":
-            autotx_message = f"Invalid prompt: {response.message}\n"
-            prompt = prompt + "\n" + autotx_message + "\n" + input(autotx_message)
+            autotx_message = f"Unsupported prompt: {response.message}\nNew prompt: "
+            chat_history = f"User: {input(autotx_message)}"
+
+            if headless:
+                raise Exception(autotx_message)
         elif response.type == "goal":
             return response.goal
 
-def analyze_user_prompt(prompt: str, agents_information: str) -> DefineGoalResponse:
+def analyze_user_prompt(chat_history: str, agents_information: str) -> DefineGoalResponse:
     template = dedent(
         """
         Based on the following chat history between you and the user: 
         ```
-        {prompt}
+        {chat_history}
         ```
             
         You must analyze the prompt and define a goal to be executed by the agents.
@@ -84,7 +97,7 @@ def analyze_user_prompt(prompt: str, agents_information: str) -> DefineGoalRespo
     )
 
     formatted_template = template.format(
-        agents_information=agents_information, prompt=prompt
+        agents_information=agents_information, chat_history=chat_history
     )
 
     # TODO: Improve how we pass messages. We should use system role
