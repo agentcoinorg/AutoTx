@@ -4,15 +4,13 @@ from eth_typing import URI
 from eth_account import Account
 
 from autotx.utils.ethereum import generate_agent_account
-from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 
-rpc_url, user_pk = get_env_vars()
+rpc_url, user_pk, smart_account_addr = get_env_vars()
 
+FORK_RPC_URL = "http://localhost:8545"
 
 def get_configuration():
-    client = EthereumClient(URI(rpc_url))
-    user: Account = Account.from_key(user_pk)
+    client = EthereumClient(URI(FORK_RPC_URL))
     agent: Account = generate_agent_account()
-    safe_address = get_cached_safe_address()
 
-    return (user, agent, client, safe_address)
+    return (smart_account_addr, agent, client)

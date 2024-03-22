@@ -1,17 +1,14 @@
-import json
 from typing import Optional, Callable
 from dataclasses import dataclass
 from textwrap import dedent
-import openai
 from typing import Optional
-import typing
 from crewai import Agent, Crew, Process, Task
+from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.agent.define_tasks import define_tasks
 from autotx.utils.agents_config import agents_config
 from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
-from web3.types import TxParams
 from autotx.utils.agents_config import agents_config
 from autotx.utils.ethereum import SafeManager
 
@@ -23,7 +20,7 @@ class AutoTx:
     manager: SafeManager
     agents: list[Agent]
     config: Config = Config(verbose=False)
-    transactions: list[TxParams] = []
+    transactions: list[PreparedTx] = []
 
     def __init__(
         self, manager: SafeManager, agent_factories: list[Callable[['AutoTx'], Agent]], config: Optional[Config]
@@ -40,7 +37,7 @@ class AutoTx:
 
         goal = build_goal(prompt, agents_information, headless, strict)
 
-        print("Defining tasks...")
+        print(f"Defining tasks for goal: '{goal}'")
         tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
         Crew(
             agents=self.agents,

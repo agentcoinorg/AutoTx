@@ -2,7 +2,7 @@ from textwrap import dedent
 from typing import Callable
 from crewai import Agent
 from pydantic import ConfigDict, Field
-from autotx import AutoTx
+from autotx.AutoTx import AutoTx
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 from autotx.utils.agents_config import AgentConfig, agents_config
 from autotx.utils.llm import open_ai_llm
@@ -43,7 +43,7 @@ class ExecuteSwapTool(BaseTool):
 
     def _run(
         self, amount: float, token_in: str, token_out: str, exact_input: str
-    ) -> list[TxParams]:
+    ) -> str:
         token_in = token_in.lower()
         token_out = token_out.lower()
         tokens = contracts_config["erc20"]

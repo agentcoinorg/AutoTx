@@ -2,6 +2,7 @@ from typing import Optional
 
 from web3 import Web3
 
+from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.cache import cache
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
@@ -189,13 +190,37 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+    def send_multisend_tx(self, txs: list[PreparedTx], safe_nonce: Optional[int] = None):
+        transactions_info = "\n".join(
+            [
+                f"{i}. {tx.summary}"
+                for i, tx in enumerate(txs, start=1)
+            ]
+        )
+
         if self.use_tx_service:
-            self.post_multisend_transaction(txs, safe_nonce)
-            return None
-        else:
-            return self.execute_multisend_tx(txs, safe_nonce)
+            response = input(f"Batched transactions:\n{transactions_info}\n\nDo you want the above transactions to be sent to your smart account? (y/n): ")
+
+            if response.lower() != "y":
+                print("Transactions not sent to your smart account.")
+                return
         
+            self.post_multisend_transaction([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+
+            print("Transactions sent to your smart account for signing.")
+            
+            return
+        else:
+            response = input(f"Batched transactions:\n{transactions_info}\n\nDo you want to execute the above transactions? (y/n): ")
+
+            if response.lower() != "y":
+                print("Transactions not executed.")
+                return
+
+            self.execute_multisend_tx([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+        
+            print("Transactions executed.")
+
     def send_empty_tx(self, safe_nonce: Optional[int] = None):
         tx: TxParams = {
             "to": self.address,
