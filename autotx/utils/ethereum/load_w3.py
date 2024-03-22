@@ -1,7 +1,6 @@
 from web3 import Web3
-from autotx.get_env_vars import get_env_vars
+from autotx.utils.ethereum.constants import FORK_RPC_URL
 
 def load_w3() -> Web3:
-    rpc_url, _, _ = get_env_vars()
-    web3 = Web3(Web3.HTTPProvider(rpc_url))
+    web3 = Web3(Web3.HTTPProvider(FORK_RPC_URL))
     return web3

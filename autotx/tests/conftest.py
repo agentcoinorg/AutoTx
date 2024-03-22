@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
+from autotx.utils.ethereum.helpers.get_test_account import get_test_account
 
 load_dotenv()
 
@@ -22,15 +23,14 @@ from autotx.utils.ethereum.config import contracts_config
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
     start()
-    (user, agent, client, _safe_address) = get_configuration()
+    (_, agent, client) = get_configuration()
     delete_cached_safe_address()
-
+    user = get_test_account()
+    
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
     )
 
-    send_eth(user, agent.address, int(0.1 * 10**18), client.w3)
-    send_eth(user, user.address, int(5 * 10**18), client.w3)
     send_eth(user, manager.address, int(5 * 10**18), client.w3)
 
     yield
@@ -39,7 +39,8 @@ def start_and_stop_local_fork():
 
 @pytest.fixture()
 def configuration():
-    (user, agent, client, _safe_address) = get_configuration()
+    (_, agent, client) = get_configuration()
+    user = get_test_account()
 
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
