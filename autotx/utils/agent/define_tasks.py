@@ -35,7 +35,6 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
         messages=[{"role": "user", "content": formatted_template}],
     )
     response = response.choices[0].message.content
-    print(response)
     if not response:
         # TODO: Handle bad response
         pass

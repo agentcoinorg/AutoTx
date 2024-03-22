@@ -100,7 +100,6 @@ def analyze_user_prompt(chat_history: str, agents_information: str) -> DefineGoa
         agents_information=agents_information, chat_history=chat_history
     )
 
-    # TODO: Improve how we pass messages. We should use system role
     response = openai.chat.completions.create(
         model="gpt-4-turbo-preview",
         response_format={"type": "json_object"},
@@ -110,7 +109,6 @@ def analyze_user_prompt(chat_history: str, agents_information: str) -> DefineGoa
         ],
     )
     response = response.choices[0].message.content
-    print(response)
     if not response:
         # TODO: Handle bad response
         pass

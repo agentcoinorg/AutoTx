@@ -34,7 +34,7 @@ class AutoTx:
         self.agents = [factory(self) for factory in agent_factories]
 
     def run(self, prompt: str, headless: bool, strict: bool):
-        print("Defining goal...", prompt)
+        print("Defining goal...")
        
         agents_information = self.get_agents_information()
 
