@@ -1,6 +1,5 @@
 from textwrap import dedent
 from typing import Callable
-from langchain_core.tools import tool
 from crewai import Agent
 from pydantic import ConfigDict, Field
 from autotx.AutoTx import AutoTx
