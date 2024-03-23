@@ -1,7 +1,6 @@
 from .get_eth_balance import get_eth_balance
 from .send_eth import send_eth
 from .deploy_safe_with_create2 import deploy_safe_with_create2
-from .agent_account import generate_agent_account, delete_agent_account
 from .config import contracts_config
 from .deploy_multicall import deploy_multicall
 from .send_tx import send_tx
@@ -22,8 +21,6 @@ __all__ = [
     "get_eth_balance",
     "send_eth",
     "deploy_safe_with_create2",
-    "generate_agent_account",
-    "delete_agent_account",
     "contracts_config",
     "deploy_multicall",
     "send_tx",

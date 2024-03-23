@@ -2,6 +2,7 @@ from typing import Optional
 
 from web3 import Web3
 
+from autotx.utils.ethereum.cache import cache
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
@@ -50,7 +51,7 @@ class SafeManager:
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
-        safe_address = deploy_safe_with_create2(client, user, owners, threshold)
+        safe_address = cache(lambda: deploy_safe_with_create2(client, user, owners, threshold), "./.cache/safe.txt")
 
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
         manager.user = user

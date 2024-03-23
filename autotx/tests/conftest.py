@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.helpers.get_test_account import get_test_account
 
 load_dotenv()
@@ -31,7 +32,8 @@ def start_and_stop_local_fork():
 def configuration():
     (_, agent, client) = get_configuration()
     user = get_test_account()
-    
+    delete_cached_safe_address()
+
     manager = SafeManager.deploy_safe(
         client, user, agent, [user.address, agent.address], 1
     )
