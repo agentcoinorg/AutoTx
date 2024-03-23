@@ -3,6 +3,12 @@ from typing import Optional, Callable
 from dataclasses import dataclass
 from textwrap import dedent
 import openai
+from typing import Optional
+import typing
+from crewai import Agent, Crew, Process, Task
+from autotx.utils.agent.build_goal import build_goal
+from autotx.utils.agent.define_tasks import define_tasks
+from autotx.utils.agents_config import agents_config
 from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
 from web3.types import TxParams
@@ -27,9 +33,15 @@ class AutoTx:
             self.config = config
         self.agents = [factory(self) for factory in agent_factories]
 
-    def run(self, prompt: str):
+    def run(self, prompt: str, non_interactive: bool):
+        print("Defining goal...")
+       
+        agents_information = self.get_agents_information()
+
+        goal = build_goal(prompt, agents_information, non_interactive)
+
         print("Defining tasks...")
-        tasks: list[Task] = self.define_tasks(prompt)
+        tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
         Crew(
             agents=self.agents,
             tasks=tasks,
@@ -40,26 +52,7 @@ class AutoTx:
         self.manager.send_multisend_tx(self.transactions)
         self.transactions.clear()
 
-    def define_tasks(self, prompt: str) -> list[Task]:
-        template = dedent(
-            """
-            Based on the following prompt: {prompt}
-              
-            You must convert instructions into specific tasks with the following JSON format:
-            {{
-                tasks : [{{
-                    "task": "Concise description of task to be done with details needed given by user"
-                    "agent": "The agent that best fits to execute the task"
-                    "expected_output":"Description of expected output for the task"
-                    "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
-                    "extra_information": Any extra information as string with description given by the user needed to execute the task, if applicable.
-                }}]
-            }}
-
-            The specific tasks will be created based on the available agents role, goal and available tools:
-            {agents_information}
-            """
-        )
+    def get_agents_information(self) -> str:
         agent_descriptions = []
         for agent_name, agent_details in agents_config.items():
             agent_info = agent_details.model_dump()
@@ -83,47 +76,4 @@ class AutoTx:
                 raise Exception(f"No default tools defined in agent: {agent_name}")
 
         agents_information = "\n".join(agent_descriptions)
-
-        formatted_template = template.format(
-            agents_information=agents_information, prompt=prompt
-        )
-
-        # TODO: Improve how we pass messages. We should use system role
-        response = openai.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            response_format={"type": "json_object"},
-            messages=[{"role": "user", "content": formatted_template}],
-        )
-        response = response.choices[0].message.content
-        print(response)
-        if not response:
-            # TODO: Handle bad response
-            pass
-
-        return self.sanitize_tasks_response(response)
-
-    def sanitize_tasks_response(self, response: str) -> list[Task]:
-        tasks = json.loads(response)["tasks"]
-        sanitized_tasks: list[Task] = []
-        for task in tasks:
-            context: list[Task] = (
-                [sanitized_tasks[c] for c in task["context"]] if task["context"] else []
-            )
-
-            get_agent_by_name = lambda a: a.name == task["agent"]
-            agent = next(filter(get_agent_by_name, self.agents), None)
-            description = task["task"]
-
-            if task["extra_information"]:
-                description += "\n" + task["extra_information"]
-
-            sanitized_tasks.append(
-                Task(
-                    description=description,
-                    agent=agent,
-                    expected_output=task["expected_output"],
-                    context=context,
-                )
-            )
-
-        return sanitized_tasks
+        return agents_information

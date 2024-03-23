@@ -22,7 +22,8 @@ def main():
 
 @main.command()
 @click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
-def run(prompt: str):
+@click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input)")
+def run(prompt: str, non_interactive: bool):
     (user, agent, client, safe_address) = get_configuration()
     web3 = client.w3
 
@@ -51,7 +52,7 @@ def run(prompt: str):
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
-    autotx.run(prompt)
+    autotx.run(prompt, non_interactive)
 
     show_address_balances(web3, manager.address)
 
