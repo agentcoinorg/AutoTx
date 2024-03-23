@@ -26,7 +26,7 @@ def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, Tx
 
     web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
-    print("Send ETH (" + str(int(value / 10 ** 18)) + ") TX: ", signed_tx.hash.hex())
+    print("Send ETH (" + str(float(value / 10 ** 18)) + ") TX: ", signed_tx.hash.hex())
 
     receipt = web3.eth.wait_for_transaction_receipt(signed_tx.hash)
 

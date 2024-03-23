@@ -2,10 +2,13 @@ from textwrap import dedent
 from typing import Callable
 from crewai import Agent
 from pydantic import ConfigDict, Field
+from web3 import Web3
 from autotx.AutoTx import AutoTx
+from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agents_config import AgentConfig, agents_config
 from autotx.utils.ethereum import (
     build_transfer_erc20,
+    get_address,
     get_erc20_balance,
 )
 from autotx.utils.ethereum import load_w3
@@ -42,9 +45,15 @@ class TransferERC20TokenTool(BaseTool):
     ) -> str:
         tokens = contracts_config["erc20"]
         token_address = tokens[token.lower()]
-        tx = build_transfer_erc20(load_w3(), token_address, reciever, amount)
+        web3 = load_w3()
 
-        self.autotx.transactions.append(tx)
+        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
+            raise ValueError("Invalid receiver address")
+
+        tx = build_transfer_erc20(web3, token_address, reciever, amount)
+
+        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {reciever}{related_addr}", tx))
 
         return f"Transaction to send {amount} {token} has been prepared"
 
@@ -72,14 +81,20 @@ class TransferETHTool(BaseTool):
     def _run(
         self, amount: float, reciever: str
     ) -> str:
-        tx = build_transfer_eth(load_w3(), ADDRESS_ZERO, reciever, amount)
-
-        self.autotx.transactions.append(tx)
+        web3 = load_w3()
+      
+        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
+            raise ValueError("Invalid receiver address")
+    
+        tx = build_transfer_eth(web3, ADDRESS_ZERO, reciever, amount)
+      
+        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {reciever}{related_addr}", tx))
 
         return f"Transaction to send {amount} ETH has been prepared"
 
 class GetBalanceTool(BaseTool):
-    name: str = "Transfer ETH"
+    name: str = "Get balance"
     description: str = dedent(
         """
         Check owner balance in ERC20 token

@@ -3,7 +3,7 @@ from typing import Optional
 from web3 import Web3
 
 from autotx.utils.ethereum.cache import cache
-from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
+from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
@@ -23,6 +23,7 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
+    dev_accout: Account | None = None
 
     def __init__(
         self, 
@@ -45,14 +46,15 @@ class SafeManager:
     def deploy_safe(
         cls, 
         client: EthereumClient, 
-        user: Account, 
+        dev_account: Account, 
         agent: Account, 
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
-        safe_address = cache(lambda: deploy_safe_with_create2(client, user, owners, threshold), "./.cache/safe.txt")
+        safe_address = cache(lambda: deploy_safe_with_create2(client, dev_account, owners, threshold), "./.cache/safe.txt")
 
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
+        manager.dev_account = dev_account
 
         manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
 
@@ -73,9 +75,6 @@ class SafeManager:
 
         return manager
     
-    def disconnect(self):
-        delete_cached_safe_address()
-    
     def connect_tx_service(self, network: EthereumNetwork, transaction_service_url: str):
         self.use_tx_service = True
         self.network = network
@@ -93,7 +92,9 @@ class SafeManager:
         self.client.multicall = Multicall(self.client, address)
 
     def  deploy_multicall(self):
-        multicall_addr = deploy_multicall(self.client, self.agent)
+        if not self.dev_account:
+            raise ValueError("Dev account not set. This function should not be called in production.")
+        multicall_addr = deploy_multicall(self.client, self.dev_account)
         self.connect_multicall(multicall_addr)
     
     def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
@@ -134,14 +135,17 @@ class SafeManager:
         return safe_tx
     
     def execute_tx(self, tx: TxParams, safe_nonce: Optional[int] = None):
+        if not self.dev_account:
+            raise ValueError("Dev account not set. This function should not be called in production.")
+
         safe_tx = self.build_tx(tx, safe_nonce)
 
         safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.agent.address)
+        safe_tx.call(tx_sender_address=self.dev_account.address)
 
         tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.agent.key.hex()
+            tx_sender_private_key=self.dev_account.key.hex()
         )
 
         print(f"Executed safe tx hash: {tx_hash.hex()}")
@@ -149,14 +153,17 @@ class SafeManager:
         return tx_hash
 
     def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+        if not self.dev_account:
+            raise ValueError("Dev account not set. This function should not be called in production.")
+
         safe_tx = self.build_multisend_tx(txs, safe_nonce)
 
         safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.agent.address)
+        safe_tx.call(tx_sender_address=self.dev_account.address)
 
         tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.agent.key.hex()
+            tx_sender_private_key=self.dev_account.key.hex()
         )
 
         return tx_hash
@@ -189,13 +196,49 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+    def send_multisend_tx(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None):
+        transactions_info = "\n".join(
+            [
+                f"{i}. {tx.summary}"
+                for i, tx in enumerate(txs, start=1)
+            ]
+        )
+
+        print(f"Batched transactions:\n{transactions_info}")
+
         if self.use_tx_service:
-            self.post_multisend_transaction(txs, safe_nonce)
-            return None
+            if require_approval:
+                response = input("Do you want the above transactions to be sent to your smart account? (y/n): ")
+
+                if response.lower() != "y":
+                    print("Transactions not sent to your smart account (declined).")
+                    return
+            else:
+                print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
+
+            print("Sending transactions to your smart account...")
+
+            self.post_multisend_transaction([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+
+            print("Transactions sent to your smart account for signing.")
+            
+            return
         else:
-            return self.execute_multisend_tx(txs, safe_nonce)
+            if require_approval:
+                response = input("Do you want to execute the above transactions? (y/n): ")
+
+                if response.lower() != "y":
+                    print("Transactions not executed (declined).")
+                    return
+            else:
+                print("Non-interactive mode enabled. Transactions will be executed without approval.")
+
+            print("Executing transactions...")
+
+            self.execute_multisend_tx([prepared_tx.tx for prepared_tx in txs], safe_nonce)
         
+            print("Transactions executed.")
+
     def send_empty_tx(self, safe_nonce: Optional[int] = None):
         tx: TxParams = {
             "to": self.address,

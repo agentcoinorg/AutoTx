@@ -3,16 +3,13 @@ from gnosis.eth import EthereumClient
 from eth_typing import URI
 from eth_account import Account
 
-from autotx.utils.ethereum import generate_agent_account
-from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
+from autotx.utils.ethereum.agent_account import get_or_create_agent_account
+from autotx.utils.ethereum.constants import FORK_RPC_URL
 
-rpc_url, user_pk = get_env_vars()
-
+smart_account_addr = get_env_vars()
 
 def get_configuration():
-    client = EthereumClient(URI(rpc_url))
-    user: Account = Account.from_key(user_pk)
-    agent: Account = generate_agent_account()
-    safe_address = get_cached_safe_address()
+    client = EthereumClient(URI(FORK_RPC_URL))
+    agent: Account = get_or_create_agent_account()
 
-    return (user, agent, client, safe_address)
+    return (smart_account_addr, agent, client)

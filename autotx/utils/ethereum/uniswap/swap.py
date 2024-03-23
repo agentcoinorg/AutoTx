@@ -6,6 +6,7 @@ import requests
 from web3.contract.contract import Contract
 
 from web3.types import TxParams
+from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 
 from autotx.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
@@ -94,7 +95,7 @@ def build_swap_transaction(
     token_out_address: str,
     _from: str,
     exact_input: bool,
-) -> list[TxParams]:
+) -> list[PreparedTx]:
     uniswap = UniswapV3Oracle(etherem_client)
     web3 = etherem_client.w3
 
@@ -107,18 +108,25 @@ def build_swap_transaction(
         amount, token_in, token_out, price, exact_input
     )
 
-    transactions: list[TxParams] = []
+    token_in_symbol = token_in.functions.symbol().call()
+    token_out_symbol = token_out.functions.symbol().call()
+
+    transactions: list[PreparedTx] = []
     if not token_in_is_eth:
         allowance = token_in.functions.allowance(_from, uniswap.router_address).call()
         if allowance < amount_in:
-            transactions.append(
-                token_in.functions.approve(
+            tx = token_in.functions.approve(
                     uniswap.router_address, amount_in
                 ).build_transaction(
                     {
                         "from": _from,
                         "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
                     }
+                )
+            transactions.append(
+                PreparedTx(
+                    f"Approve {amount_in} {token_in_symbol} to Uniswap",
+                    tx,
                 )
             )
 
@@ -140,5 +148,10 @@ def build_swap_transaction(
             "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
         }
     )
-    transactions.append(swap_transaction)
+    transactions.append(
+        PreparedTx(
+            f"Swap {amount} {token_in_symbol} for {amount_out} {token_out_symbol}",
+            swap_transaction,
+        )
+    )
     return transactions
