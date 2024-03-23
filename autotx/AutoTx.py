@@ -33,12 +33,12 @@ class AutoTx:
             self.config = config
         self.agents = [factory(self) for factory in agent_factories]
 
-    def run(self, prompt: str, headless: bool, strict: bool):
+    def run(self, prompt: str, non_interactive: bool):
         print("Defining goal...")
        
         agents_information = self.get_agents_information()
 
-        goal = build_goal(prompt, agents_information, headless, strict)
+        goal = build_goal(prompt, agents_information, non_interactive)
 
         print("Defining tasks...")
         tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
