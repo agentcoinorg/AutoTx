@@ -1,6 +1,5 @@
 import click
 from dotenv import load_dotenv
-from eth_account import Account
 
 from autotx.utils.ethereum.constants import CHAIN_ID_TO_NETWORK_MAP
 from autotx.utils.ethereum.helpers.get_test_account import get_test_account
@@ -9,7 +8,7 @@ from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
-from autotx.utils.ethereum import generate_agent_account, delete_agent_account
+from autotx.utils.ethereum.agent_account import get_agent_account, create_agent_account, delete_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
@@ -79,9 +78,17 @@ def agent_account():
 
 @agent_account.command(name="create")
 def agent_account_create():
+    acc = get_agent_account()
+
+    if acc:
+        print(f"Agent account already exists: {acc.address}.\nUse 'delete' command to delete it.")
+        return
+
     print("Creating agent account...")
-    agent_acc = generate_agent_account()
-    print(f"Agent account created with address {agent_acc.address}")
+
+    acc = create_agent_account()
+
+    print(f"Agent account created with address {acc.address}")
 
 @agent_account.command(name="delete")
 def agent_account_delete():
