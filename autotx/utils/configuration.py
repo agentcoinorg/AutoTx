@@ -6,7 +6,7 @@ from eth_account import Account
 from autotx.utils.ethereum import generate_agent_account
 from autotx.utils.ethereum.constants import FORK_RPC_URL
 
-user_pk, smart_account_addr = get_env_vars()
+smart_account_addr = get_env_vars()
 
 def get_configuration():
     client = EthereumClient(URI(FORK_RPC_URL))
