@@ -30,12 +30,12 @@ class AutoTx:
             self.config = config
         self.agents = [factory(self) for factory in agent_factories]
 
-    def run(self, prompt: str, headless: bool, strict: bool):
+    def run(self, prompt: str, non_interactive: bool):
         print("Defining goal...")
        
         agents_information = self.get_agents_information()
 
-        goal = build_goal(prompt, agents_information, headless, strict)
+        goal = build_goal(prompt, agents_information, non_interactive)
 
         print(f"Defining tasks for goal: '{goal}'")
         tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
@@ -46,7 +46,7 @@ class AutoTx:
             process=Process.sequential,
         ).kickoff()
 
-        self.manager.send_multisend_tx(self.transactions, require_approval=not headless)
+        self.manager.send_multisend_tx(self.transactions, require_approval=not non_interactive)
         self.transactions.clear()
 
     def get_agents_information(self) -> str:

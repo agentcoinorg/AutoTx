@@ -214,7 +214,7 @@ class SafeManager:
                     print("Transactions not sent to your smart account (declined).")
                     return
             else:
-                print("Headless mode enabled. Transactions will be sent to your smart account without approval.")
+                print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
             print("Sending transactions to your smart account...")
 
@@ -231,7 +231,7 @@ class SafeManager:
                     print("Transactions not executed (declined).")
                     return
             else:
-                print("Headless mode enabled. Transactions will be executed without approval.")
+                print("Non-interactive mode enabled. Transactions will be executed without approval.")
 
             print("Executing transactions...")
 

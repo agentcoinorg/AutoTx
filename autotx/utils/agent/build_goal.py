@@ -35,29 +35,28 @@ PERSONA = dedent(
     """
 )
 
-def build_goal(prompt: str, agents_information: str, headless: bool, strict: bool) -> str:
+def build_goal(prompt: str, agents_information: str, non_interactive: bool) -> str:
     response: DefineGoalResponse | None = None
     chat_history = f"User: {prompt}"
 
     while True:
         response = analyze_user_prompt(chat_history, agents_information)
         if response.type == "missing_info":
-            autotx_message = f"Missing information: {response.message}\nInput response: "
-            
-            if not strict:
-                return prompt
+            autotx_message = f"Missing information: {response.message}"
 
-            if headless:
+            if non_interactive:
                 raise Exception(autotx_message)
             else:
-                chat_history += "\nYou: " + autotx_message + "\nUser: " + input(autotx_message)
+                chat_history += "\nYou: " + autotx_message + "\nUser: " + input(f"{autotx_message}\nInput response: ")
 
         elif response.type == "unsupported":
-            autotx_message = f"Unsupported prompt: {response.message}\nNew prompt: "
-            chat_history = f"User: {input(autotx_message)}"
+            autotx_message = f"Unsupported prompt: {response.message}"
 
-            if headless:
+            if non_interactive:
                 raise Exception(autotx_message)
+            else:
+                chat_history = "User: " + input(f"{autotx_message}\nNew prompt: ")
+
         elif response.type == "goal":
             return response.goal
 

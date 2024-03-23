@@ -22,9 +22,8 @@ def main():
 
 @main.command()
 @click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
-@click.option("--headless", is_flag=True, help="Headless mode (will not expect further user input or approval)")
-@click.option("--strict", is_flag=True, help="Strict mode (will ask for more information if needed)")
-def run(prompt: str, headless: bool, strict: bool):
+@click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
+def run(prompt: str, non_interactive: bool):
     (smart_account_addr, agent, client) = get_configuration()
     web3 = client.w3
 
@@ -63,7 +62,7 @@ def run(prompt: str, headless: bool, strict: bool):
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
-    autotx.run(prompt, headless, strict)
+    autotx.run(prompt, non_interactive)
 
     print("Final smart account balances:")
     show_address_balances(web3, manager.address)
