@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
-from autotx.utils.ethereum.helpers.get_test_account import get_test_account
+from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
 load_dotenv()
 
@@ -31,17 +31,17 @@ def start_and_stop_local_fork():
 @pytest.fixture()
 def configuration():
     (_, agent, client) = get_configuration()
-    user = get_test_account()
+    dev_account = get_dev_account()
     delete_cached_safe_address()
 
     manager = SafeManager.deploy_safe(
-        client, user, agent, [user.address, agent.address], 1
+        client, dev_account, agent, [dev_account.address, agent.address], 1
     )
 
     # Send 10 ETH to the smart account for tests
-    send_eth(user, manager.address, int(10 * 10**18), client.w3)
+    send_eth(dev_account, manager.address, int(10 * 10**18), client.w3)
 
-    return (user, agent, client, manager)
+    return (dev_account, agent, client, manager)
 
 @pytest.fixture()
 def auto_tx(configuration):

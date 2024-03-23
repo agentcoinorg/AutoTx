@@ -2,7 +2,7 @@ import click
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.constants import CHAIN_ID_TO_NETWORK_MAP
-from autotx.utils.ethereum.helpers.get_test_account import get_test_account
+from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
@@ -48,12 +48,12 @@ def run(prompt: str, headless: bool, strict: bool):
         manager.connect_tx_service(network_info.network, network_info.transaction_service_url)
     else:
         print("No smart account connected, deploying a new one...")
-        user_test_account = get_test_account()
+        dev_account = get_dev_account()
 
-        manager = SafeManager.deploy_safe(client, user_test_account, agent, [user_test_account.address, agent.address], 1)
+        manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        send_eth(user_test_account, manager.address, int(10 * 10**18), web3)
+        send_eth(dev_account, manager.address, int(10 * 10**18), web3)
         print(f"Sent 10 ETH to smart account for testing purposes")
 
     print("Starting smart account balances:")
