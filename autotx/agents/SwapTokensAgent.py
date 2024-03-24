@@ -1,17 +1,15 @@
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
-from pydantic import ConfigDict, Field
+from pydantic import Field
 from autotx.AutoTx import AutoTx
+from autotx.auto_tx_agent import AutoTxAgent
+from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-from autotx.utils.agents_config import AgentConfig, agents_config
-from autotx.utils.llm import open_ai_llm
 from autotx.utils.ethereum.config import contracts_config
-from web3.types import TxParams
-from crewai_tools import BaseTool
 from gnosis.eth import EthereumClient
 
-class ExecuteSwapTool(BaseTool):
+class ExecuteSwapTool(AutoTxTool):
     name: str = "Build needed transactions to execute swap"
     description: str = dedent(
         """
@@ -30,16 +28,13 @@ class ExecuteSwapTool(BaseTool):
                 in specifying the limits of token exchange rates and the adjustment of transaction parameters.
         """
     )
-    model_config = ConfigDict(arbitrary_types_allowed=True)
     recipient: str | None = Field(None)
     client: EthereumClient | None = Field(None)
-    autotx: AutoTx = Field(None)
 
     def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
-        super().__init__()
+        super().__init__(autotx)
         self.client = client
         self.recipient = recipient
-        self.autotx = autotx
 
     def _run(
         self, amount: float, token_in: str, token_out: str, exact_input: str
@@ -68,20 +63,14 @@ class ExecuteSwapTool(BaseTool):
         else:
             return f"Transaction to buy {amount} {token_out} with {token_in} has been prepared"
 
-
-class SwapTokensAgent(Agent):
-    name: str
-
+class SwapTokensAgent(AutoTxAgent):
     def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
-        name = "swap-tokens"
-        config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
-            **config,
+            name="swap-tokens",
+            role="Expert in swapping tokens",
+            goal="Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol",
+            backstory="An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.",
             tools=[ExecuteSwapTool(autotx, client, recipient)],
-            llm=open_ai_llm,
-            verbose=True,
-            allow_delegation=False,
-            name=name,
         )
 
 def build_agent_factory(client: EthereumClient, recipient: str) -> Callable[[AutoTx], Agent]:
