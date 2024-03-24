@@ -23,7 +23,7 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
-    dev_accout: Account | None = None
+    dev_account: Account | None = None
 
     def __init__(
         self, 
