@@ -1,15 +1,12 @@
 from typing import Optional, Callable
 from dataclasses import dataclass
-from textwrap import dedent
 from typing import Optional
 from crewai import Agent, Crew, Process, Task
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.agent.define_tasks import define_tasks
-from autotx.utils.agents_config import agents_config
 from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
-from autotx.utils.agents_config import agents_config
 from autotx.utils.ethereum import SafeManager
 
 @dataclass(kw_only=True)
@@ -51,26 +48,16 @@ class AutoTx:
 
     def get_agents_information(self) -> str:
         agent_descriptions = []
-        for agent_name, agent_details in agents_config.items():
-            agent_info = agent_details.model_dump()
-            # Find agent with agent_name
-            agent = next(filter(lambda a: a.name == agent_name, self.agents), None)
-
-            if not agent:
-                continue
-
-            try:
-                agent_default_tools: list[StructuredTool] = agent.tools
-                tools_available = "\n".join(
-                    [
-                        f"  - Name: {tool.name}\n  - Description: {tool.description} \n"
-                        for tool in agent_default_tools
-                    ]
-                )
-                description = f"Agent name: {agent_name.lower()}\nRole: {agent_info['role']}\nTools available:\n{tools_available}"
-                agent_descriptions.append(description)
-            except AttributeError:
-                raise Exception(f"No default tools defined in agent: {agent_name}")
+        for agent in self.agents:
+            agent_default_tools: list[StructuredTool] = agent.tools
+            tools_available = "\n".join(
+                [
+                    f"  - Name: {tool.name}\n  - Description: {tool.description} \n"
+                    for tool in agent_default_tools
+                ]
+            )
+            description = f"Agent name: {agent.name.lower()}\nRole: {agent.role}\nTools available:\n{tools_available}"
+            agent_descriptions.append(description)
 
         agents_information = "\n".join(agent_descriptions)
         return agents_information

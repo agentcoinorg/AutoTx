@@ -1,11 +1,11 @@
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
-from pydantic import ConfigDict, Field
 from web3 import Web3
 from autotx.AutoTx import AutoTx
+from autotx.auto_tx_agent import AutoTxAgent
+from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.PreparedTx import PreparedTx
-from autotx.utils.agents_config import AgentConfig, agents_config
 from autotx.utils.ethereum import (
     build_transfer_erc20,
     get_address,
@@ -13,12 +13,10 @@ from autotx.utils.ethereum import (
 )
 from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
-from autotx.utils.llm import open_ai_llm
 from autotx.utils.ethereum.config import contracts_config
 from web3.constants import ADDRESS_ZERO
-from crewai_tools import BaseTool
 
-class TransferERC20TokenTool(BaseTool):
+class TransferERC20TokenTool(AutoTxTool):
     name: str = "Transfer ERC20 token"
     description: str = dedent(
         """
@@ -33,12 +31,6 @@ class TransferERC20TokenTool(BaseTool):
             Message to confirm that transaction has been prepared
         """
     )
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    autotx: AutoTx = Field(None)
-
-    def __init__(self, autotx: AutoTx):
-        super().__init__()
-        self.autotx = autotx
 
     def _run(
         self, amount: float, reciever: str, token: str
@@ -57,7 +49,7 @@ class TransferERC20TokenTool(BaseTool):
 
         return f"Transaction to send {amount} {token} has been prepared"
 
-class TransferETHTool(BaseTool):
+class TransferETHTool(AutoTxTool):
     name: str = "Transfer ETH"
     description: str = dedent(
         """
@@ -71,12 +63,6 @@ class TransferETHTool(BaseTool):
             Message to confirm that transaction has been prepared
         """
     )
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    autotx: AutoTx = Field(None)
-
-    def __init__(self, autotx: AutoTx):
-        super().__init__()
-        self.autotx = autotx
 
     def _run(
         self, amount: float, reciever: str
@@ -93,7 +79,7 @@ class TransferETHTool(BaseTool):
 
         return f"Transaction to send {amount} ETH has been prepared"
 
-class GetBalanceTool(BaseTool):
+class GetBalanceTool(AutoTxTool):
     name: str = "Get balance"
     description: str = dedent(
         """
@@ -105,12 +91,6 @@ class GetBalanceTool(BaseTool):
         :result balance: int, the balance of owner in erc20 contract
         """
     )
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    autotx: AutoTx = Field(None)
-
-    def __init__(self, autotx: AutoTx):
-        super().__init__()
-        self.autotx = autotx
 
     def _run(
         self, token: str, owner: str
@@ -120,23 +100,18 @@ class GetBalanceTool(BaseTool):
         
         return get_erc20_balance(load_w3(), token_address, owner)
 
-class SendTokensAgent(Agent):
-    name: str
-
+class SendTokensAgent(AutoTxAgent):
     def __init__(self, autotx: AutoTx):
-        name = "send-tokens"
-        config: AgentConfig = agents_config[name].model_dump()
         super().__init__(
-            **config,
+            name="send-tokens",
+            role="Ethereum token specialist",
+            goal="Streamline ERC20 token interactions for efficient and error-free operations.",
+            backstory="Crafted from the need to navigate the ERC20 token standards, this agent automates and simplifies token transfers, approvals, and balance queries, supporting high-stakes DeFi operations.",
             tools=[
                 TransferERC20TokenTool(autotx),
                 TransferETHTool(autotx),
                 GetBalanceTool(autotx)
             ],
-            llm=open_ai_llm,
-            verbose=True,
-            allow_delegation=False,
-            name=name,
         )
 
 def build_agent_factory() -> Callable[[AutoTx], Agent]:
