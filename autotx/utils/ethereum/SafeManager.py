@@ -197,6 +197,10 @@ class SafeManager:
             return hash.hex()
 
     def send_multisend_tx(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None):
+        if not txs:
+            print("No transactions to send.")
+            return
+
         transactions_info = "\n".join(
             [
                 f"{i}. {tx.summary}"
