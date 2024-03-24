@@ -2,6 +2,7 @@ from crewai import Agent
 from langchain_openai import ChatOpenAI
 from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.llm import open_ai_llm
+from crewai import Agent
 
 class AutoTxAgent(Agent):
     name: str
