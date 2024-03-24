@@ -9,6 +9,7 @@ from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.constants import NetworkInfo
+from autotx.utils.llm import open_ai_llm
 
 @dataclass(kw_only=True)
 class Config:
@@ -35,7 +36,7 @@ class AutoTx:
        
         agents_information = self.get_agents_information()
 
-        goal = build_goal(prompt, agents_information, non_interactive)
+        goal = build_goal(prompt, agents_information, self.manager.address, non_interactive)
 
         print(f"Defining tasks for goal: '{goal}'")
         tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
@@ -44,6 +45,7 @@ class AutoTx:
             tasks=tasks,
             verbose=self.config.verbose,
             process=Process.sequential,
+            function_calling_llm=open_ai_llm,
         ).kickoff()
 
         self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
