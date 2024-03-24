@@ -208,7 +208,7 @@ class SafeManager:
 
         transactions_info = "\n".join(
             [
-                f"{start_nonce + i}. {tx.summary}"
+                f"{i + 1}. {tx.summary} (nonce: {start_nonce + i})"
                 for i, tx in enumerate(txs)
             ]
         )
