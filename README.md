@@ -54,10 +54,20 @@ Please install the following:
 ## Run The Agent
 
 1. AutoTx requires a fork of the blockchain network you want to transact with. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
-2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (ex: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup.
+2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (ex: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup. You can use the `--non-interactive` (or `-n`) flag to skip all requests for user input including the final approval of the transaction plan.
+Example: `poetry run ask --prompt "Send 1 ETH to vitalik.eth"`
 
-> [!NOTE]  
-> All transactions will happen offline with test network funds. Instructions on how to connect AutoTx with an existing smart account will be added shortly.  
+### Test environment
+To run AutoTx in a test environment, leave the `SMART_ACCOUNT_ADDRESS` variable in the `.env` file blank. AutoTx will create a new smart account for you to use and deploy it to the forked test environment with a dev account and the agent as signers.
+AutoTx will use the agent's private key to sign transactions and a dev account to execute those transactions in the test environment.
+
+### Production environment
+To run AutoTx in a production environment, you will need to provide a `SMART_ACCOUNT_ADDRESS` in the `.env` file. This is the address of the Safe smart account you want AutoTx to use. 
+Then you will need to add the agent's address as a signer or delegate to the Safe smart account.
+To create a new agent account you can use the `poetry run agent account create` command. This command will create a new agent account and print the address while saving the private key to the `./.cache/agent.pk.txt` file. Add that address as a signer or delegate to the Safe smart account through the Safe web interface.
+
+AutoTx will use the agent's private key to sign transactions. Before submitting the batch of transactions to the Safe, AutoTx will ask for your approval.
+After you approve the transaction plan, you will need to sign and execute the transactions with the Safe web interface.
 
 ## Prompts
 AutoTx currently supports prompts such as:
