@@ -2,18 +2,19 @@ from eth_account import Account
 from eth_typing import Address
 from web3 import Web3
 from web3.types import TxReceipt
+from web3.types import TxParams
 
 from .constants import GAS_PRICE_MULTIPLIER
 
-def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, TxReceipt]:
+def send_eth(account: Account, to: str, value: float, web3: Web3) -> tuple[str, TxReceipt]:
     bytes_address: Address = Address(bytes.fromhex(account.address[2:]))
 
     nonce = web3.eth.get_transaction_count(bytes_address)
 
-    tx = {
+    tx: TxParams = {
         'from': account.address,
         'to': to,
-        'value': value,
+        'value': int(value * 10 ** 18),
         'gasPrice': int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
         'nonce': nonce,
         'chainId': web3.eth.chain_id
@@ -26,7 +27,7 @@ def send_eth(account: Account, to: str, value: int, web3: Web3) -> tuple[str, Tx
 
     web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
-    print("Send ETH (" + str(float(value / 10 ** 18)) + ") TX: ", signed_tx.hash.hex())
+    print("Send ETH (" + str(value) + ") TX: ", signed_tx.hash.hex())
 
     receipt = web3.eth.wait_for_transaction_receipt(signed_tx.hash)
 

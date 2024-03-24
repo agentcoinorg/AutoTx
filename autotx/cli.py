@@ -52,7 +52,7 @@ def run(prompt: str, non_interactive: bool):
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        send_eth(dev_account, manager.address, int(10 * 10**18), web3)
+        send_eth(dev_account, manager.address, 10, web3)
         print(f"Sent 10 ETH to smart account for testing purposes")
 
     print("Starting smart account balances:")

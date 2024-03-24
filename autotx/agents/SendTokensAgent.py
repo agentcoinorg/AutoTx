@@ -89,7 +89,7 @@ class GetERC20BalanceTool(AutoTxTool):
         :param token: str, token symbol of erc20
         :param owner: str, the token owner's address or ENS domain
 
-        :result balance: int, the balance of owner in erc20 contract
+        :result balance: float, the balance of owner in erc20 contract
         """
     )
 
@@ -114,7 +114,7 @@ class GetETHBalanceTool(AutoTxTool):
 
         :param owner: str, the owner's address or ENS domain
 
-        :result balance: int, the balance of owner in ETH
+        :result balance: float, the balance of owner in ETH
         """
     )
 
@@ -138,8 +138,8 @@ class SendTokensAgent(AutoTxAgent):
             tools=[
                 TransferERC20TokenTool(autotx),
                 TransferETHTool(autotx),
-                GetERC20BalanceTool(autotx),
-                GetETHBalanceTool(autotx),
+                # GetERC20BalanceTool(autotx),
+                # GetETHBalanceTool(autotx),
             ],
         )
 

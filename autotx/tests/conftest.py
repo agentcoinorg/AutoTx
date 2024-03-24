@@ -40,7 +40,7 @@ def configuration():
     )
 
     # Send 10 ETH to the smart account for tests
-    send_eth(dev_account, manager.address, int(10 * 10**18), client.w3)
+    send_eth(dev_account, manager.address, 10, client.w3)
 
     return (dev_account, agent, client, manager)
 
@@ -59,7 +59,7 @@ def mock_erc20(configuration):
     (user, _, client, manager) = configuration
     mock_erc20 = deploy_mock_erc20(client.w3, user)
     transfer_tx = transfer_erc20(
-        client.w3, mock_erc20, user, manager.address, int(100 * 10**18)
+        client.w3, mock_erc20, user, manager.address, 100
     )
     manager.wait(transfer_tx)
 
