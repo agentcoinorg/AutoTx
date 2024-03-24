@@ -1,13 +1,14 @@
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
 from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
 patch_langchain()
 
 def test_auto_tx_send_eth(configuration, auto_tx):
     (_, _, client, _) = configuration
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
     balance = get_eth_balance(client.w3, reciever)
     assert balance == 0
 
@@ -18,7 +19,7 @@ def test_auto_tx_send_eth(configuration, auto_tx):
 
 def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
 
     balance = get_erc20_balance(client.w3, mock_erc20, reciever)
     assert balance == 0
@@ -66,7 +67,7 @@ def test_auto_tx_swap(configuration, auto_tx):
 def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
 
     prompts = [
         f"Send 10 TT to {reciever}",
@@ -95,8 +96,8 @@ def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
 def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
-    reciever_one = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
-    reciever_two = "0x20f8Bf6a479F320EaD074411a4b0e7944eA8c9C1"
+    reciever_one = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
+    reciever_two = ETHAddress("0x20f8Bf6a479F320EaD074411a4b0e7944eA8c9C1", client.w3)
 
     prompts = [
         f"Send 10 TT to {reciever_one} and 20 TT to {reciever_two}",
@@ -131,7 +132,7 @@ def test_auto_tx_swap_and_send(configuration, auto_tx):
     usdc_address = network_info.tokens["usdc"]
     wbtc_address = network_info.tokens["wbtc"]
 
-    reciever = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
+    reciever = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
 
     prompts = [
         f"Swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC and send 50 USDC to {reciever}",

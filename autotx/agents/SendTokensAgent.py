@@ -8,13 +8,13 @@ from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import (
     build_transfer_erc20,
-    get_address,
     get_erc20_balance,
 )
 from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
 from web3.constants import ADDRESS_ZERO
 
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 
 class TransferERC20TokenTool(AutoTxTool):
@@ -40,16 +40,14 @@ class TransferERC20TokenTool(AutoTxTool):
         token_address = tokens[token.lower()]
         web3 = load_w3()
 
-        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
-            raise ValueError("Invalid receiver address")
+        reciever_addr = ETHAddress(reciever, web3)
+        
+        tx = build_transfer_erc20(web3, token_address, reciever_addr, amount)
 
-        tx = build_transfer_erc20(web3, token_address, reciever, amount)
-
-        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {reciever}{related_addr}", tx))
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {str(reciever_addr)}", tx))
 
         return f"Transaction to send {amount} {token} has been prepared"
-
+            
 class TransferETHTool(AutoTxTool):
     name: str = "Transfer ETH"
     description: str = dedent(
@@ -70,13 +68,11 @@ class TransferETHTool(AutoTxTool):
     ) -> str:
         web3 = load_w3()
       
-        if not Web3.is_address(reciever) and not reciever.endswith(".eth"):
-            raise ValueError("Invalid receiver address")
+        reciever_addr = ETHAddress(reciever, web3)
     
-        tx = build_transfer_eth(web3, ADDRESS_ZERO, reciever, amount)
+        tx = build_transfer_eth(web3, ETHAddress(ADDRESS_ZERO, web3), reciever_addr, amount)
       
-        related_addr = f"({get_address(web3, reciever)})" if reciever.endswith(".eth") else ""
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {reciever}{related_addr}", tx))
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {str(reciever_addr)}", tx))
 
         return f"Transaction to send {amount} ETH has been prepared"
 
@@ -98,13 +94,13 @@ class GetERC20BalanceTool(AutoTxTool):
     ) -> float:
         web3 = load_w3()
         tokens = self.autotx.network.tokens
-        token_address = tokens[token.lower()]
-        owner = get_address(web3, owner)
+        token_address = ETHAddress(tokens[token.lower()], web3)
+        owner_addr = ETHAddress(owner, web3)
 
-        erc20 = web3.eth.contract(address=token_address, abi=MOCK_ERC20_ABI)
+        erc20 = web3.eth.contract(address=token_address.hex, abi=MOCK_ERC20_ABI)
         decimals = erc20.functions.decimals().call()
         
-        return get_erc20_balance(web3, token_address, owner) / 10 ** decimals
+        return get_erc20_balance(web3, token_address, owner_addr) / 10 ** decimals
 
 class GetETHBalanceTool(AutoTxTool):
     name: str = "Get ETH balance"
@@ -122,9 +118,9 @@ class GetETHBalanceTool(AutoTxTool):
         self, owner: str
     ) -> float:
         web3 = load_w3()
-        owner = get_address(web3, owner)
+        owner_addr = ETHAddress(owner, web3)
 
-        eth_balance = web3.eth.get_balance(owner)
+        eth_balance = web3.eth.get_balance(owner_addr.hex)
 
         return eth_balance / 10 ** 18
 
