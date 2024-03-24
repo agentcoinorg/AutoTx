@@ -203,10 +203,10 @@ class SafeManager:
         else:
             return self.execute_multisend_tx(txs, safe_nonce)
 
-    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool:
+    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool: # Returns true if successful
         if not txs:
             print("No transactions to send.")
-            return False
+            return True
 
         start_nonce = self.track_nonce(safe_nonce)
 
