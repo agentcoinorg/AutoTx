@@ -206,7 +206,7 @@ class SafeManager:
     def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool:
         if not txs:
             print("No transactions to send.")
-            return
+            return False
 
         start_nonce = self.track_nonce(safe_nonce)
 
