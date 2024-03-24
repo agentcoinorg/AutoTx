@@ -1,15 +1,15 @@
 from web3 import Web3
 
-from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum import get_erc20_balance, get_eth_balance
 from autotx.utils.ethereum.constants import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 def show_address_balances(web3: Web3, network: NetworkInfo, address: ETHAddress):
-    eth_balance = web3.eth.get_balance(address.hex)
-    print(f"ETH balance: {eth_balance / 10 ** 18}")
+    eth_balance = get_eth_balance(web3, address)
+    print(f"ETH balance: {eth_balance}")
 
     tokens = network.tokens
     for token in tokens:
         token_address = ETHAddress(tokens[token], web3)
         balance = get_erc20_balance(web3, token_address, address)
-        print(f"{token.upper()} balance: {balance / 10 ** 18}")
+        print(f"{token.upper()} balance: {balance}")
