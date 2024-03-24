@@ -62,7 +62,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
 
     print("Deploying safe address: ", safe_address, ", tx: ", ethereum_tx_sent.tx_hash.hex())
     tx_receipt = w3.eth.wait_for_transaction_receipt(ethereum_tx_sent.tx_hash)
-    if tx_receipt.status != 1:
+    if tx_receipt["status"] != 1:
         raise ValueError("Transaction failed")
     
     return safe_address

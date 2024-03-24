@@ -50,7 +50,7 @@ def test_swap_through_safe(configuration):
         client, 6000, weth_address, usdc_address, manager.address, False
     )
 
-    hash = manager.send_multisend_tx(txs)
+    hash = manager.send_tx_batch(txs)
     manager.wait(hash)
 
     new_balance = manager.balance_of(usdc_address)

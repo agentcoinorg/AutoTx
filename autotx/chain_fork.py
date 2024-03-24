@@ -2,8 +2,8 @@ import subprocess
 
 container_name = "autotx_chain_fork"
 
-
 def start():
+    subprocess.run(["rm", "-f", ".cache/safe.txt"], check=True)
     subprocess.run(["docker", "build", "-t", "autotx_chain_fork", "."], check=True)
     subprocess.run(
         [
@@ -20,7 +20,6 @@ def start():
         ],
         check=True,
     )
-
 
 def stop():
     subprocess.run(["docker", "container", "rm", container_name, "-f"], check=True)

@@ -91,7 +91,7 @@ class SafeManager:
     def connect_multicall(self, address: str):
         self.client.multicall = Multicall(self.client, address)
 
-    def  deploy_multicall(self):
+    def deploy_multicall(self):
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
         multicall_addr = deploy_multicall(self.client, self.dev_account)
@@ -195,16 +195,25 @@ class SafeManager:
         else:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
+    
+    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+        if self.use_tx_service:
+            self.post_multisend_transaction(txs, safe_nonce)
+            return None
+        else:
+            return self.execute_multisend_tx(txs, safe_nonce)
 
-    def send_multisend_tx(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None):
+    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool:
         if not txs:
             print("No transactions to send.")
             return
 
+        start_nonce = self.track_nonce(safe_nonce)
+
         transactions_info = "\n".join(
             [
-                f"{i}. {tx.summary}"
-                for i, tx in enumerate(txs, start=1)
+                f"{i + 1}. {tx.summary} (nonce: {start_nonce + i})"
+                for i, tx in enumerate(txs)
             ]
         )
 
@@ -216,32 +225,37 @@ class SafeManager:
 
                 if response.lower() != "y":
                     print("Transactions not sent to your smart account (declined).")
-                    return
+                    return False
             else:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
             print("Sending transactions to your smart account...")
 
-            self.post_multisend_transaction([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+
+            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
+                self.send_tx(tx, start_nonce + i)
 
             print("Transactions sent to your smart account for signing.")
             
-            return
+            return True
         else:
             if require_approval:
                 response = input("Do you want to execute the above transactions? (y/n): ")
 
                 if response.lower() != "y":
                     print("Transactions not executed (declined).")
-                    return
+                    return False
             else:
                 print("Non-interactive mode enabled. Transactions will be executed without approval.")
 
             print("Executing transactions...")
 
-            self.execute_multisend_tx([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
+                self.send_tx(tx, start_nonce + i)
         
             print("Transactions executed.")
+
+            return True
 
     def send_empty_tx(self, safe_nonce: Optional[int] = None):
         tx: TxParams = {
