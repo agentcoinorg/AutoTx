@@ -312,5 +312,24 @@ MOCK_ERC20_ABI = [
 				],
 				"stateMutability": "nonpayable",
 				"type": "function"
-			}
+			},
+            {
+                "inputs": [
+                    { 
+                        "name":"wad",
+                        "type":"uint256"
+					}
+				],
+                "name": "withdraw",
+                "outputs":[],
+                "stateMutability":"nonpayable",
+                "type":"function"
+			},
+            {
+                "inputs":[],
+                "name":"deposit",
+                "outputs":[],
+                "stateMutability":"payable",
+                "type":"function"
+            }
 		]
