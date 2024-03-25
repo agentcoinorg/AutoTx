@@ -6,7 +6,6 @@ from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-from autotx.utils.ethereum.config import contracts_config
 from gnosis.eth import EthereumClient
 
 class ExecuteSwapTool(AutoTxTool):

@@ -19,7 +19,6 @@ from autotx.utils.ethereum import (
     send_eth,
     transfer_erc20,
 )
-from autotx.utils.ethereum.config import contracts_config
 
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
