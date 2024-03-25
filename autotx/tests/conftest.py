@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
@@ -15,7 +16,6 @@ from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
     SafeManager,
-    cache,
     deploy_mock_erc20,
     send_eth,
     transfer_erc20,
@@ -33,7 +33,7 @@ def start_and_stop_local_fork():
 def configuration():
     (_, agent, client) = get_configuration()
     dev_account = get_dev_account()
-    cache.remove("safe.txt")
+    delete_cached_safe_address()
 
     manager = SafeManager.deploy_safe(
         client, dev_account, agent, [dev_account.address, agent.address], 1
