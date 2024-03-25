@@ -6,7 +6,6 @@ from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-from autotx.utils.ethereum.config import contracts_config
 from gnosis.eth import EthereumClient
 
 class ExecuteSwapTool(AutoTxTool):
@@ -41,7 +40,7 @@ class ExecuteSwapTool(AutoTxTool):
     ) -> str:
         token_in = token_in.lower()
         token_out = token_out.lower()
-        tokens = contracts_config["erc20"]
+        tokens = self.autotx.network.tokens
         is_exact_input = exact_input in ["true", "True"]
 
         # TODO: Handle when `token_in` or `token_out` are not in the `tokens` list

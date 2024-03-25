@@ -8,6 +8,7 @@ from autotx.utils.agent.define_tasks import define_tasks
 from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
 from autotx.utils.ethereum import SafeManager
+from autotx.utils.ethereum.constants import NetworkInfo
 
 @dataclass(kw_only=True)
 class Config:
@@ -18,11 +19,13 @@ class AutoTx:
     agents: list[Agent]
     config: Config = Config(verbose=False)
     transactions: list[PreparedTx] = []
+    network: NetworkInfo
 
     def __init__(
-        self, manager: SafeManager, agent_factories: list[Callable[['AutoTx'], Agent]], config: Optional[Config]
+        self, manager: SafeManager, network: NetworkInfo, agent_factories: list[Callable[['AutoTx'], Agent]], config: Optional[Config]
     ):
         self.manager = manager
+        self.network = network
         if config:
             self.config = config
         self.agents = [factory(self) for factory in agent_factories]

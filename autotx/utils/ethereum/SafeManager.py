@@ -23,7 +23,7 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
-    dev_accout: Account | None = None
+    dev_account: Account | None = None
 
     def __init__(
         self, 
@@ -196,7 +196,11 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool:
+    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool: # Returns true if successful
+        if not txs:
+            print("No transactions to send.")
+            return True
+
         start_nonce = self.track_nonce(safe_nonce)
 
         transactions_info = "\n".join(

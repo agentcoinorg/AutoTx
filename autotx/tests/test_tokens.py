@@ -1,14 +1,11 @@
 from autotx.patch import patch_langchain
-from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum import get_erc20_balance, load_w3
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
-from autotx.utils.ethereum.helpers.show_address_balances import (
-    usdc_address,
-    wbtc_address,
-)
 
 patch_langchain()
 
-def test_auto_tx_send_eth(configuration, auto_tx, mock_erc20):
+def test_auto_tx_send_eth(configuration, auto_tx):
     (_, _, client, _) = configuration
     reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
     balance = get_eth_balance(client.w3, reciever)
@@ -38,6 +35,9 @@ def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
 
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
+    web3 = load_w3()
+    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    usdc_address = network_info.tokens["usdc"]
 
     prompts = [
         "Buy 100 USDC with ETH",
@@ -126,6 +126,11 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
 
 def test_auto_tx_swap_and_send(configuration, auto_tx):
     (_, _, client, manager) = configuration
+    web3 = load_w3()
+    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    usdc_address = network_info.tokens["usdc"]
+    wbtc_address = network_info.tokens["wbtc"]
+
     reciever = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
 
     prompts = [

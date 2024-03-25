@@ -1,7 +1,7 @@
 import click
 from dotenv import load_dotenv
 
-from autotx.utils.ethereum.constants import CHAIN_ID_TO_NETWORK_MAP
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 from autotx.agents import SendTokensAgent
@@ -30,7 +30,7 @@ def run(prompt: str, non_interactive: bool):
     chain_id = web3.eth.chain_id
     print(f"Chain ID: {chain_id}")
 
-    network_info = CHAIN_ID_TO_NETWORK_MAP.get(chain_id)
+    network_info = SUPPORTED_NETWORKS.get(chain_id)
 
     if network_info is None:
         raise Exception(f"Chain ID {chain_id} is not supported")
@@ -56,16 +56,16 @@ def run(prompt: str, non_interactive: bool):
         print(f"Sent 10 ETH to smart account for testing purposes")
 
     print("Starting smart account balances:")
-    show_address_balances(web3, manager.address)
+    show_address_balances(web3, network_info, manager.address)
 
-    autotx = AutoTx(manager, [
+    autotx = AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
     autotx.run(prompt, non_interactive)
 
     print("Final smart account balances:")
-    show_address_balances(web3, manager.address)
+    show_address_balances(web3, network_info, manager.address)
 
 @main.group()
 def agent():
@@ -99,8 +99,13 @@ def agent_account_delete():
 def agent_account_info():
     (_user, agent, client, _safe_address) = get_configuration()
     web3 = client.w3
+    
+    chain_id = web3.eth.chain_id
+    print(f"Chain ID: {chain_id}")
+    network_info = SUPPORTED_NETWORKS.get(chain_id)
+
     print(f"Agent address: {agent.address}")
-    show_address_balances(web3, agent.address)
+    show_address_balances(web3, network_info, agent.address)
 
 if __name__ == "__main__":
     main()
