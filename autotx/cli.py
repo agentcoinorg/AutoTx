@@ -66,7 +66,6 @@ def run(prompt: str, non_interactive: bool):
 
     print("Final smart account balances:")
     show_address_balances(web3, network_info, manager.address)
-    show_address_balances(web3, network_info, "0x7C418D7083f6c22B3d600B8fe4F0cf93564098dD")
 
 @main.group()
 def agent():
