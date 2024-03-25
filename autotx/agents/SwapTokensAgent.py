@@ -5,6 +5,7 @@ from pydantic import Field
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from autotx.auto_tx_tool import AutoTxTool
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 from gnosis.eth import EthereumClient
 
@@ -27,7 +28,7 @@ class ExecuteSwapTool(AutoTxTool):
                 in specifying the limits of token exchange rates and the adjustment of transaction parameters.
         """
     )
-    recipient: str | None = Field(None)
+    recipient: ETHAddress | None = Field(None)
     client: EthereumClient | None = Field(None)
 
     def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
@@ -52,7 +53,7 @@ class ExecuteSwapTool(AutoTxTool):
             amount,
             token_in_address,
             token_out_address,
-            self.recipient,
+            self.recipient.hex,
             is_exact_input,
         )
         self.autotx.transactions.extend(swap_transactions)
@@ -63,7 +64,7 @@ class ExecuteSwapTool(AutoTxTool):
             return f"Transaction to buy {amount} {token_out} with {token_in} has been prepared"
 
 class SwapTokensAgent(AutoTxAgent):
-    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
+    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: ETHAddress):
         super().__init__(
             name="swap-tokens",
             role="Expert in swapping tokens",
@@ -72,7 +73,7 @@ class SwapTokensAgent(AutoTxAgent):
             tools=[ExecuteSwapTool(autotx, client, recipient)],
         )
 
-def build_agent_factory(client: EthereumClient, recipient: str) -> Callable[[AutoTx], Agent]:
+def build_agent_factory(client: EthereumClient, recipient: ETHAddress) -> Callable[[AutoTx], Agent]:
     def agent_factory(autotx: AutoTx) -> SwapTokensAgent:
         return SwapTokensAgent(autotx, client, recipient)
     return agent_factory

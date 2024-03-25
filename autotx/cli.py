@@ -2,6 +2,7 @@ import click
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 from autotx.agents import SendTokensAgent
@@ -104,8 +105,10 @@ def agent_account_info():
     print(f"Chain ID: {chain_id}")
     network_info = SUPPORTED_NETWORKS.get(chain_id)
 
-    print(f"Agent address: {agent.address}")
-    show_address_balances(web3, network_info, agent.address)
+    agent_address = ETHAddress(agent.address, web3)
+
+    print(f"Agent address: {agent_address}")
+    show_address_balances(web3, network_info, agent_address)
 
 if __name__ == "__main__":
     main()

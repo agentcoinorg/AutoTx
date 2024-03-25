@@ -4,6 +4,8 @@ import typing
 
 import openai
 
+from autotx.utils.ethereum.eth_address import ETHAddress
+
 class GoalResponse:
     goal: str
     type: str = "goal"
@@ -27,7 +29,7 @@ class InvalidPromptResponse:
 
 DefineGoalResponse = typing.Union[GoalResponse, MissingInfoResponse, InvalidPromptResponse]
 
-def get_persona(smart_account_address: str) -> str:
+def get_persona(smart_account_address: ETHAddress) -> str:
     return dedent(
         f"""
         You are an AI assistant that helps the user define goals and tasks for your agents. 
@@ -36,7 +38,7 @@ def get_persona(smart_account_address: str) -> str:
         """
     )
 
-def build_goal(prompt: str, agents_information: str, smart_account_address: str, non_interactive: bool) -> str:
+def build_goal(prompt: str, agents_information: str, smart_account_address: ETHAddress, non_interactive: bool) -> str:
     response: DefineGoalResponse | None = None
     chat_history = f"User: {prompt}"
 
@@ -61,7 +63,7 @@ def build_goal(prompt: str, agents_information: str, smart_account_address: str,
         elif response.type == "goal":
             return response.goal
 
-def analyze_user_prompt(chat_history: str, agents_information: str, smart_account_address: str) -> DefineGoalResponse:
+def analyze_user_prompt(chat_history: str, agents_information: str, smart_account_address: ETHAddress) -> DefineGoalResponse:
     template = dedent(
         """
         Based on the following chat history between you and the user: 

@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
 load_dotenv()
@@ -54,7 +55,7 @@ def auto_tx(configuration):
     ], None)
 
 @pytest.fixture()
-def mock_erc20(configuration):
+def mock_erc20(configuration) -> ETHAddress:
     (user, _, client, manager) = configuration
     mock_erc20 = deploy_mock_erc20(client.w3, user)
     transfer_tx = transfer_erc20(
@@ -65,6 +66,6 @@ def mock_erc20(configuration):
     chain_id = client.w3.eth.chain_id
     network = SUPPORTED_NETWORKS.get(chain_id)
 
-    network.tokens["tt"] = mock_erc20
+    network.tokens["tt"] = mock_erc20.hex
 
     return mock_erc20
