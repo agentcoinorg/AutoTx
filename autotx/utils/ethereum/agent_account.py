@@ -1,5 +1,6 @@
 import os
 from eth_account import Account
+from autotx.utils.ethereum.cache import cache
 
 def get_agent_account() -> Account | None:
     try:
@@ -12,11 +13,8 @@ def get_agent_account() -> Account | None:
         raise
     
 def create_agent_account() -> Account:
-    result: str = Account.create().key.hex()
-
-    with open("./.cache/agent.pk.txt", "w") as f:
-        f.write(result)
-
+    result = cache(lambda: Account.create().key.hex(), "./.cache/agent.pk.txt")
+    
     return Account.from_key(result)
 
 def get_or_create_agent_account() -> Account:
