@@ -195,13 +195,6 @@ class SafeManager:
         else:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
-    
-    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
-        if self.use_tx_service:
-            self.post_multisend_transaction(txs, safe_nonce)
-            return None
-        else:
-            return self.execute_multisend_tx(txs, safe_nonce)
 
     def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool:
         start_nonce = self.track_nonce(safe_nonce)
