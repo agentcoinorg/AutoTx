@@ -79,4 +79,11 @@ SUPPORTED_NETWORKS: dict[int, NetworkInfo] = {
             "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
         }
     ),
+    100: NetworkInfo(
+        EthereumNetwork.GNOSIS,
+        "https://safe-transaction-gnosis-chain.safe.global",
+        tokens={
+            "wxdai": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+        },
+    ),
 }
