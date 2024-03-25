@@ -51,7 +51,8 @@ class SafeManager:
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
-        safe_address = cache(lambda: deploy_safe_with_create2(client, dev_account, owners, threshold), "./.cache/safe.txt")
+        safe_address = deploy_safe_with_create2(client, dev_account, owners, threshold)
+        cache.write("safe.txt", safe_address)
 
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
         manager.dev_account = dev_account

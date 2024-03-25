@@ -1,23 +1,36 @@
 import os
-from typing import Callable
+from typing import Optional
 
-def cache(func: Callable, file_name: str) -> str:
-    try:
-        with open(file_name, "r") as file:
-            return file.read().strip()  # Use strip() to remove newline characters
-    except FileNotFoundError:
-        print(file_name + " not found, a new value will be generated.")
-        # Extract the directory path from the file_name
-        dir_name = os.path.dirname(file_name)
-        # Create the directory if it does not exist
-        if dir_name:  # Check if dir_name is not empty
-            os.makedirs(dir_name, exist_ok=True)
-    except Exception as e:
-        print(f"An error occurred while reading " + file_name + ": {e}")
-        raise
-    result = func()
 
-    with open(file_name, "w") as f:
-        f.write(result)
+class Cache:
+    folder: str = None
 
-    return result
+    def __init__(self, folder: Optional[str] = ".cache"):
+        self.folder = folder
+        os.makedirs(folder, exist_ok=True)
+
+    def read(self, file_name: str) -> str | None:
+        try:
+            with open(os.path.join(self.folder, file_name), "r") as file:
+                return file.read().strip()  # Use strip() to remove newline characters
+        except FileNotFoundError:
+            print(file_name + " not found")
+        except Exception as e:
+            print(f"An error occurred while reading {file_name}: {e}")
+            raise
+
+    def write(self, file_name: str, data: str):
+        with open(os.path.join(self.folder, file_name), "w") as f:
+            f.write(data)
+
+    def remove(self, file_name: str):
+        try:
+            os.remove(os.path.join(self.folder, file_name))
+        except FileNotFoundError:
+            print("Agent account not found")
+        except Exception as e:
+            print(f"An error occurred while deleting {file_name}: {e}")
+            raise
+
+
+cache = Cache()
