@@ -138,8 +138,8 @@ class SendTokensAgent(AutoTxAgent):
             tools=[
                 TransferERC20TokenTool(autotx),
                 TransferETHTool(autotx),
-                # GetERC20BalanceTool(autotx),
-                # GetETHBalanceTool(autotx),
+                GetERC20BalanceTool(autotx),
+                GetETHBalanceTool(autotx),
             ],
         )
 
