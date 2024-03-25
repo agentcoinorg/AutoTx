@@ -64,10 +64,10 @@ class SafeManager:
     def connect(
         cls, 
         client: EthereumClient, 
-        safe_address: str,
+        safe_address: ETHAddress,
         agent: Account, 
     ) -> 'SafeManager':
-        safe = Safe(Web3.to_checksum_address(safe_address), client)
+        safe = Safe(Web3.to_checksum_address(safe_address.hex), client)
 
         manager = cls(client, agent, safe)
 

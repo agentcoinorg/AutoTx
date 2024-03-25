@@ -28,6 +28,8 @@ def run(prompt: str, non_interactive: bool):
     (smart_account_addr, agent, client) = get_configuration()
     web3 = client.w3
 
+    print_agent_address()
+
     chain_id = web3.eth.chain_id
     print(f"Chain ID: {chain_id}")
 
@@ -72,43 +74,17 @@ def run(prompt: str, non_interactive: bool):
 def agent():
     pass
 
-@agent.group(name="account")
-def agent_account():
-    pass
+@agent.command(name="address")
+def agent_address():
+    print_agent_address()
 
-@agent_account.command(name="create")
-def agent_account_create():
+def print_agent_address():
     acc = get_agent_account()
 
-    if acc:
-        print(f"Agent account already exists: {acc.address}.\nUse 'delete' command to delete it.")
-        return
+    if acc == None:
+        acc = create_agent_account()
 
-    print("Creating agent account...")
-
-    acc = create_agent_account()
-
-    print(f"Agent account created with address {acc.address}")
-
-@agent_account.command(name="delete")
-def agent_account_delete():
-    print("Deleting agent account...")
-    delete_agent_account()
-    print("Agent account deleted")
-
-@agent_account.command(name="info")
-def agent_account_info():
-    (_user, agent, client, _safe_address) = get_configuration()
-    web3 = client.w3
-    
-    chain_id = web3.eth.chain_id
-    print(f"Chain ID: {chain_id}")
-    network_info = SUPPORTED_NETWORKS.get(chain_id)
-
-    agent_address = ETHAddress(agent.address, web3)
-
-    print(f"Agent address: {agent_address}")
-    show_address_balances(web3, network_info, agent_address)
+    print(f"Agent address: {acc.address}")
 
 if __name__ == "__main__":
     main()
