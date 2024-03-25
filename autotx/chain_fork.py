@@ -1,9 +1,10 @@
 import subprocess
+from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 
 container_name = "autotx_chain_fork"
 
 def start():
-    subprocess.run(["rm", "-f", ".cache/safe.txt"], check=True)
+    delete_cached_safe_address()
     subprocess.run(["docker", "build", "-t", "autotx_chain_fork", "."], check=True)
     subprocess.run(
         [
