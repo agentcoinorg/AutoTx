@@ -1,27 +1,25 @@
 from autotx.patch import patch_langchain
-from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum import get_erc20_balance, load_w3
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
-from autotx.utils.ethereum.helpers.show_address_balances import (
-    usdc_address,
-    wbtc_address,
-)
 
 patch_langchain()
 
-def test_auto_tx_send_eth(configuration, auto_tx, mock_erc20):
+def test_auto_tx_send_eth(configuration, auto_tx):
     (_, _, client, _) = configuration
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
     balance = get_eth_balance(client.w3, reciever)
     assert balance == 0
 
     auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1 * 10**18
+    assert balance == 1
 
 def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
 
     balance = get_erc20_balance(client.w3, mock_erc20, reciever)
     assert balance == 0
@@ -29,15 +27,18 @@ def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
     auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1 * 10**18
+    assert balance == 1
 
     auto_tx.run("Send 0.5 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1.5 * 10**18
+    assert balance == 1.5
 
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
+    web3 = load_w3()
+    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    usdc_address = network_info.tokens["usdc"]
 
     prompts = [
         "Buy 100 USDC with ETH",
@@ -60,13 +61,13 @@ def test_auto_tx_swap(configuration, auto_tx):
 
         new_balance = manager.balance_of(usdc_address)
 
-        assert balance + 100 * 10**6 == new_balance
+        assert balance + 100 == new_balance
 
 
 def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
-    reciever = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+    reciever = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
 
     prompts = [
         f"Send 10 TT to {reciever}",
@@ -89,14 +90,14 @@ def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
 
         new_balance = get_erc20_balance(client.w3, mock_erc20, reciever)
 
-        assert balance + 10 * 10**18 == new_balance
+        assert balance + 10 == new_balance
 
 
 def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
-    reciever_one = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
-    reciever_two = "0x20f8Bf6a479F320EaD074411a4b0e7944eA8c9C1"
+    reciever_one = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
+    reciever_two = ETHAddress("0x20f8Bf6a479F320EaD074411a4b0e7944eA8c9C1", client.w3)
 
     prompts = [
         f"Send 10 TT to {reciever_one} and 20 TT to {reciever_two}",
@@ -120,13 +121,18 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
 
         new_balance_one = get_erc20_balance(client.w3, mock_erc20, reciever_one)
         new_balance_two = get_erc20_balance(client.w3, mock_erc20, reciever_two)
-        assert balance_one + 10 * 10**18 == new_balance_one
-        assert balance_two + 20 * 10**18 == new_balance_two
+        assert balance_one + 10 == new_balance_one
+        assert balance_two + 20 == new_balance_two
 
 
 def test_auto_tx_swap_and_send(configuration, auto_tx):
     (_, _, client, manager) = configuration
-    reciever = "0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1"
+    web3 = load_w3()
+    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    usdc_address = network_info.tokens["usdc"]
+    wbtc_address = network_info.tokens["wbtc"]
+
+    reciever = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
 
     prompts = [
         f"Swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC and send 50 USDC to {reciever}",
@@ -153,5 +159,5 @@ def test_auto_tx_swap_and_send(configuration, auto_tx):
         new_usdc_safe_address = manager.balance_of(usdc_address)
         new_reciever_usdc_balance = get_erc20_balance(client.w3, usdc_address, reciever)
         assert new_wbtc_safe_address > wbtc_safe_address
-        assert new_usdc_safe_address == usdc_safe_address + 950 * 10**6
-        assert new_reciever_usdc_balance == reciever_usdc_balance + 50 * 10**6
+        assert new_usdc_safe_address == usdc_safe_address + 950
+        assert new_reciever_usdc_balance == reciever_usdc_balance + 50

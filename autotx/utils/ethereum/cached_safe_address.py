@@ -15,19 +15,8 @@ def save_cached_safe_address(safe_address: str):
     # Save the safe address in a file for future use
     with open("./.cache/safe.txt", "w") as f:
         f.write(safe_address)
-    # Delete the saved salt file in ./.cache/salt.txt if it exists
-    # This is to avoid using the wrong salt when deploying the safe to a different network
-    try:
-        os.remove("./.cache/salt.txt")
-    except FileNotFoundError:
-        pass
 
 def delete_cached_safe_address() -> bool:
-    try:
-        os.remove("./.cache/salt.txt")
-    except FileNotFoundError:
-        pass
-
     try:
         os.remove("./.cache/safe.txt")
         return True

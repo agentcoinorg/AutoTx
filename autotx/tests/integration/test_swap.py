@@ -1,29 +1,31 @@
 from autotx.utils.ethereum import (
     get_erc20_balance,
 )
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-from autotx.utils.ethereum.helpers.show_address_balances import (
-    weth_address,
-    usdc_address,
-    wbtc_address,
-)
-
 
 def test_swap(configuration):
     (user, _, client, _) = configuration
 
-    balance = get_erc20_balance(client.w3, wbtc_address, user.address)
+    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"], client.w3)
+
+    user_addr =  ETHAddress(user.address, client.w3)
+
+    balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
     assert balance == 0
 
     txs = build_swap_transaction(
-        client, 0.05, weth_address, wbtc_address, user.address, False
+        client, 0.05, weth_address.hex, wbtc_address.hex, user_addr.hex, False
     )
 
     for i, tx in enumerate(txs):
         transaction = user.sign_transaction(
             {
-                **tx,
-                "nonce": client.w3.eth.get_transaction_count(user.address),
+                **tx.tx,
+                "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
                 "gas": 200000,
             }
         )
@@ -36,22 +38,26 @@ def test_swap(configuration):
             print(f"Transaction #{i} failed ")
             break
 
-    new_balance = get_erc20_balance(client.w3, wbtc_address, user.address)
-    assert new_balance == 0.05 * 10**8
+    new_balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
+    assert new_balance == 0.05
 
 
 def test_swap_through_safe(configuration):
     (_, _, client, manager) = configuration
+    
+    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
+    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
 
     balance = manager.balance_of(usdc_address)
     assert balance == 0
 
     txs = build_swap_transaction(
-        client, 6000, weth_address, usdc_address, manager.address, False
+        client, 6000, weth_address.hex, usdc_address.hex, manager.address.hex, False
     )
 
-    hash = manager.send_multisend_tx(txs)
+    hash = manager.send_tx_batch(txs, require_approval=False)
     manager.wait(hash)
 
     new_balance = manager.balance_of(usdc_address)
-    assert new_balance == 6000 * 10**6
+    assert new_balance == 6000

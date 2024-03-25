@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
 load_dotenv()
@@ -18,7 +20,6 @@ from autotx.utils.ethereum import (
     send_eth,
     transfer_erc20,
 )
-from autotx.utils.ethereum.config import contracts_config
 
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
@@ -39,27 +40,32 @@ def configuration():
     )
 
     # Send 10 ETH to the smart account for tests
-    send_eth(dev_account, manager.address, int(10 * 10**18), client.w3)
+    send_eth(dev_account, manager.address, 10, client.w3)
 
     return (dev_account, agent, client, manager)
 
 @pytest.fixture()
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
+    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
 
-    return AutoTx(manager, [
+    return AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
     ], None)
 
 @pytest.fixture()
-def mock_erc20(configuration):
+def mock_erc20(configuration) -> ETHAddress:
     (user, _, client, manager) = configuration
     mock_erc20 = deploy_mock_erc20(client.w3, user)
     transfer_tx = transfer_erc20(
-        client.w3, mock_erc20, user, manager.address, int(100 * 10**18)
+        client.w3, mock_erc20, user, manager.address, 100
     )
     manager.wait(transfer_tx)
-    contracts_config["erc20"]["tt"] = mock_erc20
+
+    chain_id = client.w3.eth.chain_id
+    network = SUPPORTED_NETWORKS.get(chain_id)
+
+    network.tokens["tt"] = mock_erc20.hex
 
     return mock_erc20

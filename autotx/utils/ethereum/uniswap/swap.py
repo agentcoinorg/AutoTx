@@ -5,7 +5,6 @@ import requests
 
 from web3.contract.contract import Contract
 
-from web3.types import TxParams
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER
 
@@ -15,9 +14,8 @@ from autotx.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
 SLIPPAGE = 0.05
 SQRT_PRICE_LIMIT = 0
 
-
 def get_swap_information(
-    amount: int, token_in: Contract, token_out: Contract, price: int, exact_input: bool
+    amount: float, token_in: Contract, token_out: Contract, price: float, exact_input: bool
 ):
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
@@ -35,7 +33,6 @@ def get_swap_information(
             amount_in,
             "exactOutputSingle",
         )
-
 
 def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
     token_in_lower = token_in_address.lower()
@@ -87,10 +84,9 @@ def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
     else:
         raise Exception(f"Request failed with status code: {response.status_code}")
 
-
 def build_swap_transaction(
     etherem_client: EthereumClient,
-    amount: int,
+    amount: float,
     token_in_address: str,
     token_out_address: str,
     _from: str,

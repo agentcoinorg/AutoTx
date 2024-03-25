@@ -2,8 +2,10 @@ from typing import Optional
 
 from web3 import Web3
 
+from autotx.utils.ethereum import get_eth_balance
 from autotx.utils.ethereum.cache import cache
 from autotx.utils.PreparedTx import PreparedTx
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
@@ -23,7 +25,8 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
-    dev_accout: Account | None = None
+    dev_account: Account | None = None
+    address: ETHAddress
 
     def __init__(
         self, 
@@ -37,11 +40,8 @@ class SafeManager:
         self.safe = safe
         self.use_tx_service = False
         self.safe_nonce = None
+        self.address = ETHAddress(safe.address, self.web3)
 
-    @property
-    def address(self) -> str:
-        return self.safe.address
-    
     @classmethod
     def deploy_safe(
         cls, 
@@ -88,10 +88,10 @@ class SafeManager:
     def connect_multisend(self, address: str):
         self.multisend = MultiSend(self.client, address=address)
 
-    def connect_multicall(self, address: str):
-        self.client.multicall = Multicall(self.client, address)
+    def connect_multicall(self, address: ETHAddress):
+        self.client.multicall = Multicall(self.client, address.hex)
 
-    def  deploy_multicall(self):
+    def deploy_multicall(self):
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
         multicall_addr = deploy_multicall(self.client, self.dev_account)
@@ -117,7 +117,7 @@ class SafeManager:
     def build_tx(self, tx: TxParams, safe_nonce: Optional[int] = None) -> SafeTx:
         safe_tx = SafeTx(
             self.client,
-            self.address,
+            self.address.hex,
             tx["to"],
             tx["value"],
             tx["data"],
@@ -126,7 +126,7 @@ class SafeManager:
             0,
             self.gas_price(),
             None,
-            self.address,
+            self.address.hex,
             safe_nonce=self.track_nonce(safe_nonce),
         )
         safe_tx.safe_tx_gas = self.safe.estimate_tx_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation)
@@ -196,11 +196,17 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_multisend_tx(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None):
+    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool: # Returns true if successful
+        if not txs:
+            print("No transactions to send.")
+            return True
+
+        start_nonce = self.track_nonce(safe_nonce)
+
         transactions_info = "\n".join(
             [
-                f"{i}. {tx.summary}"
-                for i, tx in enumerate(txs, start=1)
+                f"{i + 1}. {tx.summary} (nonce: {start_nonce + i})"
+                for i, tx in enumerate(txs)
             ]
         )
 
@@ -212,39 +218,44 @@ class SafeManager:
 
                 if response.lower() != "y":
                     print("Transactions not sent to your smart account (declined).")
-                    return
+                    return False
             else:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
             print("Sending transactions to your smart account...")
 
-            self.post_multisend_transaction([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+
+            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
+                self.send_tx(tx, start_nonce + i)
 
             print("Transactions sent to your smart account for signing.")
             
-            return
+            return True
         else:
             if require_approval:
                 response = input("Do you want to execute the above transactions? (y/n): ")
 
                 if response.lower() != "y":
                     print("Transactions not executed (declined).")
-                    return
+                    return False
             else:
                 print("Non-interactive mode enabled. Transactions will be executed without approval.")
 
             print("Executing transactions...")
 
-            self.execute_multisend_tx([prepared_tx.tx for prepared_tx in txs], safe_nonce)
+            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
+                self.send_tx(tx, start_nonce + i)
         
             print("Transactions executed.")
 
+            return True
+
     def send_empty_tx(self, safe_nonce: Optional[int] = None):
         tx: TxParams = {
-            "to": self.address,
+            "to": self.address.hex,
             "value": self.web3.to_wei(0, "ether"),
             "data": b"",
-            "from": self.address,
+            "from": self.address.hex,
         }
 
         return self.send_tx(tx, safe_nonce)
@@ -252,11 +263,11 @@ class SafeManager:
     def wait(self, tx_hash: str):
         return self.web3.eth.wait_for_transaction_receipt(tx_hash)
 
-    def balance_of(self, token_address: str | None = None) -> int:
+    def balance_of(self, token_address: ETHAddress | None = None) -> float:
         if token_address is None:
-            return self.web3.eth.get_balance(self.address)
+            return get_eth_balance(self.web3, self.address)
         else:
-            return get_erc20_balance(self.web3, token_address, self.address)
+            return get_erc20_balance(self.web3, token_address, self.address) 
         
     def nonce(self) -> int:
         return self.safe.retrieve_nonce()
@@ -275,5 +286,5 @@ class SafeManager:
             return safe_nonce
     
     @staticmethod
-    def is_valid_safe(client: EthereumClient, address: str) -> bool:
+    def is_valid_safe(client: EthereumClient, address: ETHAddress) -> bool:
         return is_valid_safe(client, address)
