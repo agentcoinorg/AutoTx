@@ -39,7 +39,7 @@ def test_swap(configuration):
             break
 
     new_balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
-    assert new_balance == 0.05 * 10**8
+    assert new_balance == 0.05
 
 
 def test_swap_through_safe(configuration):
@@ -60,4 +60,4 @@ def test_swap_through_safe(configuration):
     manager.wait(hash)
 
     new_balance = manager.balance_of(usdc_address)
-    assert new_balance == 6000 * 10**6
+    assert new_balance == 6000

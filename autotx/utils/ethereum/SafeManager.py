@@ -2,6 +2,7 @@ from typing import Optional
 
 from web3 import Web3
 
+from autotx.utils.ethereum import get_eth_balance
 from autotx.utils.ethereum.cache import cache
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -262,9 +263,9 @@ class SafeManager:
     def wait(self, tx_hash: str):
         return self.web3.eth.wait_for_transaction_receipt(tx_hash)
 
-    def balance_of(self, token_address: ETHAddress | None = None) -> int:
+    def balance_of(self, token_address: ETHAddress | None = None) -> float:
         if token_address is None:
-            return self.web3.eth.get_balance(self.address.hex)
+            return get_eth_balance(self.web3, self.address)
         else:
             return get_erc20_balance(self.web3, token_address, self.address) 
         

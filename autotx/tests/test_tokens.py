@@ -15,7 +15,7 @@ def test_auto_tx_send_eth(configuration, auto_tx):
     auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1 * 10**18
+    assert balance == 1
 
 def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
@@ -27,12 +27,12 @@ def test_auto_tx_send_eth_twice(configuration, auto_tx, mock_erc20):
     auto_tx.run("Send 1 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1 * 10**18
+    assert balance == 1
 
     auto_tx.run("Send 0.5 ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", non_interactive=True)
 
     balance = get_eth_balance(client.w3, reciever)
-    assert balance == 1.5 * 10**18
+    assert balance == 1.5
 
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -61,7 +61,7 @@ def test_auto_tx_swap(configuration, auto_tx):
 
         new_balance = manager.balance_of(usdc_address)
 
-        assert balance + 100 * 10**6 == new_balance
+        assert balance + 100 == new_balance
 
 
 def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
@@ -90,7 +90,7 @@ def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
 
         new_balance = get_erc20_balance(client.w3, mock_erc20, reciever)
 
-        assert balance + 10 * 10**18 == new_balance
+        assert balance + 10 == new_balance
 
 
 def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
@@ -121,8 +121,8 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
 
         new_balance_one = get_erc20_balance(client.w3, mock_erc20, reciever_one)
         new_balance_two = get_erc20_balance(client.w3, mock_erc20, reciever_two)
-        assert balance_one + 10 * 10**18 == new_balance_one
-        assert balance_two + 20 * 10**18 == new_balance_two
+        assert balance_one + 10 == new_balance_one
+        assert balance_two + 20 == new_balance_two
 
 
 def test_auto_tx_swap_and_send(configuration, auto_tx):
@@ -159,5 +159,5 @@ def test_auto_tx_swap_and_send(configuration, auto_tx):
         new_usdc_safe_address = manager.balance_of(usdc_address)
         new_reciever_usdc_balance = get_erc20_balance(client.w3, usdc_address, reciever)
         assert new_wbtc_safe_address > wbtc_safe_address
-        assert new_usdc_safe_address == usdc_safe_address + 950 * 10**6
-        assert new_reciever_usdc_balance == reciever_usdc_balance + 50 * 10**6
+        assert new_usdc_safe_address == usdc_safe_address + 950
+        assert new_reciever_usdc_balance == reciever_usdc_balance + 50

@@ -96,11 +96,8 @@ class GetERC20BalanceTool(AutoTxTool):
         tokens = self.autotx.network.tokens
         token_address = ETHAddress(tokens[token.lower()], web3)
         owner_addr = ETHAddress(owner, web3)
-
-        erc20 = web3.eth.contract(address=token_address.hex, abi=MOCK_ERC20_ABI)
-        decimals = erc20.functions.decimals().call()
         
-        return get_erc20_balance(web3, token_address, owner_addr) / 10 ** decimals
+        return get_erc20_balance(web3, token_address, owner_addr)
 
 class GetETHBalanceTool(AutoTxTool):
     name: str = "Get ETH balance"
