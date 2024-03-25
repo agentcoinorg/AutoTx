@@ -11,5 +11,5 @@ def save_cached_safe_address(safe_address: str):
     cache.write(SAFE_ADDRESS_FILE_NAME, safe_address)
 
 
-def delete_cached_safe_address() -> bool:
+def delete_cached_safe_address():
     cache.remove(SAFE_ADDRESS_FILE_NAME)
