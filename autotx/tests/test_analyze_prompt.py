@@ -1,5 +1,6 @@
 from autotx.patch import patch_langchain
 from autotx.utils.agent.build_goal import DefineGoalResponse, analyze_user_prompt
+from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
 patch_langchain()
 
@@ -21,4 +22,4 @@ def test_not_yet_supported_goal(auto_tx):
 
 def analyze_prompt(prompt, auto_tx) -> DefineGoalResponse:
     agents_information = auto_tx.get_agents_information()
-    return analyze_user_prompt(prompt, agents_information)
+    return analyze_user_prompt(prompt, agents_information, get_dev_account().address) # We're using dev account but any address would work

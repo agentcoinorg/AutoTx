@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 from autotx.get_env_vars import get_env_vars
 from gnosis.eth import EthereumClient
 from eth_typing import URI
@@ -13,8 +14,12 @@ smart_account_addr = get_env_vars()
 
 def get_configuration():
     w3 = Web3(HTTPProvider(FORK_RPC_URL))
-    if not w3.is_connected():
-        sys.exit("Can not connect with local node. Did you run `poetry run start-fork`?")
+    for i in range(5):
+        if w3.is_connected():
+            break
+        if i == 4:
+            sys.exit("Can not connect with local node. Did you run `poetry run start-fork`?")
+        sleep(0.5)
 
     client = EthereumClient(URI(FORK_RPC_URL))
     agent: Account = get_or_create_agent_account()
