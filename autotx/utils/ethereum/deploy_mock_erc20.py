@@ -4,12 +4,12 @@ from web3.middleware import construct_sign_and_send_raw_middleware
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-from .mock_erc20 import MOCK_ERC20_ABI, MOCK_ERC20_BYTECODE
+from .erc20_abi import ERC20_ABI, ERC20_BYTECODE
 
 def deploy_mock_erc20(web3: Web3, account: Account) -> ETHAddress:
     account_middleware = construct_sign_and_send_raw_middleware(account)
     web3.middleware_onion.add(account_middleware)
-    MockERC20 = web3.eth.contract(abi=MOCK_ERC20_ABI, bytecode=MOCK_ERC20_BYTECODE)
+    MockERC20 = web3.eth.contract(abi=ERC20_ABI, bytecode=ERC20_BYTECODE)
 
     tx_hash = MockERC20.constructor().transact({"from": account.address, "gasPrice": web3.eth.gas_price})
 

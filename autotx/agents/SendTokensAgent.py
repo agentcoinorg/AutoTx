@@ -15,7 +15,7 @@ from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
 from web3.constants import ADDRESS_ZERO
 
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.mock_erc20 import MOCK_ERC20_ABI
+from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 
 class TransferERC20TokenTool(AutoTxTool):
     name: str = "Transfer ERC20 token"

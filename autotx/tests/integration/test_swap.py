@@ -5,6 +5,7 @@ from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
+
 def test_swap(configuration):
     (user, _, client, _) = configuration
 
@@ -12,7 +13,7 @@ def test_swap(configuration):
     weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], client.w3)
 
-    user_addr =  ETHAddress(user.address, client.w3)
+    user_addr = ETHAddress(user.address, client.w3)
 
     balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
     assert balance == 0
@@ -42,9 +43,69 @@ def test_swap(configuration):
     assert new_balance == 0.05
 
 
+def test_swap_recieve_eth(configuration):
+    (user, _, client, _) = configuration
+
+    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
+    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
+
+    user_addr = ETHAddress(user.address, client.w3)
+
+    balance = client.w3.eth.get_balance(user_addr.hex)
+    assert int(balance / 10**18) == 9989
+
+    tx = build_swap_transaction(
+        client, 5, eth_address.hex, usdc_address.hex, user_addr.hex, True
+    )
+
+    transaction = user.sign_transaction(
+        {
+            **tx[0].tx,
+            "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
+            "gas": 200000,
+        }
+    )
+
+    hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
+
+    receipt = client.w3.eth.wait_for_transaction_receipt(hash)
+
+    print(receipt)
+    if receipt["status"] == 0:
+        print(f"Transaction to swap ETH -> USDC failed ")
+
+    balance = client.w3.eth.get_balance(user_addr.hex)
+    assert int(balance / 10**18) == 9984
+
+    txs = build_swap_transaction(
+        client, 4, usdc_address.hex, eth_address.hex, user_addr.hex, False
+    )
+
+    for i, tx in enumerate(txs):
+        transaction = user.sign_transaction(
+            {
+                **tx.tx,
+                "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
+                "gas": 200000,
+            }
+        )
+
+        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
+
+        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
+
+        if receipt["status"] == 0:
+            print(f"Transaction #{i} to swap USDC -> ETH failed ")
+            break
+
+    balance = client.w3.eth.get_balance(user_addr.hex)
+    assert int(balance / 10**18) == 9988
+
+
 def test_swap_through_safe(configuration):
     (_, _, client, manager) = configuration
-    
+
     network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
     weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
     usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
