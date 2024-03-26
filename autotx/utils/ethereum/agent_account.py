@@ -1,11 +1,13 @@
-import os
 from eth_account import Account
 from autotx.utils.ethereum.cache import cache
 
+AGENT_PK_FILE_NAME = "agent.pk.txt"
+
 def get_agent_account() -> Account | None:
     try:
-        with open("./.cache/agent.pk.txt", "r") as f:
-            return Account.from_key(f.read())
+        account = cache.read(AGENT_PK_FILE_NAME)
+        if account:
+            return Account.from_key(account)
     except FileNotFoundError:
         return None
     except Exception as e:
@@ -13,9 +15,9 @@ def get_agent_account() -> Account | None:
         raise
     
 def create_agent_account() -> Account:
-    result = cache(lambda: Account.create().key.hex(), "./.cache/agent.pk.txt")
-    
-    return Account.from_key(result)
+    agent_account: str = Account.create().key.hex()
+    cache.write(AGENT_PK_FILE_NAME, agent_account)
+    return Account.from_key(agent_account)
 
 def get_or_create_agent_account() -> Account:
     agent = get_agent_account()
@@ -24,10 +26,4 @@ def get_or_create_agent_account() -> Account:
     return create_agent_account()
 
 def delete_agent_account():
-    try:
-        os.remove("./.cache/agent.pk.txt")
-    except FileNotFoundError:
-        print("Agent account not found")
-    except Exception as e:
-        print(f"An error occurred while deleting the agent account: {e}")
-        raise
+    cache.remove(AGENT_PK_FILE_NAME)

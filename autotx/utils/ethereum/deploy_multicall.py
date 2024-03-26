@@ -10,10 +10,9 @@ from .cache import cache
 def deploy_multicall(client: EthereumClient, account: Account) -> ETHAddress:
     if os.getenv("MULTICALL_ADDRESS"):
         return os.getenv("MULTICALL_ADDRESS")
-
-    address = cache(lambda: deploy(client, account), "./.cache/multicall-address.txt")
-
-    return ETHAddress(address, client.w3)
+    multicall_address = deploy(client, account)
+    cache.write("multicall-address.txt", multicall_address)
+    return ETHAddress(multicall_address, client.w3)
 
 def deploy(client: EthereumClient, account: Account) -> str:
     tx =  Multicall.deploy_contract(client, account) 

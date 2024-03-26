@@ -4,6 +4,7 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
 
+
 from .send_tx import send_tx
 from .constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
@@ -64,7 +65,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     tx_receipt = w3.eth.wait_for_transaction_receipt(ethereum_tx_sent.tx_hash)
     if tx_receipt["status"] != 1:
         raise ValueError("Transaction failed")
-    
+
     return safe_address
 
 def generate_salt_nonce() -> int:

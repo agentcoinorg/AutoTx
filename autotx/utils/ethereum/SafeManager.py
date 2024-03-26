@@ -3,8 +3,8 @@ from typing import Optional
 from web3 import Web3
 
 from autotx.utils.ethereum import get_eth_balance
-from autotx.utils.ethereum.cache import cache
 from autotx.utils.PreparedTx import PreparedTx
+from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
 from .deploy_safe_with_create2 import deploy_safe_with_create2
@@ -12,7 +12,6 @@ from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
 from .constants import MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
 from eth_account import Account
-from eth_typing import URI
 from gnosis.eth import EthereumClient, EthereumNetwork
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.multicall import Multicall
@@ -51,7 +50,10 @@ class SafeManager:
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
-        safe_address = cache(lambda: deploy_safe_with_create2(client, dev_account, owners, threshold), "./.cache/safe.txt")
+        safe_address = get_cached_safe_address()
+        if not safe_address:
+            safe_address = deploy_safe_with_create2(client, dev_account, owners, threshold)
+            save_cached_safe_address(safe_address)
 
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
         manager.dev_account = dev_account
