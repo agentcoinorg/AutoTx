@@ -44,9 +44,14 @@ class ExecuteSwapTool(AutoTxTool):
         tokens = self.autotx.network.tokens
         is_exact_input = exact_input in ["true", "True"]
 
-        # TODO: Handle when `token_in` or `token_out` are not in the `tokens` list
-        token_in_address = tokens["weth"] if token_in == "eth" else tokens[token_in]
-        token_out_address = tokens["weth"] if token_out == "eth" else tokens[token_out]
+        if token_in not in tokens:
+            return f"Token {token_in} is not supported"
+
+        if token_out not in tokens:
+            return f"Token {token_out} is not supported"
+
+        token_in_address = tokens[token_in]
+        token_out_address = tokens[token_out]
 
         swap_transactions = build_swap_transaction(
             self.client,
