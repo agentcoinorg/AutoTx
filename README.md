@@ -60,7 +60,14 @@ Please install the following:
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
 
 ### Connect a Smart Account
-AutoTx can be connected to your existing smart account by setting the `SMART_ACCOUNT_ADDRESS` in the `.env` file. AutoTx's agent address it generates locally must be set as a signer or delegate in your Safe's configuration. To get this address, run `poetry run agent address`.
+AutoTx can be connected to your existing smart account by doing the following:
+
+1. Set the `SMART_ACCOUNT_ADDRESS` to the address of your smart account in your `.env`. This tells AutoTx which account it should interact with.
+
+2. AutoTx's agent address, which it generates locally, must be set as a signer in your Safe's configuration to allow it to create transactions on behalf of the smart account. To get this address, run `poetry run agent address`.
+
+3. Update the `CHAIN_RPC_URL` value in your `.env` with the correct RPC URL of the network where your smart account is deployed.
+
 
 ## Prompts
 AutoTx currently supports prompts such as:
