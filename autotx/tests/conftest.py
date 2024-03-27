@@ -67,6 +67,6 @@ def mock_erc20(configuration) -> ETHAddress:
     chain_id = client.w3.eth.chain_id
     network = SUPPORTED_NETWORKS.get(chain_id)
 
-    network.tokens["tt"] = mock_erc20.hex
+    network.tokens["ttok"] = mock_erc20.hex
 
     return mock_erc20
