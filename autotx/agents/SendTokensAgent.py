@@ -126,7 +126,7 @@ class SendTokensAgent(AutoTxAgent):
         super().__init__(
             name="send-tokens",
             role="Ethereum token specialist",
-            goal="Streamline ERC20 token interactions for efficient and error-free operations.",
+            goal=f"Streamline ERC20 token interactions for efficient and error-free operations for the user (address: {autotx.manager.address})",
             backstory="Crafted from the need to navigate the ERC20 token standards, this agent automates and simplifies token transfers, approvals, and balance queries, supporting high-stakes DeFi operations.",
             tools=[
                 TransferERC20TokenTool(autotx),

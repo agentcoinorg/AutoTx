@@ -9,40 +9,35 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 from gnosis.eth import EthereumClient
 
-class ExecuteSwapTool(AutoTxTool):
-    name: str = "Build needed transactions to execute swap"
+class ExecuteSwapExactInTool(AutoTxTool):
+    name: str = "Prepare needed transactions to execute swap with exact input"
     description: str = dedent(
         """
         Encodes approve, if necessary and swap transactions. The function will only add the approve transaction
         if the address does not have enough allowance
 
         Args:
-            amount (float): Amount given by the user to trade. The function will take care of converting the amount
+            exact_amount_in (float): Amount of token_in given by the user to trade. The function will take care of converting the amount
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
-            exact_input (str): A flag indicating the direction of the trade with respect to the amount specified:
-                - If True, the amount refers to the exact quantity of `token_in` that the user wishes to swap.
-                - If False, the amount refers to the exact quantity of `token_out` that the user wishes to receive.
-                This distinction is crucial for determining how the swap transaction is structured, particularly
-                in specifying the limits of token exchange rates and the adjustment of transaction parameters.
         """
     )
     recipient: ETHAddress | None = Field(None)
     client: EthereumClient | None = Field(None)
 
-    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: str):
+    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: ETHAddress):
         super().__init__(autotx)
         self.client = client
         self.recipient = recipient
 
     def _run(
-        self, amount: float, token_in: str, token_out: str, exact_input: str
+        self, exact_amount_in: float, token_in: str, token_out: str
     ) -> str:
         token_in = token_in.lower()
         token_out = token_out.lower()
         tokens = self.autotx.network.tokens
-        is_exact_input = exact_input in ["true", "True"]
+        is_exact_input = True
 
         if token_in not in tokens:
             return f"Token {token_in} is not supported"
@@ -55,7 +50,7 @@ class ExecuteSwapTool(AutoTxTool):
 
         swap_transactions = build_swap_transaction(
             self.client,
-            amount,
+            exact_amount_in,
             token_in_address,
             token_out_address,
             self.recipient.hex,
@@ -63,19 +58,71 @@ class ExecuteSwapTool(AutoTxTool):
         )
         self.autotx.transactions.extend(swap_transactions)
 
-        if is_exact_input:
-            return f"Transaction to sell {amount} {token_in} for {token_out} has been prepared"
-        else:
-            return f"Transaction to buy {amount} {token_out} with {token_in} has been prepared"
+        return f"Transaction to sell {exact_amount_in} {token_in} for {token_out} has been prepared"
+
+
+class ExecuteSwapExactOutTool(AutoTxTool):
+    name: str = "Prepare needed transactions to execute swap with exact output"
+    description: str = dedent(
+        """
+        Encodes approve, if necessary and swap transactions. The function will only add the approve transaction
+        if the address does not have enough allowance
+
+        Args:
+            exact_amount_out (float): Amount of token_out given by the user to trade. The function will take care of converting the amount
+            to needed decimals.
+            token_in (str): Symbol of token input.
+            token_out (str): Symbol of token output.
+        """
+    )
+    recipient: ETHAddress | None = Field(None)
+    client: EthereumClient | None = Field(None)
+
+    def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: ETHAddress):
+        super().__init__(autotx)
+        self.client = client
+        self.recipient = recipient
+
+    def _run(
+        self, exact_amount_out: float, token_in: str, token_out: str
+    ) -> str:
+        token_in = token_in.lower()
+        token_out = token_out.lower()
+        tokens = self.autotx.network.tokens
+        is_exact_input = False
+
+        if token_in not in tokens:
+            return f"Token {token_in} is not supported"
+
+        if token_out not in tokens:
+            return f"Token {token_out} is not supported"
+
+        token_in_address = tokens[token_in]
+        token_out_address = tokens[token_out]
+
+        swap_transactions = build_swap_transaction(
+            self.client,
+            exact_amount_out,
+            token_in_address,
+            token_out_address,
+            self.recipient.hex,
+            is_exact_input,
+        )
+        self.autotx.transactions.extend(swap_transactions)
+
+        return f"Transaction to buy {exact_amount_out} {token_out} with {token_in} has been prepared"
 
 class SwapTokensAgent(AutoTxAgent):
     def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: ETHAddress):
         super().__init__(
             name="swap-tokens",
             role="Expert in swapping tokens",
-            goal="Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol",
+            goal=f"Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol (address: {autotx.manager.address})",
             backstory="An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.",
-            tools=[ExecuteSwapTool(autotx, client, recipient)],
+            tools=[
+                ExecuteSwapExactInTool(autotx, client, recipient),
+                ExecuteSwapExactOutTool(autotx, client, recipient),
+            ],
         )
 
 def build_agent_factory(client: EthereumClient, recipient: ETHAddress) -> Callable[[AutoTx], Agent]:
