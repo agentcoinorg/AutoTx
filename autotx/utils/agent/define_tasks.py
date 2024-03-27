@@ -11,7 +11,7 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
         You must convert instructions into specific tasks with the following JSON format:
         {{
             tasks : [{{
-                "task": "Concise description of task to be done with details needed given by user"
+                "task": "The description of task to be done with details needed given by user. You MUST include the user's address if needed."
                 "agent": "The agent that best fits to execute the task"
                 "expected_output":"Description of expected output for the task"
                 "context": [int] // Index of tasks that will have their output used as context for this task (Always start from 0), if applicable. Eg. [1, 3] or None
@@ -36,8 +36,9 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
     )
     response = response.choices[0].message.content
     if not response:
-        # TODO: Handle bad response
-        pass
+        raise Exception("Bad response from OpenAI API for defining tasks.")
+
+    print("Tasks", response)
 
     return sanitize_tasks_response(response, agents)
 

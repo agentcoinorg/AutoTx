@@ -3,7 +3,7 @@ from typing import Optional
 
 from web3 import Web3
 
-from autotx.utils.ethereum import get_eth_balance
+from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
