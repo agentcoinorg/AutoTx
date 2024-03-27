@@ -83,7 +83,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
         1:
         {{
             "type": "goal",
-            "goal": "The detailed goal here. No need to mention specific agents or tools."
+            "goal": "The detailed goal here. No need to mention specific agents or tools. But you MUST mention the user's address."
         }}
         2:
         {{

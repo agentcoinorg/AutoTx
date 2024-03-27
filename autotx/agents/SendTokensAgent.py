@@ -26,7 +26,7 @@ class TransferERC20TokenTool(AutoTxTool):
         Args:
             amount (float): Amount given by the user to transfer. The function will take
             care of converting the amount to needed decimals.
-            reciever (str): The receiver's address or ENS domain
+            receiver (str): The receiver's address or ENS domain
             token (str): Symbol of token to transfer
         Returns:
             Message to confirm that transaction has been prepared
@@ -34,17 +34,17 @@ class TransferERC20TokenTool(AutoTxTool):
     )
 
     def _run(
-        self, amount: float, reciever: str, token: str
+        self, amount: float, receiver: str, token: str
     ) -> str:
         tokens = self.autotx.network.tokens
         token_address = tokens[token.lower()]
         web3 = load_w3()
 
-        reciever_addr = ETHAddress(reciever, web3)
+        receiver_addr = ETHAddress(receiver, web3)
         
-        tx = build_transfer_erc20(web3, token_address, reciever_addr, amount)
+        tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
 
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {str(reciever_addr)}", tx))
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx))
 
         return f"Transaction to send {amount} {token} has been prepared"
             
@@ -57,22 +57,22 @@ class TransferETHTool(AutoTxTool):
         Args:
             amount (float): Amount given by the user to transfer. The function will take
             care of converting the amount to needed decimals.
-            reciever (str): The receiver's address or ENS domain
+            receiver (str): The receiver's address or ENS domain
         Returns:
             Message to confirm that transaction has been prepared
         """
     )
 
     def _run(
-        self, amount: float, reciever: str
+        self, amount: float, receiver: str
     ) -> str:
         web3 = load_w3()
       
-        reciever_addr = ETHAddress(reciever, web3)
+        receiver_addr = ETHAddress(receiver, web3)
     
-        tx = build_transfer_eth(web3, ETHAddress(ADDRESS_ZERO, web3), reciever_addr, amount)
+        tx = build_transfer_eth(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
       
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {str(reciever_addr)}", tx))
+        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx))
 
         return f"Transaction to send {amount} ETH has been prepared"
 

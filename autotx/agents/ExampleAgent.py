@@ -13,23 +13,23 @@ class ExampleTool(AutoTxTool):
 
         Args:
             amount (float): Amount of something.
-            reciever (str): The reciever of something.
+            receiver (str): The receiver of something.
         Returns:
             The result of the useful tool in a useful format.
         """
     )
 
     def _run(
-        self, amount: float, reciever: str
+        self, amount: float, receiver: str
     ) -> str:
 
         # TODO: do something useful
-        print(f"ExampleTool run: {amount} {reciever}")
+        print(f"ExampleTool run: {amount} {receiver}")
         
         # NOTE: you can add transactions to AutoTx's current bundle
         # self.autotx.transactions.append(tx)
 
-        return f"Something useful has been done with {amount} to {reciever}"
+        return f"Something useful has been done with {amount} to {receiver}"
 
 class ExampleAgent(AutoTxAgent):
     def __init__(self, autotx: AutoTx):
