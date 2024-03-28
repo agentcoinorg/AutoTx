@@ -170,7 +170,7 @@ def build_swap_transaction(
             )
             transactions.append(
                 PreparedTx(
-                    f"Approve {amount_in} {token_in_symbol} to Uniswap",
+                    f"Approve {amount_in / 10 ** token_in_decimals} {token_in_symbol} to Uniswap",
                     tx,
                 )
             )
