@@ -32,7 +32,7 @@ class AutoTx:
         self.agents = [factory(self) for factory in agent_factories]
 
     def run(self, prompt: str, non_interactive: bool):
-        print("Defining goal...")
+        print(f"Defining goal for prompt: '{prompt}'")
        
         agents_information = self.get_agents_information()
 
@@ -40,6 +40,11 @@ class AutoTx:
 
         print(f"Defining tasks for goal: '{goal}'")
         tasks: list[Task] = define_tasks(goal, agents_information, self.agents)
+   
+        self.run_for_tasks(tasks, non_interactive)
+
+    def run_for_tasks(self, tasks: list[Task], non_interactive: bool):
+        print(f"Running tasks...")
         Crew(
             agents=self.agents,
             tasks=tasks,
