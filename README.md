@@ -76,6 +76,7 @@ AutoTx currently supports prompts such as:
 * `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
 
 Future possibilities:
+* `Buy me 5 small cap AI tokens`
 * `Send the most popular meme coin to vitalik.eth`
 * `Purchase mainnet ETH with my USDC on optimism`
 * `What proposals are being voted on right now?`
