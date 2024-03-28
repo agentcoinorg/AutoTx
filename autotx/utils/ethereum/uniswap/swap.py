@@ -18,13 +18,11 @@ SQRT_PRICE_LIMIT = 0
 
 def get_swap_information(
     amount: float,
-    token_in: Contract,
-    token_out: Contract,
+    token_in_decimals: int,
+    token_out_decimals: int,
     price: float,
     exact_input: bool,
 ):
-    token_in_decimals = token_in.functions.decimals().call()
-    token_out_decimals = token_out.functions.decimals().call()
     if exact_input:
         amount_compared_with_token = amount * price
         minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
@@ -149,8 +147,11 @@ def build_swap_transaction(
 
 
     price = uniswap.get_price(token_in.address, token_out.address)
+
+    token_in_decimals = token_in.functions.decimals().call()
+    token_out_decimals = token_out.functions.decimals().call()
     (amount_out, amount_in, method) = get_swap_information(
-        amount, token_in, token_out, price, exact_input
+        amount, token_in_decimals, token_out_decimals, price, exact_input
     )
 
     token_in_symbol = token_in.functions.symbol().call()
@@ -194,7 +195,7 @@ def build_swap_transaction(
     )
     transactions.append(
         PreparedTx(
-            f"Swap {amount} {token_in_symbol} for {amount_out} {token_out_symbol}",
+            f"Swap {amount_in / 10 ** token_in_decimals} {token_in_symbol} for {amount_out / 10 ** token_out_decimals} {token_out_symbol}",
             swap_transaction,
         )
     )
