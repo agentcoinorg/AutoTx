@@ -21,6 +21,8 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
 
         The specific tasks will be created based on the available agents role, goal and available tools:
         {agents_information}
+
+        IMPORTANT: After all tasks are executed, the prepared transactions will be sent to the Ethereum network.
         """
     )
 
@@ -50,9 +52,11 @@ def sanitize_tasks_response(response: str, agents: list[Agent]) -> list[Task]:
             [sanitized_tasks[c] for c in task["context"]] if task["context"] else []
         )
 
-        get_agent_by_name = lambda a: a.name == task["agent"]
+        get_agent_by_name = lambda a: a.name.lower() == task["agent"].lower()
         agent = next(filter(get_agent_by_name, agents), None)
         description = task["task"]
+        if not agent:
+            raise Exception(f"Agent {task['agent']} not found.", task)
 
         if task["extra_information"]:
             description += "\n" + task["extra_information"]

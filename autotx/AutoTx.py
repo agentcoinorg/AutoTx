@@ -61,7 +61,7 @@ class AutoTx:
                     for tool in agent_default_tools
                 ]
             )
-            description = f"Agent name: {agent.name.lower()}\nRole: {agent.role}\nTools available:\n{tools_available}"
+            description = f"Agent name: {agent.name}\nRole: {agent.role}\nTools available:\n{tools_available}"
             agent_descriptions.append(description)
 
         agents_information = "\n".join(agent_descriptions)
