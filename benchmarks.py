@@ -65,8 +65,12 @@ def clear_lines(n=1):
         sys.stdout.write('\x1b[1A')  # Move the cursor up by one line
         sys.stdout.write('\x1b[2K')  # Clear the current line
 
-def print_summary_table(tests_results, total_run_time):
+def print_summary_table(test_path, iterations, tests_results, total_run_time):
     """Prints a summary table of all tests."""
+  
+    print(f"Run from: {test_path}")
+    print(f"Iterations: {iterations}")
+    print("=" * 50)
     print("Test Name\tSuccess Rate\tPasses\tFails\tAvg Time")
     print("=" * 50)
     for test_result in tests_results:
@@ -80,6 +84,9 @@ def print_summary_table(tests_results, total_run_time):
 
     # Write all of the results to a file
     with open(f"{output_dir}/summary.txt", 'w') as summary_file:
+        summary_file.write(f"Run from: {test_path}\n")
+        summary_file.write(f"Iterations: {iterations}\n")
+        summary_file.write("=" * 50 + "\n")
         summary_file.write("Test Name\tSuccess Rate\tPasses\tFails\tAvg Time\n")
         summary_file.write("=" * 50 + "\n")
         for test_result in tests_results:
@@ -100,6 +107,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print("=" * 50)
+    print(f"Target: {test_path}")
     print(f"Tests found: {len(tests)}")
     for test in tests:
         print(test)
@@ -145,6 +153,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 50)
     print("All tests completed.")
     print("=" * 50 + "\n")
-    print_summary_table(tests_results, total_run_time)
+    print_summary_table(test_path, iterations, tests_results, total_run_time)
     print(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Summary written to: {output_dir}/summary.txt")
