@@ -108,6 +108,25 @@ poetry run pytest -s ./autotx/tests/file_name.py
 poetry run pytest -s ./autotx/tests/file_name.py::function_name
 ```
 
+#### Running benchmarks
+
+To run benchmarks, use the following command:
+
+# run tests in a directory with 5 iterations each
+```bash
+python benchmarks.py ./autotx/tests/dir_name 5
+```
+
+# run tests in a file with 5 iterations each
+```bash
+python benchmarks.py ./autotx/tests/file_name.py 5
+```
+
+# run a specific test with 5 iterations
+```bash
+python benchmarks.py ./autotx/tests/file_name.py::function_name 5
+```
+
 ## Need Help?
 
 Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
