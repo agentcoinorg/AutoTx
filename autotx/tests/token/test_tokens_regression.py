@@ -5,7 +5,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
 patch_langchain()
-      
+
 def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
     (_, _, client, _) = configuration
 
