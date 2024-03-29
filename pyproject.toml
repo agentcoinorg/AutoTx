@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-crewai-tools = "0.0.15"
+crewai-tools = "0.1.1"
 pyright = "^1.1.350"
 click = "^8.1.7"
 safe-eth-py = "^5.8.0"
