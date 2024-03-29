@@ -13,7 +13,7 @@ def test_auto_tx_swap_and_send_simple(configuration, auto_tx):
 
     receiver = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
 
-    prompt = f"Swap ETH to 0.05 WBTC, then, and send 0.01 WBTC to {receiver}"
+    prompt = f"Swap ETH to 0.05 WBTC, and send 0.01 WBTC to {receiver}"
 
     wbtc_safe_address = manager.balance_of(wbtc_address)
     receiver_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver)
