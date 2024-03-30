@@ -7,7 +7,7 @@ class CoingeckoApi:
     BASE_URL: str = "https://api.coingecko.com/api/v3"
     API_KEY = os.getenv("COINGECKO_API_KEY")
 
-    def build_request(self, endpoint: str):
+    def request(self, endpoint: str):
         if self.API_KEY == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
 
