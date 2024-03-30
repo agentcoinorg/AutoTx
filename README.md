@@ -23,11 +23,11 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 |-|-|-|
 | [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
 | [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with Uniswap. | :rocket: |
+| Token Research | Research tokens, liquidity, prices, graphs, etc. | :construction: [spec](https://github.com/polywrap/AutoTx/issues/96) |
+| Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
-| Token Search | Research tokens, liquidity, prices, graphs, etc. | :thought_balloon: |
-| Earn Yield | Stake assets to earn yield. | :thought_balloon: |
 | LP | Provide liquidity to AMMs. | :thought_balloon: |
 | Governance | Vote or delegate in DAOs. | :thought_balloon: |
 | Predict | Generate future predictions based on research. | :thought_balloon: |
@@ -76,6 +76,7 @@ AutoTx currently supports prompts such as:
 * `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
 
 Future possibilities:
+* `Buy me 5 small cap AI tokens`
 * `Send the most popular meme coin to vitalik.eth`
 * `Purchase mainnet ETH with my USDC on optimism`
 * `What proposals are being voted on right now?`
