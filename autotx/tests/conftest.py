@@ -8,8 +8,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 
 import pytest
-from crewai import Agent
-from autotx.agents.TokenResearchAgent import TokenResearchAgent
+from autotx.agents import TokenResearchAgent
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
@@ -71,7 +70,3 @@ def mock_erc20(configuration) -> ETHAddress:
     network.tokens["ttok"] = mock_erc20.hex
 
     return mock_erc20
-
-@pytest.fixture()
-def token_research_agent() -> Agent:
-    return TokenResearchAgent()

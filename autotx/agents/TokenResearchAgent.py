@@ -159,6 +159,22 @@ class GetTokensBasedOnCategory(BaseTool):
         return json.dumps(tokens)
 
 
+class TokenExchanges(BaseTool):
+    name: str = "get_exchanges_where_token_can_be_traded"
+    description: str = dedent(
+        """
+        Retrieve exchanges where token can be traded
+        Args:
+            token_id (str): ID of token
+        """
+    )
+
+    def _run(self, token_id: str):
+        tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
+        market_names = {item["market"]["name"] for item in tickers}
+        return list(market_names)
+
+
 class TokenResearchAgent(AutoTxAgent):
     def __init__(self):
         if os.getenv("COINGECKO_API_KEY") == None:
@@ -174,6 +190,7 @@ class TokenResearchAgent(AutoTxAgent):
                 TokenSymbolToTokenId(),
                 GetTokensBasedOnCategory(),
                 GetAvailableCategories(),
+                TokenExchanges()
             ],
         )
 
