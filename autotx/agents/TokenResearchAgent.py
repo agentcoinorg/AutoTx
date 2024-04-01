@@ -3,6 +3,7 @@ import os
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
+from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
 import coingecko
@@ -10,6 +11,17 @@ import coingecko
 
 def get_coingecko():
     return coingecko.CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
+
+
+COINGECKO_NETWORK_IDS = [
+    "ethereum",
+    "avalanche",
+    "optimistic-ethereum",
+    "arbitrum-one",
+    "base",
+    "polygon-pos",
+    "xdai",
+]
 
 
 class TokenSymbolToTokenId(BaseTool):
@@ -54,11 +66,19 @@ class GetTokenInformation(BaseTool):
             community_data=False,
             sparkline=False,
         )
+
+        token_addresses = {
+            network: token_information[network]
+            for network in COINGECKO_NETWORK_IDS
+            if network in token_information
+        }
+
         return json.dumps(
             {
                 "name": token_information["name"],
                 "symbol": token_information["symbol"],
                 "description": token_information["description"]["en"],
+                "addresses": token_addresses,
                 "current_price_in_usd": token_information["market_data"][
                     "current_price"
                 ]["usd"],
@@ -100,7 +120,7 @@ class GetAvailableCategories(BaseTool):
 
     def _run(self):
         categories = get_coingecko().categories.get_list()
-        return json.dumps(categories)
+        return json.dumps([category["category_id"] for category in categories])
 
 
 class GetTokensBasedOnCategory(BaseTool):
@@ -190,12 +210,13 @@ class TokenResearchAgent(AutoTxAgent):
                 TokenSymbolToTokenId(),
                 GetTokensBasedOnCategory(),
                 GetAvailableCategories(),
-                TokenExchanges()
+                TokenExchanges(),
             ],
         )
 
-    def build_agent_factory() -> Callable[[], Agent]:
-        def agent_factory() -> TokenResearchAgent:
-            return TokenResearchAgent()
 
-        return agent_factory
+def build_agent_factory() -> Callable[[AutoTx], Agent]:
+    def agent_factory(_: AutoTx) -> TokenResearchAgent:
+        return TokenResearchAgent()
+
+    return agent_factory

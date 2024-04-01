@@ -5,8 +5,7 @@ from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
-from autotx.agents import SendTokensAgent
-from autotx.agents import SwapTokensAgent
+from autotx.agents import SendTokensAgent, TokenResearchAgent, SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum.agent_account import get_agent_account, create_agent_account, delete_agent_account
@@ -64,6 +63,7 @@ def run(prompt: str, non_interactive: bool):
     autotx = AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
+        TokenResearchAgent.build_agent_factory()
     ], None)
     autotx.run(prompt, non_interactive)
 
