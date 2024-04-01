@@ -4,9 +4,7 @@ from typing import Callable
 from crewai import Agent
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
-from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.coingecko.api import CoingeckoApi
-from autotx.utils.ethereum.eth_address import ETHAddress
 from gnosis.eth import EthereumClient
 from crewai_tools import BaseTool
 
@@ -29,7 +27,14 @@ class TokenSymbolToTokenId(BaseTool):
     def _run(self, token_symbols: list[str]):
         endpoint = "/coins/list"
         token_list = coingecko.request(endpoint=endpoint)
-        return json.dumps([item["id"] for item in token_list if item["symbol"] in token_symbols])
+        token_symbols_in_lower = [symbol.lower() for symbol in token_symbols]
+        return json.dumps(
+            [
+                item["id"]
+                for item in token_list
+                if item["symbol"] in token_symbols_in_lower
+            ]
+        )
 
 
 class GetTokenInformation(BaseTool):
@@ -44,57 +49,105 @@ class GetTokenInformation(BaseTool):
     )
 
     def _run(self, token_id: str):
-        endpoint = f"/coins/{token_id}?localization=false"
+        endpoint = f"/coins/{token_id}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false"
         token_information = coingecko.request(endpoint=endpoint)
-        return json.dumps({
-            "current_price": token_information["market_data"]["current_price"]["usd"],
-            "market_cap": token_information["market_cap"]["usd"],
-            "price_change_percentage_24h": token_information["market_data"][
-                "price_change_percentage_24h"
-            ],
-        })
+        return json.dumps(
+            {
+                "description": token_information["description"]["en"],
+                "current_price_in_usd": token_information["market_data"][
+                    "current_price"
+                ]["usd"],
+                "market_cap_in_usd": token_information["market_data"]["market_cap"][
+                    "usd"
+                ],
+                "total_volume_last_24h": token_information["market_data"][
+                    "total_volume"
+                ]["usd"],
+                "price_change_percentage_24h": token_information["market_data"][
+                    "price_change_percentage_24h"
+                ],
+                "price_change_percentage_7d": token_information["market_data"][
+                    "price_change_percentage_7d"
+                ],
+                "price_change_percentage_30d": token_information["market_data"][
+                    "price_change_percentage_30d"
+                ],
+                "price_change_percentage_60d": token_information["market_data"][
+                    "price_change_percentage_60d"
+                ],
+                "price_change_percentage_200d": token_information["market_data"][
+                    "price_change_percentage_200d"
+                ],
+                "price_change_percentage_1y": token_information["market_data"][
+                    "price_change_percentage_1y"
+                ],
+            }
+        )
+
+class GetAvailableCategories(BaseTool):
+    name: str = "get_available_categories"
+    description: str = dedent(
+        """
+        Retrieve all categories
+        """
+    )
+
+    def _run(self):
+        get_categories = "/coins/categories/list"
+        categories = coingecko.request(endpoint=get_categories)
+        return json.dumps(categories)
 
 
-# class GetTokensListWithMarketData(AutoTxTool):
-#     name: str = "get_tokens_list_with_market_data"
-#     description: str = dedent(
-#         """
-#         Retrieve token information
-
-#         Args:
-#             token_id (str): Token ID expected by coingecko api to retrieve the historical price of token
-#         """
-#     )
-
-#     def _run(self, token_id: str):
-#         pass
-
-
-class GetTokensBasedOnCategory(AutoTxTool):
+class GetTokensBasedOnCategory(BaseTool):
     name: str = "get_tokens_based_on_category"
     description: str = dedent(
         """
-        Retrieve all tokens from a given category key using coingecko api
+        Retrieve all tokens from a given category
 
         Args:
-            category_key (str): Category expected by coingecko api to retrieve needed tokens
+            category (str): Category to retrieve tokens
+            sort_by (str): Sort tokens by field. It can be: "volume_desc" | "volume_asc" | "market_cap_desc" | "market_cap_asc"
+                "market_cap_desc" should be the default if none is defined
+            limit (int): The number of tokens to return from the category
         """
     )
 
-    def _run(self, category_key: str):
-        pass
+    def _run(self, category: str, sort_by: str, limit: int):
+        get_tokens_endpoint = f"/coins/markets?vs_currency=usd&category={category}&order={sort_by}&price_change_percentage=1h,24h,7d,14d,30d,200d,1y"
+        tokens_in_category = coingecko.request(endpoint=get_tokens_endpoint)
 
+        tokens = [
+            {
+                "id": token["id"],
+                "symbol": token["symbol"],
+                "market_cap": token["market_cap"],
+                "total_volume_last_24h": token["total_volume"],
+                "price_change_percentage_1h": token[
+                    "price_change_percentage_1h_in_currency"
+                ],
+                "price_change_percentage_24h": token[
+                    "price_change_percentage_24h_in_currency"
+                ],
+                "price_change_percentage_7d": token[
+                    "price_change_percentage_7d_in_currency"
+                ],
+                "price_change_percentage_14d": token[
+                    "price_change_percentage_14d_in_currency"
+                ],
+                "price_change_percentage_30d": token[
+                    "price_change_percentage_30d_in_currency"
+                ],
+                "price_change_percentage_200d": token[
+                    "price_change_percentage_200d_in_currency"
+                ],
+                "price_change_percentage_1y": token[
+                    "price_change_percentage_1y_in_currency"
+                ],
+            }
+            for token in tokens_in_category[:limit]
+        ]
 
-class CheckAvailableCategories(AutoTxTool):
-    name: str = "check_available_categories"
-    description: str = dedent(
-        """
-        Get available categories from coingecko
-        """
-    )
-
-    def _run(self, category_desired: str):
-        pass
+        return json.dumps(tokens)
 
 
 class TokenResearchAgent(AutoTxAgent):
@@ -107,8 +160,8 @@ class TokenResearchAgent(AutoTxAgent):
             tools=[
                 GetTokenInformation(),
                 TokenSymbolToTokenId(),
-                # GetTokensBasedOnCategory(),
-                # CheckAvailableCategories(),
+                GetTokensBasedOnCategory(),
+                GetAvailableCategories()
             ],
         )
 
