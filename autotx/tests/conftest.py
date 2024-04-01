@@ -1,4 +1,3 @@
-import time
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
@@ -9,7 +8,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 
 import pytest
-
+from autotx.agents import TokenResearchAgent
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
@@ -53,6 +52,7 @@ def auto_tx(configuration):
     return AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
+        TokenResearchAgent.build_agent_factory()
     ], None)
 
 @pytest.fixture()
