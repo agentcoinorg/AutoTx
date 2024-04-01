@@ -14,7 +14,8 @@ class Cache:
             with open(os.path.join(self.folder, file_name), "r") as file:
                 return file.read().strip()  # Use strip() to remove newline characters
         except FileNotFoundError:
-            print(file_name + " not found")
+            print(file_name + " not found") 
+            raise
         except Exception as e:
             print(f"An error occurred while reading {file_name}: {e}")
             raise
@@ -27,7 +28,7 @@ class Cache:
         try:
             os.remove(os.path.join(self.folder, file_name))
         except FileNotFoundError:
-            print("Agent account not found")
+            return
         except Exception as e:
             print(f"An error occurred while deleting {file_name}: {e}")
             raise

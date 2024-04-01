@@ -4,7 +4,10 @@ SAFE_ADDRESS_FILE_NAME = "safe.txt"
 
 
 def get_cached_safe_address() -> str | None:
-    return cache.read(SAFE_ADDRESS_FILE_NAME)
+    try:
+        return cache.read(SAFE_ADDRESS_FILE_NAME)
+    except Exception as e:
+        return None
 
 
 def save_cached_safe_address(safe_address: str):
