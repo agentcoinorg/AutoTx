@@ -108,6 +108,18 @@ poetry run pytest -s ./autotx/tests/file_name.py
 poetry run pytest -s ./autotx/tests/file_name.py::function_name
 ```
 
+Additionally you can run benchmarks to measure consistency:
+```bash
+# run tests in a directory with 5 iterations each
+python benchmarks.py ./autotx/tests/dir_name 5
+
+# run tests in a file with 5 iterations each
+python benchmarks.py ./autotx/tests/file_name.py 5
+
+# run a specific test with 5 iterations
+python benchmarks.py ./autotx/tests/file_name.py::function_name 5
+```
+
 ## Need Help?
 
 Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
