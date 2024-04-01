@@ -4,12 +4,12 @@ from textwrap import dedent
 from typing import Callable
 from crewai import Agent
 from autotx.auto_tx_agent import AutoTxAgent
-from autotx.utils.coingecko.api import CoingeckoApi
 from crewai_tools import BaseTool
+import coingecko
 
 
 def get_coingecko():
-    return CoingeckoApi()
+    return coingecko.CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
 
 
 class TokenSymbolToTokenId(BaseTool):
@@ -24,8 +24,7 @@ class TokenSymbolToTokenId(BaseTool):
     )
 
     def _run(self, token_symbols: list[str]):
-        endpoint = "/coins/list"
-        token_list = get_coingecko().request(endpoint=endpoint)
+        token_list = get_coingecko().coins.get_list()
         token_symbols_in_lower = [symbol.lower() for symbol in token_symbols]
         return json.dumps(
             [
@@ -48,8 +47,13 @@ class GetTokenInformation(BaseTool):
     )
 
     def _run(self, token_id: str):
-        endpoint = f"/coins/{token_id}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false"
-        token_information = get_coingecko().request(endpoint=endpoint)
+        token_information = get_coingecko().coins.get_id(
+            id=token_id,
+            localization=False,
+            tickers=False,
+            community_data=False,
+            sparkline=False,
+        )
         return json.dumps(
             {
                 "name": token_information["name"],
@@ -95,8 +99,7 @@ class GetAvailableCategories(BaseTool):
     )
 
     def _run(self):
-        get_categories = "/coins/categories/list"
-        categories = get_coingecko().request(endpoint=get_categories)
+        categories = get_coingecko().categories.get_list()
         return json.dumps(categories)
 
 
@@ -115,8 +118,12 @@ class GetTokensBasedOnCategory(BaseTool):
     )
 
     def _run(self, category: str, sort_by: str, limit: int):
-        get_tokens_endpoint = f"/coins/markets?vs_currency=usd&category={category}&order={sort_by}&price_change_percentage=1h,24h,7d,14d,30d,200d,1y"
-        tokens_in_category = get_coingecko().request(endpoint=get_tokens_endpoint)
+        tokens_in_category = get_coingecko().coins.get_markets(
+            vs_currency="usd",
+            category=category,
+            order=sort_by,
+            price_change_percentage="1h,24h,7d,14d,30d,200d,1y",
+        )
 
         tokens = [
             {
