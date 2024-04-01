@@ -1,32 +1,31 @@
 import json
+import os
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
-from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from autotx.utils.coingecko.api import CoingeckoApi
-from gnosis.eth import EthereumClient
 from crewai_tools import BaseTool
 
-coingecko = CoingeckoApi()
+
+def get_coingecko():
+    return CoingeckoApi()
 
 
 class TokenSymbolToTokenId(BaseTool):
     name: str = "token_symbol_to_token_id"
     description: str = dedent(
         """
-        Fetch tokens list from coingecko,
+        Fetch token list and returns token ID based on symbol given
 
         Args:
-            token_symbol (list[str]): Token symbols to map token id from coingecko
-        Returns:
-            token_ids (list[str]): Token IDs of coingecko to get information from tokens
+            token_symbol (list[str]): Symbol of tokens
         """
     )
 
     def _run(self, token_symbols: list[str]):
         endpoint = "/coins/list"
-        token_list = coingecko.request(endpoint=endpoint)
+        token_list = get_coingecko().request(endpoint=endpoint)
         token_symbols_in_lower = [symbol.lower() for symbol in token_symbols]
         return json.dumps(
             [
@@ -44,15 +43,17 @@ class GetTokenInformation(BaseTool):
         Retrieve token information (current price, market cap and price change percentage)
 
         Args:
-            token_id (str): Token ID expected by coingecko api
+            token_id (str): ID of token
         """
     )
 
     def _run(self, token_id: str):
         endpoint = f"/coins/{token_id}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false"
-        token_information = coingecko.request(endpoint=endpoint)
+        token_information = get_coingecko().request(endpoint=endpoint)
         return json.dumps(
             {
+                "name": token_information["name"],
+                "symbol": token_information["symbol"],
                 "description": token_information["description"]["en"],
                 "current_price_in_usd": token_information["market_data"][
                     "current_price"
@@ -84,6 +85,7 @@ class GetTokenInformation(BaseTool):
             }
         )
 
+
 class GetAvailableCategories(BaseTool):
     name: str = "get_available_categories"
     description: str = dedent(
@@ -94,7 +96,7 @@ class GetAvailableCategories(BaseTool):
 
     def _run(self):
         get_categories = "/coins/categories/list"
-        categories = coingecko.request(endpoint=get_categories)
+        categories = get_coingecko().request(endpoint=get_categories)
         return json.dumps(categories)
 
 
@@ -114,7 +116,7 @@ class GetTokensBasedOnCategory(BaseTool):
 
     def _run(self, category: str, sort_by: str, limit: int):
         get_tokens_endpoint = f"/coins/markets?vs_currency=usd&category={category}&order={sort_by}&price_change_percentage=1h,24h,7d,14d,30d,200d,1y"
-        tokens_in_category = coingecko.request(endpoint=get_tokens_endpoint)
+        tokens_in_category = get_coingecko().request(endpoint=get_tokens_endpoint)
 
         tokens = [
             {
@@ -152,22 +154,24 @@ class GetTokensBasedOnCategory(BaseTool):
 
 class TokenResearchAgent(AutoTxAgent):
     def __init__(self):
+        if os.getenv("COINGECKO_API_KEY") == None:
+            raise "You must add a value to COINGECKO_API_KEY key in .env file"
+
         super().__init__(
             name="token-researcher",
-            role="Highly specialized AI assistant with expertise in cryptocurrency analysis and investment strategies",
-            goal="Empower users with real-time analytics, trend predictions, and personalized investment opportunities.",
-            backstory="Designed to address the challenge of navigating the complex and fast-paced world of cryptocurrency investments.",
+            role="Highly specialized AI assistant with expertise in researching cryptocurrencies and analyzing the market",
+            goal="Empower users with real-time analytics and trend predictions",
+            backstory="Designed to address the challenge of navigating the complex and fast-paced world of cryptocurrencies",
             tools=[
                 GetTokenInformation(),
                 TokenSymbolToTokenId(),
                 GetTokensBasedOnCategory(),
-                GetAvailableCategories()
+                GetAvailableCategories(),
             ],
         )
 
+    def build_agent_factory() -> Callable[[], Agent]:
+        def agent_factory() -> TokenResearchAgent:
+            return TokenResearchAgent()
 
-def build_agent_factory(client: EthereumClient) -> Callable[[AutoTx], Agent]:
-    def agent_factory(autotx: AutoTx) -> TokenResearchAgent:
-        return TokenResearchAgent(autotx, client)
-
-    return agent_factory
+        return agent_factory

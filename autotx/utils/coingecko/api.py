@@ -9,9 +9,6 @@ class CoingeckoApi:
     API_KEY = os.getenv("COINGECKO_API_KEY")
 
     def request(self, endpoint: str):
-        if self.API_KEY == None:
-            raise "You must add a value to COINGECKO_API_KEY key in .env file"
-
         headers = {"x-cg-demo-api-key": self.API_KEY}
         response = requests.get(self.BASE_URL + endpoint, headers=headers)
         return json.loads(response.text)
