@@ -3,10 +3,14 @@ import os
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
+from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
 import coingecko
+
+from autotx.auto_tx_tool import AutoTxTool
+from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 
 
 def get_coingecko():
@@ -22,6 +26,15 @@ COINGECKO_NETWORK_IDS = [
     "polygon-pos",
     "xdai",
 ]
+
+COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
+    "ethereum": SUPPORTED_NETWORKS.get(1),
+    "optimistic-ethereum": SUPPORTED_NETWORKS.get(10),
+    "polygon-pos": SUPPORTED_NETWORKS.get(137),
+    "base": SUPPORTED_NETWORKS.get(8453),
+    "arbitrum-one": SUPPORTED_NETWORKS.get(42161),
+    "xdai": SUPPORTED_NETWORKS.get(100),
+}
 
 
 class TokenSymbolToTokenId(BaseTool):
@@ -47,16 +60,20 @@ class TokenSymbolToTokenId(BaseTool):
         )
 
 
-class GetTokenInformation(BaseTool):
+class GetTokenInformation(AutoTxTool):
     name: str = "get_token_information"
     description: str = dedent(
         """
-        Retrieve token information (current price, market cap and price change percentage)
+        Retrieve token information (current price, market cap and price change percentage).
+        If the token is not supported by our toolset, the function will explicitly return a message saying that
 
         Args:
             token_id (str): ID of token
         """
     )
+
+    def __init__(self, autotx: AutoTx):
+        super().__init__(autotx)
 
     def _run(self, token_id: str):
         token_information = get_coingecko().coins.get_id(
@@ -67,18 +84,19 @@ class GetTokenInformation(BaseTool):
             sparkline=False,
         )
 
-        token_addresses = {
-            network: token_information[network]
-            for network in COINGECKO_NETWORK_IDS
-            if network in token_information
-        }
+        # 1- Get token symbol & addresses
+        # 2- Map network of address to supported network names in constants.py
+        # 3- Update token dictionary with addresses fetched from
+        token_symbol = token_information["symbol"]
+        self.autotx.network.network.name
+        if not token_symbol in self.autotx.network.tokens:
+            return f"Token {token_symbol} is not supported"
 
         return json.dumps(
             {
                 "name": token_information["name"],
                 "symbol": token_information["symbol"],
                 "description": token_information["description"]["en"],
-                "addresses": token_addresses,
                 "current_price_in_usd": token_information["market_data"][
                     "current_price"
                 ]["usd"],
@@ -123,7 +141,7 @@ class GetAvailableCategories(BaseTool):
         return json.dumps([category["category_id"] for category in categories])
 
 
-class GetTokensBasedOnCategory(BaseTool):
+class GetTokensBasedOnCategory(AutoTxTool):
     name: str = "get_tokens_based_on_category"
     description: str = dedent(
         """
@@ -137,6 +155,9 @@ class GetTokensBasedOnCategory(BaseTool):
         """
     )
 
+    def __init__(self, autotx: AutoTx):
+        super().__init__(autotx)
+
     def _run(self, category: str, sort_by: str, limit: int):
         tokens_in_category = get_coingecko().coins.get_markets(
             vs_currency="usd",
@@ -144,6 +165,29 @@ class GetTokensBasedOnCategory(BaseTool):
             order=sort_by,
             price_change_percentage="1h,24h,7d,14d,30d,200d,1y",
         )
+
+        tokens_with_addresses = get_coingecko().coins.get_list(include_platform=True)
+
+        supported_tokens = []
+        for token in tokens_in_category:
+            token_with_address = next(
+                (t for t in tokens_with_addresses if t["id"] == token["id"]), None
+            )
+            if not tokens_with_addresses:
+                continue
+
+            for platform in token_with_address["platforms"]:
+                if platform in COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP:
+                    # network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP[platform]
+                    COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP[platform].tokens[
+                        token["symbol"].lower()
+                    ] = Web3.to_checksum_address(
+                        token_with_address["platforms"][platform]
+                    )
+
+            # self.autotx.
+
+        # supported_tokens = [token for token in tokens_in_category if ]
 
         tokens = [
             {
@@ -179,6 +223,22 @@ class GetTokensBasedOnCategory(BaseTool):
         return json.dumps(tokens)
 
 
+# class CheckTokenIsSupported(AutoTxTool):
+#     name: str = "check_token_is_supported"
+#     description: str = dedent(
+#         """
+#         Check if token with given symbol is supported
+#         Args:
+#             token_symbol (str): Symbol of token
+#         """
+#     )
+#     def __init__(self, autotx: AutoTx):
+#         super().__init__(autotx)
+
+#     def _run(self, token_symbol: str) -> str:
+#         return token_symbol in self.autotx.network.tokens
+
+
 class TokenExchanges(BaseTool):
     name: str = "get_exchanges_where_token_can_be_traded"
     description: str = dedent(
@@ -196,7 +256,7 @@ class TokenExchanges(BaseTool):
 
 
 class TokenResearchAgent(AutoTxAgent):
-    def __init__(self):
+    def __init__(self, autotx: AutoTx):
         if os.getenv("COINGECKO_API_KEY") == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
 
@@ -206,17 +266,18 @@ class TokenResearchAgent(AutoTxAgent):
             goal="Empower users with real-time analytics and trend predictions",
             backstory="Designed to address the challenge of navigating the complex and fast-paced world of cryptocurrencies",
             tools=[
-                GetTokenInformation(),
+                GetTokenInformation(autotx),
                 TokenSymbolToTokenId(),
-                GetTokensBasedOnCategory(),
+                GetTokensBasedOnCategory(autotx),
                 GetAvailableCategories(),
                 TokenExchanges(),
+                # CheckTokenIsSupported(autotx)
             ],
         )
 
 
 def build_agent_factory() -> Callable[[AutoTx], Agent]:
-    def agent_factory(_: AutoTx) -> TokenResearchAgent:
-        return TokenResearchAgent()
+    def agent_factory(autotx: AutoTx) -> TokenResearchAgent:
+        return TokenResearchAgent(autotx)
 
     return agent_factory

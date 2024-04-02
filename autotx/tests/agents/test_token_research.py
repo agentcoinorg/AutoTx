@@ -5,8 +5,8 @@ from autotx.agents.TokenResearchAgent import TokenResearchAgent
 
 
 @pytest.fixture()
-def token_research_agent() -> Agent:
-    return TokenResearchAgent()
+def token_research_agent(auto_tx) -> Agent:
+    return TokenResearchAgent(auto_tx)
 
 
 def test_price_change_information(token_research_agent: Agent):

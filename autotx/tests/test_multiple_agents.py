@@ -1,9 +1,8 @@
 def test_send_meme_coin(auto_tx):
     response = auto_tx.run(
-        "Buy 1 eth of a memecoin with high trade volume",
+        "Buy 1 eth of any memecoin with high trade volume",
         False,
     )
-
     print(response)
 
 
