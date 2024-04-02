@@ -51,8 +51,7 @@ def auto_tx(configuration):
 
     return AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(client, manager.address),
-        TokenResearchAgent.build_agent_factory()
+        SwapTokensAgent.build_agent_factory(client, manager.address)
     ], None)
 
 @pytest.fixture()
