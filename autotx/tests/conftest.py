@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
-from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
@@ -46,7 +46,7 @@ def configuration():
 @pytest.fixture()
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
-    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    network_info = NetworkInfo(client.w3.eth.chain_id)
 
     return AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
@@ -63,7 +63,7 @@ def mock_erc20(configuration) -> ETHAddress:
     manager.wait(transfer_tx)
 
     chain_id = client.w3.eth.chain_id
-    network = SUPPORTED_NETWORKS.get(chain_id)
+    network = NetworkInfo(chain_id)
 
     network.tokens["ttok"] = mock_erc20.hex
 
