@@ -100,7 +100,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
         Output: 
         {{
             "type": "goal",
-            "goal": "First, swap Ethereum (ETH) to 0.05 Wrapped Bitcoin (WBTC), ensuring the right amount of ETH is swapped for exactly 0.05 WBTC. After successfully swapping to WBTC, proceed to swap 0.05 WBTC to 1000 USD Coin (USDC), making sure to receive exactly 1000 USDC from the swap. Following these swaps, transfer 50 USDC to the Ethereum Name Service (ENS) domain 'vitalik.eth'."
+            "goal": "First, swap Ethereum (ETH) to 0.05 Wrapped Bitcoin (WBTC), ensuring the right amount of ETH is swapped for exactly 0.05 WBTC. After successfully swapping to WBTC, proceed to swap the entire 0.05 WBTC to USD Coin (USDC), making sure to receive exactly 1000 USDC from the swap. Following these swaps, transfer 50 USDC to the Ethereum Name Service (ENS) domain 'vitalik.eth'."
         }}
         
         Chat History: User: Send 1 ETH to vitalik.eth
@@ -125,7 +125,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
     )
 
     formatted_template = template.format(
-        agents_information=agents_information, chat_history=chat_history
+        agents_information=agents_information, chat_history=chat_history, smart_account_address=smart_account_address
     )
 
     response = openai.chat.completions.create(

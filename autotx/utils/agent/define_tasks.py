@@ -56,13 +56,6 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
                     "extra_information": "Use Get ETH balance tool to check current ETH balance of user's address."
                 }},
                 {{
-                    "task": "Get current USDC balance of the user",
-                    "agent": "send-tokens",
-                    "expected_output": "Current USDC balance of 0x5d15311D760511d89cFad67404131cdc155E9FDB",
-                    "context": null,
-                    "extra_information": "Use Get ERC20 balance tool with USDC token symbol to check current USDC balance of user's address."
-                }},
-                {{
                     "task": "Calculate ETH amount needed to swap for 100 USDC",
                     "agent": "swap-tokens",     
                     "expected_output": "The amount of ETH needed to execute a swap to receive 100 USDC",
