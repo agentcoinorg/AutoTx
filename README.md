@@ -46,7 +46,7 @@ Please install the following:
 ## Installation
 1. Clone the repository via `git clone https://github.com/polywrap/AutoTx` and `cd AutoTx` into the directory.
 2. Create a new .env file via `cp .env.example .env`
-3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`, OpenAI API Base `OPENAI_API_BASE` & `OPENAI_BASE_URL`(Only for Openai API compatibility, like LLMs hosted by vllm and Ollama) and `OPENAI_MODEL_NAME`.
+3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
 4. Find the line that says CHAIN_RPC_URL=, and add your unique Ethereum RPC URL `CHAIN_RPC_URL=https://mainnet.infura.io/v3/...` (see https://www.infura.io/)
 5. Start a new poetry shell `poetry shell`
 6. Install python dependencies `poetry install`
