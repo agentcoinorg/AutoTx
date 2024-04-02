@@ -54,6 +54,9 @@ def run(prompt: str, non_interactive: bool):
         send_eth(dev_account, manager.address, 10, web3)
         print(f"Sent 10 ETH to smart account for testing purposes")
 
+        print("Starting smart account balances:")
+        show_address_balances(web3, network_info.network, manager.address)
+
     autotx = AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
         SwapTokensAgent.build_agent_factory(client, manager.address),
@@ -61,6 +64,9 @@ def run(prompt: str, non_interactive: bool):
     ], None)
     autotx.run(prompt, non_interactive)
 
+    if not smart_account_addr:
+        print("Final smart account balances:")
+        show_address_balances(web3, network_info.network, manager.address)
 
 @main.group()
 def agent():

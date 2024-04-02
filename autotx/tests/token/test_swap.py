@@ -13,12 +13,12 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
 
     prompt = "Buy 100000 SHIB with ETH"
     balance = manager.balance_of(shib_address)
-
+    assert balance == 0
     auto_tx.run(prompt, non_interactive=True)
 
     new_balance = manager.balance_of(shib_address)
 
-    assert balance + 100000 == new_balance
+    assert 100000 == new_balance
 
 def test_auto_tx_swap_eth(configuration, auto_tx):
     (_, _, _, manager) = configuration
