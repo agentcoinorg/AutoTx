@@ -1,12 +1,12 @@
 from crewai import Task, Agent
 import pytest
 
-from autotx.agents.TokenResearchAgent import TokenResearchAgent
+from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 
 
 @pytest.fixture()
 def token_research_agent() -> Agent:
-    return TokenResearchAgent()
+    return ResearchTokensAgent()
 
 
 def test_price_change_information(token_research_agent: Agent):
