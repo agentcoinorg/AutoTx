@@ -116,6 +116,11 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
         # TODO: Handle bad response
         pass
 
+    # Only keep the JSON part of the response
+    bracket_index = response.find('{')
+    bracket_last = response.rfind('}')
+    response = response[bracket_index:bracket_last + 1]
+
     return parse_analyze_prompt_response(response)
 
 def parse_analyze_prompt_response(response: str) -> DefineGoalResponse:
