@@ -29,22 +29,9 @@ class NetworkInfo:
             raise Exception(f"Chain ID {chain_id} is not supported")
 
         self.transaction_service_url = config.transaction_service_url
-        fetched_tokens = self.load_tokens()
-        self.tokens = (
-            self.sanitize_loaded_tokens(fetched_tokens, chain_id)
-            | config.default_tokens
-        )
+        self.tokens = self.fetch_tokens_for_chain(chain_id) | config.default_tokens
 
-    def sanitize_loaded_tokens(
-        self, tokens: list[dict[str, Union[str, int]]], chain_id: int
-    ) -> dict[str, str]:
-        return {
-            token["symbol"].lower(): Web3.to_checksum_address(token["address"])
-            for token in tokens
-            if token["chainId"] == chain_id
-        }
-
-    def load_tokens(self) -> list[dict[str, Union[str, int]]]:
+    def fetch_tokens_for_chain(self, chain_id: int) -> list[dict[str, Union[str, int]]]:
         loaded_tokens: list[dict[str, Union[str, int]]] = []
 
         for token_list_url in TOKENS_LIST:
@@ -52,7 +39,11 @@ class NetworkInfo:
             tokens = json.loads(response.text)["tokens"]
             loaded_tokens.extend(tokens)
 
-        return loaded_tokens
+        return {
+            token["symbol"].lower(): Web3.to_checksum_address(token["address"])
+            for token in loaded_tokens
+            if token["chainId"] == chain_id
+        }
 
 
 @dataclass
