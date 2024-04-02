@@ -8,7 +8,6 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 
 import pytest
-from autotx.agents import ResearchTokensAgent
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
@@ -51,8 +50,7 @@ def auto_tx(configuration):
 
     return AutoTx(manager, network_info, [
         SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(client, manager.address),
-        ResearchTokensAgent.build_agent_factory()
+        SwapTokensAgent.build_agent_factory(client, manager.address)
     ], None)
 
 @pytest.fixture()
