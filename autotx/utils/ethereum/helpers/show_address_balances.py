@@ -1,7 +1,8 @@
 from web3 import Web3
 
 from autotx.utils.ethereum import get_erc20_balance, get_eth_balance
-from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS, NetworkInfo
+from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 def show_address_balances(web3: Web3, network: NetworkInfo, address: ETHAddress):

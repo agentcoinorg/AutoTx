@@ -2,7 +2,7 @@ from autotx.utils.ethereum import (
     get_erc20_balance,
     get_eth_balance,
 )
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 

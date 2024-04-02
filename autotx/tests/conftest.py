@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
