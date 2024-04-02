@@ -120,6 +120,10 @@ python benchmarks.py ./autotx/tests/file_name.py 5
 python benchmarks.py ./autotx/tests/file_name.py::function_name 5
 ```
 
+# run a specific test with 5 iterations and name the output folder (instead of the default timestamp)
+python benchmarks.py ./autotx/tests/file_name.py::function_name 5 output_folder_name
+```
+
 ## Need Help?
 
 Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
