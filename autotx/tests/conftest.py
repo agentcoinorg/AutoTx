@@ -8,7 +8,6 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 load_dotenv()
 
 import pytest
-from autotx.agents import TokenResearchAgent
 from autotx.agents import SendTokensAgent
 from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx

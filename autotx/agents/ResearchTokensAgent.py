@@ -3,6 +3,7 @@ import os
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
+from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
 import coingecko
@@ -175,7 +176,7 @@ class TokenExchanges(BaseTool):
         return list(market_names)
 
 
-class TokenResearchAgent(AutoTxAgent):
+class ResearchTokensAgent(AutoTxAgent):
     def __init__(self):
         if os.getenv("COINGECKO_API_KEY") == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
@@ -194,8 +195,8 @@ class TokenResearchAgent(AutoTxAgent):
             ],
         )
 
-    def build_agent_factory() -> Callable[[], Agent]:
-        def agent_factory() -> TokenResearchAgent:
-            return TokenResearchAgent()
+def build_agent_factory() -> Callable[[AutoTx], Agent]:
+    def agent_factory(_: AutoTx) -> ResearchTokensAgent:
+        return ResearchTokensAgent()
 
-        return agent_factory
+    return agent_factory
