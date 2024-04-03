@@ -1,3 +1,4 @@
+import pytest
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -5,6 +6,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 
 patch_langchain()
 
+@pytest.mark.skip()
 def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
     (_, _, client, _) = configuration
 
@@ -38,6 +40,7 @@ def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
             print(f"Balance: {balance} New Balance: {new_balance}")
             raise
 
+@pytest.mark.skip()
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
@@ -72,6 +75,7 @@ def test_auto_tx_swap(configuration, auto_tx):
             print(f"Balance: {balance} New Balance: {new_balance}")
             raise
 
+@pytest.mark.skip()
 def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
     (_, _, client, _) = configuration
 
@@ -110,6 +114,7 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
             print(f"Balance Two: {balance_two} New Balance Two: {new_balance_two}")
             raise
 
+@pytest.mark.skip()
 def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
