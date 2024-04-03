@@ -57,6 +57,21 @@ jobs:
 
     - name: Run CI
       run: |
-          poetry run pytest -s
+          python benchmarks.py ./autotx/tests/token 5 results
       env:
         OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
+
+    - name: Comment on PR with benchmark results
+          uses: actions/github-script@v6
+          with:
+            script: |
+              const fs = require('fs');
+              const path = './benchmarks/results/summary.txt';
+              const contents = fs.readFileSync(path, 'utf8');
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `Benchmark Results:\n\`\`\`\n${contents}\n\`\`\``
+              })
