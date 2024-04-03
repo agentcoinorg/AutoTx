@@ -21,6 +21,8 @@ class ExecuteSwapExactInTool(AutoTxTool):
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
+        Returns:
+            str: A confirmation message that the transaction to swap tokens has been prepared
         """
     )
     recipient: ETHAddress | None = Field(None)
@@ -73,6 +75,8 @@ class ExecuteSwapExactOutTool(AutoTxTool):
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
+        Returns:
+            str: A confirmation message that the transaction to swap tokens has been prepared
         """
     )
     recipient: ETHAddress | None = Field(None)

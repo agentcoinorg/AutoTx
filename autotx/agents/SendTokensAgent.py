@@ -18,7 +18,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 
 class TransferERC20TokenTool(AutoTxTool):
-    name: str = "Transfer ERC20 token"
+    name: str = "Prepare transfer ERC20 token transaction"
     description: str = dedent(
         """
         Prepares a transfer transaction for given amount in decimals for given token
@@ -29,7 +29,7 @@ class TransferERC20TokenTool(AutoTxTool):
             receiver (str): The receiver's address or ENS domain
             token (str): Symbol of token to transfer
         Returns:
-            Message to confirm that transaction has been prepared
+            str: Preview of the prepared transaction
         """
     )
 
@@ -44,12 +44,14 @@ class TransferERC20TokenTool(AutoTxTool):
         
         tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
 
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx))
+        prepared_tx = PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx)
 
-        return f"Transaction to send {amount} {token} has been prepared"
+        self.autotx.transactions.append(prepared_tx)
+
+        return prepared_tx.summary
             
 class TransferETHTool(AutoTxTool):
-    name: str = "Transfer ETH"
+    name: str = "Prepare transfer ETH transaction"
     description: str = dedent(
         """
         Prepares a transfer transaction for given amount in decimals for ETH
@@ -59,7 +61,7 @@ class TransferETHTool(AutoTxTool):
             care of converting the amount to needed decimals.
             receiver (str): The receiver's address or ENS domain
         Returns:
-            Message to confirm that transaction has been prepared
+            str: Preview of the prepared transaction
         """
     )
 
@@ -72,9 +74,11 @@ class TransferETHTool(AutoTxTool):
     
         tx = build_transfer_eth(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
       
-        self.autotx.transactions.append(PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx))
+        prepared_tx = PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx)
 
-        return f"Transaction to send {amount} ETH has been prepared"
+        self.autotx.transactions.append(prepared_tx)
+        
+        return prepared_tx.summary
 
 class GetERC20BalanceTool(AutoTxTool):
     name: str = "Get ERC20 balance"
@@ -126,8 +130,14 @@ class SendTokensAgent(AutoTxAgent):
         super().__init__(
             name="send-tokens",
             role="Ethereum token specialist",
-            goal=f"Streamline ERC20 token interactions for efficient and error-free operations for the user (address: {autotx.manager.address})",
-            backstory="Crafted from the need to navigate the ERC20 token standards, this agent automates and simplifies token transfers, approvals, and balance queries, supporting high-stakes DeFi operations.",
+            goal=f"Assist the user (address: {autotx.manager.address}) in their tasks by fetching balances and preparing transactions to send tokens.",
+            backstory=dedent(
+                """
+                You are an expert in Ethereum tokens and can help users send tokens and check their balances.
+                You use the tools available to assist the user in their tasks. 
+                You use the output from previous tasks (if any) to execute on the current task.
+                """
+            ),
             tools=[
                 TransferERC20TokenTool(autotx),
                 TransferETHTool(autotx),
