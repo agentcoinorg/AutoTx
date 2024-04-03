@@ -82,9 +82,27 @@ jobs:
         echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .env
         echo "CHAIN_RPC_URL=${{ secrets.CI_CHAIN_RPC_URL }}" >> .env
 
+    - name: Parse Comment for Arguments
+      id: parse_args
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const commentBody = '${{ github.event.comment.body }}'
+          const args = commentBody.split(' ');
+          let path = 'agents'; // Default path
+          let count = '5'; // Default count
+          if (args.length > 1) {
+            path = args[1];
+            if (args.length > 2) {
+              count = args[2];
+            }
+          }
+          core.setOutput('path', path);
+          core.setOutput('count', count);
+    
     - name: Run Benchmarks
       run: |
-        python benchmarks.py ./autotx/tests/agents 5 benchmark-results
+        python benchmarks.py ./autotx/tests/${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
 
     - name: Comment on PR with benchmark results
       uses: actions/github-script@v6
