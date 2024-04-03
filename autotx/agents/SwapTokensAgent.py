@@ -62,7 +62,6 @@ class ExecuteSwapExactInTool(AutoTxTool):
 
         return f"Transaction to sell {exact_amount_in} {token_in} for {token_out} has been prepared"
 
-
 class ExecuteSwapExactOutTool(AutoTxTool):
     name: str = "Prepare needed transactions to execute swap with exact output"
     description: str = dedent(

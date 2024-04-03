@@ -111,7 +111,6 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
             print(f"Balance Two: {balance_two} New Balance Two: {new_balance_two}")
             raise
 
-
 def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
