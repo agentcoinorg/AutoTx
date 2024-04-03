@@ -7,9 +7,9 @@ from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
 patch_langchain()
 
-def test_send_tokens_agent(configuration, auto_tx):
+def test_send_tokens_agent(configuration, auto_tx, test_accounts):
     (_, _, client, _) = configuration
-    receiver = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
+    receiver = test_accounts[0]
     balance = get_eth_balance(client.w3, receiver)
     assert balance == 0
 
@@ -31,9 +31,10 @@ def test_send_tokens_agent(configuration, auto_tx):
     balance = get_eth_balance(client.w3, receiver)
     assert balance == 1
 
-def test_send_tokens_agent_with_check(configuration, auto_tx):
+def test_send_tokens_agent_with_check_eth(configuration, auto_tx, test_accounts):
     (_, _, client, _) = configuration
-    receiver = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
+
+    receiver = test_accounts[0]
     balance = get_eth_balance(client.w3, receiver)
     assert balance == 0
 
@@ -62,25 +63,26 @@ def test_send_tokens_agent_with_check(configuration, auto_tx):
     balance = get_eth_balance(client.w3, receiver)
     assert balance == 1
 
-def test_send_tokens_agent_with_check2(configuration, auto_tx, mock_erc20):
+def test_send_tokens_agent_with_check_erc20(configuration, auto_tx, usdc, test_accounts):
     (_, _, client, _) = configuration
-    receiver = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
+
+    receiver = test_accounts[0]
     balance = get_eth_balance(client.w3, receiver)
     assert balance == 0
 
     tasks_json = {
         "tasks": [
             {
-                "task": f"Check the balance of TTOK for address {auto_tx.manager.address}.",
+                "task": f"Check the balance of USDC for address {auto_tx.manager.address}.",
                 "agent": "send-tokens",
-                "expected_output": "A floating-point number indicating the balance of TTOK at the given address. This will confirm if the address has at least 10 TTOK to send.",
+                "expected_output": "A floating-point number indicating the balance of USDC at the given address. This will confirm if the address has at least 10 USDC to send.",
                 "context": None,
-                "extra_information": "It is crucial to verify that the sender has enough TTOK before attempting to prepare the transfer transaction."
+                "extra_information": "It is crucial to verify that the sender has enough USDC before attempting to prepare the transfer transaction."
             },
             {
-                "task": f"Prepare a transfer transaction for sending 10 TTOK from address {auto_tx.manager.address} to receiver address {receiver}.",
+                "task": f"Prepare a transfer transaction for sending 10 USDC from address {auto_tx.manager.address} to receiver address {receiver}.",
                 "agent": "send-tokens",
-                "expected_output": "A message confirming that the transfer transaction for 10 TTOK to the specified receiver address has been prepared.",
+                "expected_output": "A message confirming that the transfer transaction for 10 USDC to the specified receiver address has been prepared.",
                 "context": [0],
                 "extra_information": "This transaction is dependent on confirming that the sender's balance is sufficient as checked in the previous task."
             }
@@ -88,10 +90,10 @@ def test_send_tokens_agent_with_check2(configuration, auto_tx, mock_erc20):
     }
     tasks = sanitize_tasks_response(json.dumps(tasks_json), auto_tx.agents)
 
-    balance = get_erc20_balance(client.w3, mock_erc20, receiver)
+    balance = get_erc20_balance(client.w3, usdc, receiver)
 
     auto_tx.run_for_tasks(tasks, non_interactive=True)
 
-    new_balance = get_erc20_balance(client.w3, mock_erc20, receiver)
+    new_balance = get_erc20_balance(client.w3, usdc, receiver)
 
     assert balance + 10 == new_balance
