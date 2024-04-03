@@ -1,4 +1,5 @@
 import json
+import os
 from textwrap import dedent
 from crewai import Agent, Task
 import openai
@@ -32,13 +33,18 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
 
     # TODO: Improve how we pass messages. We should use system role
     response = openai.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo-preview"),
         response_format={"type": "json_object"},
         messages=[{"role": "user", "content": formatted_template}],
     )
     response = response.choices[0].message.content
     if not response:
         raise Exception("Bad response from OpenAI API for defining tasks.")
+
+    # Only keep the JSON part of the response
+    bracket_index = response.find('{')
+    bracket_last = response.rfind('}')
+    response = response[bracket_index:bracket_last + 1]
 
     print("Tasks", response)
 

@@ -96,11 +96,13 @@ def print_summary_table(test_path, iterations, tests_results, total_run_time):
         summary_file.write(f"Total run time: {total_run_time/60:.2f} minutes\n\n")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python benchmarks.py <path_to_test_file> <iterations>")
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
+        print("Usage: python benchmarks.py <path_to_test_file> <iterations> <benchmark_name>")
         sys.exit(1)
 
     test_path, iterations = sys.argv[1], int(sys.argv[2])
+    benchmark_name = sys.argv[3] if len(sys.argv) == 4 else None
+
     tests = collect_tests(test_path)
     if not tests:
         print("No tests found.")
@@ -114,7 +116,10 @@ if __name__ == "__main__":
     print("=" * 50)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_dir = f"benchmarks/{timestamp}"
+
+    benchmark_label = benchmark_name if benchmark_name else str(timestamp)
+    output_dir = f"benchmarks/{benchmark_label}"
+
     os.makedirs(output_dir, exist_ok=True)
 
     total_tests = len(tests)

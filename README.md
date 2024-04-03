@@ -23,7 +23,7 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 |-|-|-|
 | [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
 | [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with Uniswap. | :rocket: |
-| Token Research | Research tokens, liquidity, prices, graphs, etc. | :construction: [spec](https://github.com/polywrap/AutoTx/issues/96) |
+| [Token Research](./autotx/agents/ResearchTokensAgent.py) | Research tokens, liquidity, prices, graphs, etc. | :rocket: |
 | Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
@@ -118,6 +118,9 @@ python benchmarks.py ./autotx/tests/file_name.py 5
 
 # run a specific test with 5 iterations
 python benchmarks.py ./autotx/tests/file_name.py::function_name 5
+
+# run a specific test with 5 iterations and name the output folder (instead of the default timestamp)
+python benchmarks.py ./autotx/tests/file_name.py::function_name 5 output_folder_name
 ```
 
 ## Need Help?
