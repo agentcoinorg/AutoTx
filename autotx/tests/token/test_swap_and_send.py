@@ -1,6 +1,6 @@
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 patch_langchain()
@@ -8,7 +8,7 @@ patch_langchain()
 def test_auto_tx_swap_and_send_simple(configuration, auto_tx):
     (_, _, client, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
 
     receiver = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
@@ -29,7 +29,7 @@ def test_auto_tx_swap_and_send_simple(configuration, auto_tx):
 def test_auto_tx_swap_and_send_complex(configuration, auto_tx):
     (_, _, client, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
 

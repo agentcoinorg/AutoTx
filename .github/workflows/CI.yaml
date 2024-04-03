@@ -54,9 +54,33 @@ jobs:
             repo: context.repo.repo,
             body: '[Running CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
           })
+      
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
 
     - name: Run CI
       run: |
-          poetry run pytest -s
+          python benchmarks.py ./autotx/tests/token 5 results
       env:
         OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
+
+    - name: Comment on PR with benchmark results
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './benchmarks/results/summary.txt';
+          const contents = fs.readFileSync(path, 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Benchmark Results:\n\`\`\`\n${contents}\n\`\`\``
+          })
