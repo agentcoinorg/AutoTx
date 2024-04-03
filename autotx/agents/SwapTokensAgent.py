@@ -6,8 +6,37 @@ from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-from gnosis.eth import EthereumClient
+from gnosis.eth import EthereumClient, EthereumNetworkNotSupported, EthereumNetwork
+
+SUPPORTED_UNISWAP_V3_NETWORKS = [
+    EthereumNetwork.MAINNET,
+    EthereumNetwork.OPTIMISM,
+    EthereumNetwork.ARBITRUM_ONE,
+    EthereumNetwork.BASE_MAINNET,
+    EthereumNetwork.POLYGON,
+    EthereumNetwork.SEPOLIA,
+]
+
+
+def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):
+    token_in = token_in.lower()
+    token_out = token_out.lower()
+
+    if not network_info.network in SUPPORTED_UNISWAP_V3_NETWORKS:
+        raise EthereumNetworkNotSupported(
+            f"Network with chain id {network_info.network.value} not supported for swap"
+        )
+
+    if token_in not in network_info.tokens:
+        raise Exception(f"Token {token_in} is not supported")
+
+    if token_out not in network_info.tokens:
+        raise Exception(f"Token {token_out} is not supported")
+
+    return (network_info.tokens[token_in], network_info.tokens[token_out])
+
 
 class ExecuteSwapExactInTool(AutoTxTool):
     name: str = "Prepare needed transactions to execute swap with exact input"
@@ -33,22 +62,10 @@ class ExecuteSwapExactInTool(AutoTxTool):
         self.client = client
         self.recipient = recipient
 
-    def _run(
-        self, exact_amount_in: float, token_in: str, token_out: str
-    ) -> str:
-        token_in = token_in.lower()
-        token_out = token_out.lower()
-        tokens = self.autotx.network.tokens
-        is_exact_input = True
-
-        if token_in not in tokens:
-            return f"Token {token_in} is not supported"
-
-        if token_out not in tokens:
-            return f"Token {token_out} is not supported"
-
-        token_in_address = tokens[token_in]
-        token_out_address = tokens[token_out]
+    def _run(self, exact_amount_in: float, token_in: str, token_out: str) -> str:
+        (token_in_address, token_out_address) = get_tokens_address(
+            token_in, token_out, self.autotx.network
+        )
 
         swap_transactions = build_swap_transaction(
             self.client,
@@ -56,7 +73,7 @@ class ExecuteSwapExactInTool(AutoTxTool):
             token_in_address,
             token_out_address,
             self.recipient.hex,
-            is_exact_input,
+            is_exact_input=True,
         )
         self.autotx.transactions.extend(swap_transactions)
 
@@ -86,22 +103,10 @@ class ExecuteSwapExactOutTool(AutoTxTool):
         self.client = client
         self.recipient = recipient
 
-    def _run(
-        self, exact_amount_out: float, token_in: str, token_out: str
-    ) -> str:
-        token_in = token_in.lower()
-        token_out = token_out.lower()
-        tokens = self.autotx.network.tokens
-        is_exact_input = False
-
-        if token_in not in tokens:
-            return f"Token {token_in} is not supported"
-
-        if token_out not in tokens:
-            return f"Token {token_out} is not supported"
-
-        token_in_address = tokens[token_in]
-        token_out_address = tokens[token_out]
+    def _run(self, exact_amount_out: float, token_in: str, token_out: str) -> str:
+        (token_in_address, token_out_address) = get_tokens_address(
+            token_in, token_out, self.autotx.network
+        )
 
         swap_transactions = build_swap_transaction(
             self.client,
@@ -109,11 +114,12 @@ class ExecuteSwapExactOutTool(AutoTxTool):
             token_in_address,
             token_out_address,
             self.recipient.hex,
-            is_exact_input,
+            is_exact_input=False,
         )
         self.autotx.transactions.extend(swap_transactions)
 
         return f"Transaction to buy {exact_amount_out} {token_out} with {token_in} has been prepared"
+
 
 class SwapTokensAgent(AutoTxAgent):
     def __init__(self, autotx: AutoTx, client: EthereumClient, recipient: ETHAddress):
@@ -128,7 +134,11 @@ class SwapTokensAgent(AutoTxAgent):
             ],
         )
 
-def build_agent_factory(client: EthereumClient, recipient: ETHAddress) -> Callable[[AutoTx], Agent]:
+
+def build_agent_factory(
+    client: EthereumClient, recipient: ETHAddress
+) -> Callable[[AutoTx], Agent]:
     def agent_factory(autotx: AutoTx) -> SwapTokensAgent:
         return SwapTokensAgent(autotx, client, recipient)
+
     return agent_factory
