@@ -9,6 +9,10 @@ def collect_tests(test_path):
     command = ['poetry', 'run', 'pytest', '--collect-only', '-q', test_path]
     result = subprocess.run(command, capture_output=True, text=True)
     tests = re.findall(r'^autotx\S+', result.stdout, re.MULTILINE)
+
+    if not tests:
+        print(result)
+
     return tests
 
 def run_test(test_name, iterations, avg_time_across_tests, completed_tests, remaining_tests):
