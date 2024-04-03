@@ -50,6 +50,7 @@ Please install the following:
 4. Find the line that says CHAIN_RPC_URL=, and add your unique Ethereum RPC URL `CHAIN_RPC_URL=https://mainnet.infura.io/v3/...` (see https://www.infura.io/)
 5. Start a new poetry shell `poetry shell`
 6. Install python dependencies `poetry install`
+7. Run `poetry run load_tokens`
 
 ## Run The Agent
 
