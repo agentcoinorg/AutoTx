@@ -54,6 +54,15 @@ jobs:
             repo: context.repo.repo,
             body: '[Running CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
           })
+      
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
 
     - name: Run CI
       run: |
