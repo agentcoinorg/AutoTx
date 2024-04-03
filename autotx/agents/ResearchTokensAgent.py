@@ -1,16 +1,43 @@
 import json
 import os
 from textwrap import dedent
-from typing import Callable
+from typing import Callable, Union
 from crewai import Agent
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
+from gnosis.eth import EthereumNetwork, EthereumNetworkNotSupported
 import coingecko
 
+COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
+    EthereumNetwork.MAINNET: "ethereum",
+    EthereumNetwork.OPTIMISM: "optimistic-ethereum",
+    EthereumNetwork.POLYGON: "polygon-pos",
+    EthereumNetwork.BASE_MAINNET: "base",
+    EthereumNetwork.ARBITRUM_ONE: "arbitrum-one",
+    EthereumNetwork.GNOSIS: "xdai",
+}
 
 def get_coingecko():
     return coingecko.CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
+
+
+def get_tokens_and_filter_per_network(
+    chain_id: int,
+) -> dict[str, Union[str, dict[str, str]]]:
+    network = EthereumNetwork(chain_id)
+    coingecko_network_key = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(network)
+    if coingecko_network_key == None:
+        raise EthereumNetworkNotSupported(
+            f"Network with chain id {chain_id} not supported"
+        )
+
+    token_list_with_addresses = get_coingecko().coins.get_list(include_platform=True)
+    return [
+        token
+        for token in token_list_with_addresses
+        if coingecko_network_key in token["platforms"]
+    ]
 
 
 class TokenSymbolToTokenId(BaseTool):
@@ -20,12 +47,13 @@ class TokenSymbolToTokenId(BaseTool):
         Fetch token list and returns token ID based on symbol given
 
         Args:
-            token_symbol (list[str]): Symbol of tokens
+            token_symbol (list[str]): Symbol of tokens,
+            chain_id (int): The network ID where tokens should be
         """
     )
 
-    def _run(self, token_symbols: list[str]):
-        token_list = get_coingecko().coins.get_list()
+    def _run(self, token_symbols: list[str], chain_id: int):
+        token_list = get_tokens_and_filter_per_network(chain_id)
         token_symbols_in_lower = [symbol.lower() for symbol in token_symbols]
         return json.dumps(
             [
@@ -125,8 +153,18 @@ class GetTokensBasedOnCategory(BaseTool):
             category=category,
             order=sort_by,
             price_change_percentage="1h,24h,7d,14d,30d,200d,1y",
+            per_page=250,
         )
-        token_list_with_addresses = get_coingecko().coins.get_list(include_platform=True)
+
+        tokens_in_category_map = {
+            category["id"]: category for category in tokens_in_category
+        }
+
+        tokens_in_category_in_desired_network = [
+            {**token, **tokens_in_category_map[token["id"]]}
+            for token in get_tokens_and_filter_per_network(chain_id)
+            if token["id"] in tokens_in_category_map
+        ]
 
         tokens = [
             {
@@ -155,7 +193,7 @@ class GetTokensBasedOnCategory(BaseTool):
                     "price_change_percentage_1y_in_currency"
                 ],
             }
-            for token in tokens_in_category[:limit]
+            for token in tokens_in_category_in_desired_network[:limit]
         ]
 
         return json.dumps(tokens)
