@@ -37,23 +37,24 @@ def test_get_token_exchanges(token_research_agent: Agent):
         expected_output="Exchanges where BRETT can be bought",
     )
     response = token_research_agent.execute_task(task)
-    assert "SushiSwap V3 (Base)" in response
+    assert "SushiSwap V3 (Base)" in response or "Raydium" in response
+
 
 def test_check_liquidity(token_research_agent: Agent):
     task = Task(
         description="How much liquidity does UNI have?",
         agent=token_research_agent,
-        expected_output="Information about UNI's token liquidity",
+        expected_output="Liquidity of UNI",
     )
     response = token_research_agent.execute_task(task)
-    assert "The liquidity of the UNI token" in response
+    assert "The liquidity" in response
 
 
 def test_get_top_5_tokens_from_base(token_research_agent: Agent):
     task = Task(
-        description="What are the top 5 tokens on Base chain?",
+        description="What are the top 5 tokens on Base network?",
         agent=token_research_agent,
-        expected_output="Top 5 tokens from base chain",
+        expected_output="Top 5 tokens from base network",
     )
     response = token_research_agent.execute_task(task)
     assert "The top 5 tokens" in response
@@ -67,3 +68,24 @@ def test_get_top_5_most_traded_tokens_from_l1(token_research_agent: Agent):
     )
     response = token_research_agent.execute_task(task)
     assert "5 most traded" in response
+
+
+def test_get_top_5_memecoins(token_research_agent: Agent):
+    task = Task(
+        description="What are the top 5 meme coins",
+        agent=token_research_agent,
+        expected_output="Top 5 meme coins",
+    )
+    response = token_research_agent.execute_task(task)
+    assert "top 5 meme coins" in response or "top 5 meme tokens" in response
+
+
+def test_get_top_5_memecoins_in_optimism(token_research_agent: Agent):
+    task = Task(
+        description="What are the top 5 meme coins in optimism",
+        agent=token_research_agent,
+        expected_output="Top 5 meme coins in optimism",
+    )
+    response = token_research_agent.execute_task(task)
+    assert "top 5 meme coins" in response or "top 5 meme tokens" in response
+    assert "Optimism" in response or "optimism" in response

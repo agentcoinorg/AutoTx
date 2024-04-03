@@ -118,3 +118,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[EthereumNetwork, NetworkConfiguration
         },
     ),
 }
+
+SUPPORTED_NETWORKS_AS_STRING = ", ".join(
+    [network.name for network in SUPPORTED_NETWORKS_CONFIGURATION_MAP.keys()]
+)
