@@ -79,9 +79,10 @@ jobs:
 
     - name: Run CI
       run: |
-        python benchmarks.py ./autotx/tests/token 5 benchmark-results
+        python benchmarks.py ./autotx/tests/token/send 1 benchmark-results
       env:
         OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
+        CHAIN_RPC_URL: ${{ secrets.CI_CHAIN_RPC_URL }}
 
     - name: Comment on PR with benchmark results
       uses: actions/github-script@v6
