@@ -1,4 +1,4 @@
-name: CI
+name: benchmarks
 
 on:
   issue_comment:
@@ -8,7 +8,7 @@ jobs:
   run:
     if: |
       github.event.issue.pull_request &&
-      contains(github.event.comment.body, '/workflows/ci')
+      contains(github.event.comment.body, '/workflows/benchmarks')
     runs-on: ubuntu-latest
 
     steps:
@@ -45,7 +45,7 @@ jobs:
       run: exit 1
 
     - name: PR comment
-      id: ci_comment
+      id: benchmarks_comment
       uses: actions/github-script@v6
       with:
         script: |
@@ -53,12 +53,12 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '[Running CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
+            body: '[Running benchmarks...](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
           });
           return comment.data.id;
     
     - name: Save comment ID
-      run: echo "CI_COMMENT_ID=${{ steps.ci_comment.outputs.result }}" >> $GITHUB_ENV
+      run: echo "BENCHMARKS_COMMENT_ID=${{ steps.benchmarks_comment.outputs.result }}" >> $GITHUB_ENV
       
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
@@ -73,7 +73,7 @@ jobs:
       run: |
         poetry install
     
-    - name: Load tokens
+    - name: Load Tokens
       run: |
         poetry run load_tokens
 
@@ -82,7 +82,7 @@ jobs:
         echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .env
         echo "CHAIN_RPC_URL=${{ secrets.CI_CHAIN_RPC_URL }}" >> .env
 
-    - name: Run CI
+    - name: Run Benchmarks
       run: |
         python benchmarks.py ./autotx/tests/agents 5 benchmark-results
 
@@ -95,10 +95,10 @@ jobs:
           const contents = fs.readFileSync(path, 'utf8');
           
           github.rest.issues.updateComment({
-            comment_id: ${{ env.CI_COMMENT_ID }},
+            comment_id: ${{ env.BENCHMARKS_COMMENT_ID }},
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '[Finished CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents
+            body: '[Finished benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents
           })
       
     - name: Upload artifact
