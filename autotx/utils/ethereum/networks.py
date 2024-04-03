@@ -9,7 +9,7 @@ from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 try:
     from autotx.utils.ethereum.helpers.token_list import token_list
 except:
-    sys.exit("Please make sure to do `poetry run load_tokens`")
+    sys.exit("Make sure to run `poetry run load_tokens`")
 
 
 class NetworkInfo:
