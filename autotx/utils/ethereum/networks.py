@@ -1,16 +1,15 @@
 from dataclasses import dataclass
-import json
+import sys
 from typing import Union
-import requests
 from gnosis.eth import EthereumNetwork
 from web3 import Web3
 
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 
-KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
-COINGECKO_TOKENS_LIST = "https://tokens.coingecko.com/uniswap/all.json"
-
-TOKENS_LIST = [KLEROS_TOKENS_LIST, COINGECKO_TOKENS_LIST]
+try:
+    from autotx.utils.ethereum.helpers.token_list import token_list
+except:
+    sys.exit("Please make sure to do `poetry run load_tokens`")
 
 
 class NetworkInfo:
@@ -32,16 +31,9 @@ class NetworkInfo:
         self.tokens = self.fetch_tokens_for_chain(chain_id) | config.default_tokens
 
     def fetch_tokens_for_chain(self, chain_id: int) -> list[dict[str, Union[str, int]]]:
-        loaded_tokens: list[dict[str, Union[str, int]]] = []
-
-        for token_list_url in TOKENS_LIST:
-            response = requests.get(token_list_url)
-            tokens = json.loads(response.text)["tokens"]
-            loaded_tokens.extend(tokens)
-
         return {
             token["symbol"].lower(): Web3.to_checksum_address(token["address"])
-            for token in loaded_tokens
+            for token in token_list
             if token["chainId"] == chain_id
         }
 
