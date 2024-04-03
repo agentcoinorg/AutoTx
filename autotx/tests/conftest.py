@@ -20,7 +20,6 @@ from autotx.utils.ethereum import (
     send_eth,
     transfer_erc20,
 )
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
 from gnosis.eth import EthereumClient
 
 @pytest.fixture(autouse=True)
