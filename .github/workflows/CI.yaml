@@ -45,15 +45,20 @@ jobs:
       run: exit 1
 
     - name: PR comment
+      id: ci_comment
       uses: actions/github-script@v6
       with:
         script: |
-          github.rest.issues.createComment({
+          const comment = await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: '[Running CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
-          })
+          });
+          return comment.data.id;
+    
+    - name: Save comment ID
+      run: echo "CI_COMMENT_ID=${{ steps.ci_comment.outputs.result }}" >> $GITHUB_ENV
       
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
@@ -74,7 +79,7 @@ jobs:
 
     - name: Run CI
       run: |
-        python benchmarks.py ./autotx/tests/token 5 results
+        python benchmarks.py ./autotx/tests/token 5 benchmark-results
       env:
         OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
 
@@ -83,12 +88,18 @@ jobs:
       with:
         script: |
           const fs = require('fs');
-          const path = './benchmarks/results/summary.txt';
+          const path = './benchmarks/benchmark-results/summary.md';
           const contents = fs.readFileSync(path, 'utf8');
           
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
+          github.rest.issues.updateComment({
+            comment_id: ${{ env.CI_COMMENT_ID }},
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `Benchmark Results:\n\`\`\`\n${contents}\n\`\`\``
+            body: '[Finished CI](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents
           })
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmarks-debug
+        path: ./benchmarks/benchmark-results
