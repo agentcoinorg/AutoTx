@@ -70,13 +70,22 @@ def clear_lines(n=1):
         sys.stdout.write('\x1b[2K')  # Clear the current line
 
 def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir):
-    """Prints a summary table of all tests in markdown format to the console and a file."""
+    """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
+    # Calculate total passes and fails
+    total_passes = sum(result['passes'] for result in tests_results)
+    total_fails = sum(result['fails'] for result in tests_results)
+    total_attempts = total_passes + total_fails
+
+    # Calculate total success percentage
+    total_success_percentage = (total_passes / total_attempts * 100) if total_attempts > 0 else 0
+
     # Constructing the markdown content
     md_content = []
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
-    md_content.append(f"- **Iterations:** {iterations}\n")
+    md_content.append(f"- **Iterations:** {iterations}")
+    md_content.append(f"- **Total Success Rate:** {total_success_percentage:.2f}%\n")
     md_content.append(f"### Detailed Results\n")
     md_content.append(f"| Test Name | Success Rate | Passes | Fails | Avg Time |")
     md_content.append(f"| --- | --- | --- | --- | --- |")
@@ -160,4 +169,4 @@ if __name__ == "__main__":
     print("=" * 50 + "\n")
     print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir)
     print(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Summary written to: {output_dir}/summary.txt")
+    print(f"Summary written to: {output_dir}/summary.md")
