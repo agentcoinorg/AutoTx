@@ -4,12 +4,10 @@ from typing import Union
 
 import requests
 
-
 KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
 COINGECKO_TOKENS_LIST = "https://tokens.coingecko.com/uniswap/all.json"
 
 TOKENS_LIST = [KLEROS_TOKENS_LIST, COINGECKO_TOKENS_LIST]
-
 
 def fetch_tokens_list():
     loaded_tokens: list[dict[str, Union[str, int]]] = []
@@ -28,7 +26,6 @@ token_list = {loaded_tokens_as_string}
     )
     with open("autotx/utils/ethereum/helpers/token_list.py", "w") as f:
         f.write(content)
-
 
 def run():
     fetch_tokens_list()

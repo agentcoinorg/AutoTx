@@ -4,7 +4,6 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
 
-
 from .send_tx import send_tx
 from .constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
