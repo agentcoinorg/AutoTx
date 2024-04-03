@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 
-
 class Cache:
     folder: str = None
 
@@ -32,6 +31,5 @@ class Cache:
         except Exception as e:
             print(f"An error occurred while deleting {file_name}: {e}")
             raise
-
 
 cache = Cache()

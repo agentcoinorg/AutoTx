@@ -20,7 +20,6 @@ COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
     EthereumNetwork.GNOSIS: "xdai",
 }
 
-
 def get_coingecko():
     return CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
 
@@ -39,7 +38,6 @@ def get_tokens_and_filter_per_network(
         for token in token_list_with_addresses
         if coingecko_network_key in token["platforms"]
     ]
-
 
 class GetTokenInformation(BaseTool):
     name: str = "get_token_information"
@@ -132,7 +130,6 @@ class GetAvailableCategories(BaseTool):
         categories = get_coingecko().categories.get_list()
         return json.dumps([category["category_id"] for category in categories])
 
-
 class GetTokensBasedOnCategory(BaseTool):
     name: str = "get_tokens_based_on_category"
     description: str = dedent(
@@ -210,7 +207,6 @@ class GetTokensBasedOnCategory(BaseTool):
 
         return json.dumps(tokens)
 
-
 class TokenExchanges(BaseTool):
     name: str = "get_exchanges_where_token_can_be_traded"
     description: str = dedent(
@@ -225,7 +221,6 @@ class TokenExchanges(BaseTool):
         tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
         market_names = {item["market"]["name"] for item in tickers}
         return list(market_names)
-
 
 class ResearchTokensAgent(AutoTxAgent):
     def __init__(self):

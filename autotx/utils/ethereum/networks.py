@@ -11,7 +11,6 @@ try:
 except:
     sys.exit("Make sure to run `poetry run load_tokens`")
 
-
 class NetworkInfo:
     network: EthereumNetwork
     transaction_service_url: str
@@ -37,12 +36,10 @@ class NetworkInfo:
             if token["chainId"] == chain_id
         }
 
-
 @dataclass
 class NetworkConfiguration:
     transaction_service_url: str
     default_tokens: dict[str, str]
-
 
 SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[EthereumNetwork, NetworkConfiguration] = {
     EthereumNetwork.MAINNET: NetworkConfiguration(

@@ -3,7 +3,6 @@ from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
 patch_langchain()
 

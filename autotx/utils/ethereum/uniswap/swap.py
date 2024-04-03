@@ -2,7 +2,6 @@ from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 import requests
 
-
 from web3.contract.contract import Contract
 
 from autotx.utils.PreparedTx import PreparedTx
@@ -11,10 +10,8 @@ from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_A
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 from autotx.utils.ethereum.weth_abi import WETH_ABI
 
-
 SLIPPAGE = 0.05
 SQRT_PRICE_LIMIT = 0
-
 
 def get_swap_information(
     amount: float,
@@ -37,7 +34,6 @@ def get_swap_information(
             amount_in,
             "exactOutputSingle",
         )
-
 
 def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
     token_in_lower = token_in_address.lower()
@@ -88,7 +84,6 @@ def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
         return int(max_liquidity_pool["feeTier"])
     else:
         raise Exception(f"Request failed with status code: {response.status_code}")
-
 
 def build_swap_transaction(
     etherem_client: EthereumClient,
@@ -144,7 +139,6 @@ def build_swap_transaction(
             )
         )
         return transactions
-
 
     price = uniswap.get_price(token_in.address, token_out.address)
 
