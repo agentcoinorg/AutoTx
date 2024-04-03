@@ -8,7 +8,7 @@ from autotx.utils.agent.define_tasks import define_tasks
 from langchain_core.tools import StructuredTool
 from crewai import Agent, Crew, Process, Task
 from autotx.utils.ethereum import SafeManager
-from autotx.utils.ethereum.constants import NetworkInfo
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.llm import open_ai_llm
 
 @dataclass(kw_only=True)
