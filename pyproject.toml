@@ -30,7 +30,7 @@ start-fork = "autotx.chain_fork:start"
 stop-fork = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
-safe = "autotx.cli:safe"
+load_tokens = "autotx.load_tokens:run"
 
 [build-system]
 requires = ["poetry-core"]
