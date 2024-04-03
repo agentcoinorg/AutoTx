@@ -101,7 +101,7 @@ class GetAvailableCategories(BaseTool):
 
     def _run(self):
         categories = get_coingecko().categories.get_list()
-        return json.dumps(categories)
+        return json.dumps([category["category_id"] for category in categories])
 
 
 class GetTokensBasedOnCategory(BaseTool):
@@ -115,20 +115,21 @@ class GetTokensBasedOnCategory(BaseTool):
             sort_by (str): Sort tokens by field. It can be: "volume_desc" | "volume_asc" | "market_cap_desc" | "market_cap_asc"
                 "market_cap_desc" should be the default if none is defined
             limit (int): The number of tokens to return from the category
+            chain_id (int): The network ID where tokens should be
         """
     )
 
-    def _run(self, category: str, sort_by: str, limit: int):
+    def _run(self, category: str, sort_by: str, limit: int, chain_id: int):
         tokens_in_category = get_coingecko().coins.get_markets(
             vs_currency="usd",
             category=category,
             order=sort_by,
             price_change_percentage="1h,24h,7d,14d,30d,200d,1y",
         )
+        token_list_with_addresses = get_coingecko().coins.get_list(include_platform=True)
 
         tokens = [
             {
-                "id": token["id"],
                 "symbol": token["symbol"],
                 "market_cap": token["market_cap"],
                 "total_volume_last_24h": token["total_volume"],
@@ -177,26 +178,27 @@ class TokenExchanges(BaseTool):
 
 
 class ResearchTokensAgent(AutoTxAgent):
-    def __init__(self):
+    def __init__(self, autotx: AutoTx):
         if os.getenv("COINGECKO_API_KEY") == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
 
         super().__init__(
             name="token-researcher",
             role="Highly specialized AI assistant with expertise in researching cryptocurrencies and analyzing the market",
-            goal="Empower users with real-time analytics and trend predictions",
+            goal=f"Help users with real-time analytics and trend predictions. By default, you must do investigation based on network {autotx.network.network.name} with chain id {autotx.network.network.value}, unless explicitly told to use other one",
             backstory="Designed to address the challenge of navigating the complex and fast-paced world of cryptocurrencies",
             tools=[
                 GetTokenInformation(),
                 TokenSymbolToTokenId(),
                 GetTokensBasedOnCategory(),
                 GetAvailableCategories(),
-                TokenExchanges()
+                TokenExchanges(),
             ],
         )
 
+
 def build_agent_factory() -> Callable[[AutoTx], Agent]:
-    def agent_factory(_: AutoTx) -> ResearchTokensAgent:
-        return ResearchTokensAgent()
+    def agent_factory(autotx: AutoTx) -> ResearchTokensAgent:
+        return ResearchTokensAgent(autotx)
 
     return agent_factory
