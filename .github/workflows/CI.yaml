@@ -64,9 +64,17 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
 
+    - name: Poetry Install
+      run: |
+        poetry install
+    
+    - name: Load tokens
+      run: |
+        poetry run load_tokens
+
     - name: Run CI
       run: |
-          python benchmarks.py ./autotx/tests/token 5 results
+        python benchmarks.py ./autotx/tests/token 5 results
       env:
         OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
 
