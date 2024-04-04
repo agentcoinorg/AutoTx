@@ -8,7 +8,7 @@ from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
-from gnosis.eth import EthereumClient, EthereumNetworkNotSupported, EthereumNetwork
+from gnosis.eth import EthereumClient, EthereumNetworkNotSupported as ChainIdNotSupported
 
 
 def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):
@@ -16,8 +16,8 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
     token_out = token_out.lower()
 
     if not network_info.network in SUPPORTED_UNISWAP_V3_NETWORKS:
-        raise EthereumNetworkNotSupported(
-            f"Network with chain id {network_info.network.value} not supported for swap"
+        raise ChainIdNotSupported(
+            f"Network {network_info.network.name} not supported for swap"
         )
 
     if token_in not in network_info.tokens:
@@ -55,7 +55,7 @@ class ExecuteSwapExactInTool(AutoTxTool):
 
     def _run(self, exact_amount_in: float, token_in: str, token_out: str) -> str:
         (token_in_address, token_out_address) = get_tokens_address(
-            token_in, token_out, self.autotx.network_info
+            token_in, token_out, self.autotx.network
         )
 
         swap_transactions = build_swap_transaction(
@@ -96,7 +96,7 @@ class ExecuteSwapExactOutTool(AutoTxTool):
 
     def _run(self, exact_amount_out: float, token_in: str, token_out: str) -> str:
         (token_in_address, token_out_address) = get_tokens_address(
-            token_in, token_out, self.autotx.network_info
+            token_in, token_out, self.autotx.network
         )
 
         swap_transactions = build_swap_transaction(

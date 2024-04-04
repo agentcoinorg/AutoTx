@@ -20,13 +20,13 @@ class AutoTx:
     agents: list[Agent]
     config: Config = Config(verbose=False)
     transactions: list[PreparedTx] = []
-    network_info: NetworkInfo
+    network: NetworkInfo
 
     def __init__(
         self, manager: SafeManager, network: NetworkInfo, agent_factories: list[Callable[['AutoTx'], Agent]], config: Optional[Config]
     ):
         self.manager = manager
-        self.network_info = network
+        self.network = network
         if config:
             self.config = config
         self.agents = [factory(self) for factory in agent_factories]

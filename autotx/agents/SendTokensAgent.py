@@ -36,7 +36,7 @@ class TransferERC20TokenTool(AutoTxTool):
     def _run(
         self, amount: float, receiver: str, token: str
     ) -> str:
-        tokens = self.autotx.network_info.tokens
+        tokens = self.autotx.network.tokens
         token_address = tokens[token.lower()]
         web3 = load_w3()
 
@@ -97,7 +97,7 @@ class GetERC20BalanceTool(AutoTxTool):
         self, token: str, owner: str
     ) -> float:
         web3 = load_w3()
-        tokens = self.autotx.network_info.tokens
+        tokens = self.autotx.network.tokens
         token_address = ETHAddress(tokens[token.lower()], web3)
         owner_addr = ETHAddress(owner, web3)
         

@@ -7,19 +7,19 @@ from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
-from gnosis.eth import EthereumNetwork, EthereumNetworkNotSupported
+from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 from coingecko import GeckoAPIException, CoinGeckoDemoClient
 
 from autotx.auto_tx_tool import AutoTxTool
-from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 
 COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
-    EthereumNetwork.MAINNET: "ethereum",
-    EthereumNetwork.OPTIMISM: "optimistic-ethereum",
-    EthereumNetwork.POLYGON: "polygon-pos",
-    EthereumNetwork.BASE_MAINNET: "base",
-    EthereumNetwork.ARBITRUM_ONE: "arbitrum-one",
-    EthereumNetwork.GNOSIS: "xdai",
+    ChainId.MAINNET: "ethereum",
+    ChainId.OPTIMISM: "optimistic-ethereum",
+    ChainId.POLYGON: "polygon-pos",
+    ChainId.BASE_MAINNET: "base",
+    ChainId.ARBITRUM_ONE: "arbitrum-one",
+    ChainId.GNOSIS: "xdai",
 }
 
 
@@ -30,10 +30,10 @@ def get_coingecko():
 def get_tokens_and_filter_per_network(
     network_name: str,
 ) -> dict[str, Union[str, dict[str, str]]]:
-    network = EthereumNetwork[network_name]
+    network = ChainId[network_name]
     coingecko_network_key = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(network)
     if coingecko_network_key == None:
-        raise EthereumNetworkNotSupported(f"Network {network_name} not supported")
+        raise ChainIdNotSupported(f"Network {network_name} not supported")
 
     token_list_with_addresses = get_coingecko().coins.get_list(include_platform=True)
     return [
@@ -208,14 +208,14 @@ class GetTokensBasedOnCategory(AutoTxTool):
             ]
 
             current_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
-                self.autotx.network_info.network
+                self.autotx.network.chain_id
             )
             asked_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
-                EthereumNetwork[network_name]
+                ChainId[network_name]
             )
             if current_network == asked_network:
                 add_tokens_address_if_not_in_registry(
-                    tokens_in_category, self.autotx.network_info.tokens, current_network
+                    tokens_in_category, self.autotx.network.tokens, current_network
                 )
 
         interval = (
