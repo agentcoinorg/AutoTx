@@ -175,7 +175,7 @@ def build_swap_transaction(
                     tx,
                 )
             )
-    subgraph_url = SUPPORTED_UNISWAP_V3_NETWORKS[NetworkInfo(web3.eth.chain_id).network]
+    subgraph_url = SUPPORTED_UNISWAP_V3_NETWORKS[NetworkInfo(web3.eth.chain_id).chain_id]
 
     fee = get_best_fee_tier(token_in.address, token_out.address, subgraph_url)
     swap_transaction = uniswap.router.functions[method](
