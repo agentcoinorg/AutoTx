@@ -84,7 +84,7 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
                     "extra_information": "Use the exact_output mode for the swap, ensuring the exact amount of 0.05 WBTC is received. Calculate the required ETH amount based on current market rates."
                 }},
                 {{
-                    "task": "Swap exactly 0.05 Wrapped Bitcoin (WBTC) for 1000 USD Coin (USDC)",
+                    "task": "Swap Wrapped Bitcoin (WBTC) for 1000 USD Coin (USDC)",
                     "agent": "swap-tokens",
                     "expected_output": "A successful swap transaction from WBTC to USDC where the user ends up with exactly 1000 USDC",
                     "context": null,
