@@ -72,10 +72,6 @@ jobs:
     - name: Poetry Install
       run: |
         poetry install
-    
-    - name: Load Tokens
-      run: |
-        poetry run load_tokens
 
     - name: Create .env
       run: |
