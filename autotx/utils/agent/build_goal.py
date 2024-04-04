@@ -1,4 +1,5 @@
 import json
+import os
 from textwrap import dedent
 import typing
 
@@ -12,7 +13,7 @@ class GoalResponse:
 
     def __init__(self, goal: str):
         self.goal = goal
-    
+
 class MissingInfoResponse:
     message: str
     type: str = "missing_info"
@@ -129,7 +130,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
     )
 
     response = openai.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo-preview"),
         response_format={"type": "json_object"},
         messages=[
             { "role": "system", "content": get_persona(smart_account_address) },
@@ -140,6 +141,11 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
     if not response:
         # TODO: Handle bad response
         pass
+
+    # Only keep the JSON part of the response
+    bracket_index = response.find('{')
+    bracket_last = response.rfind('}')
+    response = response[bracket_index:bracket_last + 1]
 
     return parse_analyze_prompt_response(response)
 

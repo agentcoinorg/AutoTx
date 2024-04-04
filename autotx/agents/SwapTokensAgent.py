@@ -21,6 +21,8 @@ class ExecuteSwapExactInTool(AutoTxTool):
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
+        Returns:
+            str: A confirmation message that the transaction to swap tokens has been prepared
         """
     )
     recipient: ETHAddress | None = Field(None)
@@ -60,7 +62,6 @@ class ExecuteSwapExactInTool(AutoTxTool):
 
         return f"Transaction to sell {exact_amount_in} {token_in} for {token_out} has been prepared"
 
-
 class ExecuteSwapExactOutTool(AutoTxTool):
     name: str = "Prepare needed transactions to execute swap with exact output"
     description: str = dedent(
@@ -73,6 +74,8 @@ class ExecuteSwapExactOutTool(AutoTxTool):
             to needed decimals.
             token_in (str): Symbol of token input.
             token_out (str): Symbol of token output.
+        Returns:
+            str: A confirmation message that the transaction to swap tokens has been prepared
         """
     )
     recipient: ETHAddress | None = Field(None)

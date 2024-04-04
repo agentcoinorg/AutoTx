@@ -9,6 +9,10 @@ def collect_tests(test_path):
     command = ['poetry', 'run', 'pytest', '--collect-only', '-q', test_path]
     result = subprocess.run(command, capture_output=True, text=True)
     tests = re.findall(r'^autotx\S+', result.stdout, re.MULTILINE)
+
+    if not tests:
+        print(result)
+
     return tests
 
 def run_test(test_name, iterations, avg_time_across_tests, completed_tests, remaining_tests):
@@ -65,42 +69,49 @@ def clear_lines(n=1):
         sys.stdout.write('\x1b[1A')  # Move the cursor up by one line
         sys.stdout.write('\x1b[2K')  # Clear the current line
 
-def print_summary_table(test_path, iterations, tests_results, total_run_time):
-    """Prints a summary table of all tests."""
+def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir):
+    """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
-    print(f"Run from: {test_path}")
-    print(f"Iterations: {iterations}")
-    print("=" * 50)
-    print("Test Name\tSuccess Rate\tPasses\tFails\tAvg Time")
-    print("=" * 50)
+    # Calculate total passes and fails
+    total_passes = sum(result['passes'] for result in tests_results)
+    total_fails = sum(result['fails'] for result in tests_results)
+    total_attempts = total_passes + total_fails
+
+    # Calculate total success percentage
+    total_success_percentage = (total_passes / total_attempts * 100) if total_attempts > 0 else 0
+
+    # Constructing the markdown content
+    md_content = []
+    md_content.append(f"### Test Run Summary\n")
+    md_content.append(f"- **Run from:** `{test_path}`")
+    md_content.append(f"- **Iterations:** {iterations}")
+    md_content.append(f"- **Total Success Rate:** {total_success_percentage:.2f}%\n")
+    md_content.append(f"### Detailed Results\n")
+    md_content.append(f"| Test Name | Success Rate | Passes | Fails | Avg Time |")
+    md_content.append(f"| --- | --- | --- | --- | --- |")
+
     for test_result in tests_results:
-        succes_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
+        success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        print(f"{test_result['name']}\t{succes_rate:.0f}%\t{test_result['passes']}\t{test_result['fails']}\t{avg_time}")
+        md_content.append(f"| `{test_result['name']}` | {success_rate:.0f}% | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
 
-    print("=" * 50 + "\n")
+    md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
-    print(f"Total run time: {total_run_time/60:.2f} minutes")
+    # Printing the markdown content to console
+    print("\n".join(md_content))
 
-    # Write all of the results to a file
-    with open(f"{output_dir}/summary.txt", 'w') as summary_file:
-        summary_file.write(f"Run from: {test_path}\n")
-        summary_file.write(f"Iterations: {iterations}\n")
-        summary_file.write("=" * 50 + "\n")
-        summary_file.write("Test Name\tSuccess Rate\tPasses\tFails\tAvg Time\n")
-        summary_file.write("=" * 50 + "\n")
-        for test_result in tests_results:
-            succes_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
-            avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-            summary_file.write(f"{test_result['name']}\t{succes_rate:.0f}%\t{test_result['passes']}\t{test_result['fails']}\t{avg_time}\n")
-        summary_file.write(f"Total run time: {total_run_time/60:.2f} minutes\n\n")
+    # Write the markdown content to a file
+    with open(f"{output_dir}/summary.md", 'w') as summary_file:
+        summary_file.write("\n".join(md_content))
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python benchmarks.py <path_to_test_file> <iterations>")
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
+        print("Usage: python benchmarks.py <path_to_test_file> <iterations> <benchmark_name>")
         sys.exit(1)
 
     test_path, iterations = sys.argv[1], int(sys.argv[2])
+    benchmark_name = sys.argv[3] if len(sys.argv) == 4 else None
+
     tests = collect_tests(test_path)
     if not tests:
         print("No tests found.")
@@ -114,7 +125,10 @@ if __name__ == "__main__":
     print("=" * 50)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_dir = f"benchmarks/{timestamp}"
+
+    benchmark_label = benchmark_name if benchmark_name else str(timestamp)
+    output_dir = f"benchmarks/{benchmark_label}"
+
     os.makedirs(output_dir, exist_ok=True)
 
     total_tests = len(tests)
@@ -153,6 +167,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 50)
     print("All tests completed.")
     print("=" * 50 + "\n")
-    print_summary_table(test_path, iterations, tests_results, total_run_time)
+    print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir)
     print(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Summary written to: {output_dir}/summary.txt")
+    print(f"Summary written to: {output_dir}/summary.md")

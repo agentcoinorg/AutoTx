@@ -3,14 +3,13 @@ import os
 from textwrap import dedent
 from typing import Callable
 from crewai import Agent
+from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
 import coingecko
 
-
 def get_coingecko():
     return coingecko.CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
-
 
 class TokenSymbolToTokenId(BaseTool):
     name: str = "token_symbol_to_token_id"
@@ -33,7 +32,6 @@ class TokenSymbolToTokenId(BaseTool):
                 if item["symbol"] in token_symbols_in_lower
             ]
         )
-
 
 class GetTokenInformation(BaseTool):
     name: str = "get_token_information"
@@ -89,7 +87,6 @@ class GetTokenInformation(BaseTool):
             }
         )
 
-
 class GetAvailableCategories(BaseTool):
     name: str = "get_available_categories"
     description: str = dedent(
@@ -101,7 +98,6 @@ class GetAvailableCategories(BaseTool):
     def _run(self):
         categories = get_coingecko().categories.get_list()
         return json.dumps(categories)
-
 
 class GetTokensBasedOnCategory(BaseTool):
     name: str = "get_tokens_based_on_category"
@@ -158,7 +154,6 @@ class GetTokensBasedOnCategory(BaseTool):
 
         return json.dumps(tokens)
 
-
 class TokenExchanges(BaseTool):
     name: str = "get_exchanges_where_token_can_be_traded"
     description: str = dedent(
@@ -174,8 +169,7 @@ class TokenExchanges(BaseTool):
         market_names = {item["market"]["name"] for item in tickers}
         return list(market_names)
 
-
-class TokenResearchAgent(AutoTxAgent):
+class ResearchTokensAgent(AutoTxAgent):
     def __init__(self):
         if os.getenv("COINGECKO_API_KEY") == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
@@ -194,8 +188,8 @@ class TokenResearchAgent(AutoTxAgent):
             ],
         )
 
-    def build_agent_factory() -> Callable[[], Agent]:
-        def agent_factory() -> TokenResearchAgent:
-            return TokenResearchAgent()
+def build_agent_factory() -> Callable[[AutoTx], Agent]:
+    def agent_factory(_: AutoTx) -> ResearchTokensAgent:
+        return ResearchTokensAgent()
 
-        return agent_factory
+    return agent_factory

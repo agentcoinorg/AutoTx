@@ -23,7 +23,7 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 |-|-|-|
 | [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
 | [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with Uniswap. | :rocket: |
-| Token Research | Research tokens, liquidity, prices, graphs, etc. | :construction: [spec](https://github.com/polywrap/AutoTx/issues/96) |
+| [Token Research](./autotx/agents/ResearchTokensAgent.py) | Research tokens, liquidity, prices, graphs, etc. | :rocket: |
 | Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
@@ -48,8 +48,10 @@ Please install the following:
 2. Create a new .env file via `cp .env.example .env`
 3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
 4. Find the line that says CHAIN_RPC_URL=, and add your unique Ethereum RPC URL `CHAIN_RPC_URL=https://mainnet.infura.io/v3/...` (see https://www.infura.io/)
-5. Start a new poetry shell `poetry shell`
-6. Install python dependencies `poetry install`
+5. Find the line that says COINGECKO_API_KEY=, and add your Coingecko API Key `COINGECKO_API_KEY=CG-...` (see https://docs.coingecko.com/reference/setting-up-your-api-key)
+6. Start a new poetry shell `poetry shell`
+7. Install python dependencies `poetry install`
+8. Run `poetry run load_tokens`
 
 ## Run The Agent
 
@@ -118,6 +120,9 @@ python benchmarks.py ./autotx/tests/file_name.py 5
 
 # run a specific test with 5 iterations
 python benchmarks.py ./autotx/tests/file_name.py::function_name 5
+
+# run a specific test with 5 iterations and name the output folder (instead of the default timestamp)
+python benchmarks.py ./autotx/tests/file_name.py::function_name 5 output_folder_name
 ```
 
 ## Need Help?

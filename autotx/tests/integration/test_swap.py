@@ -2,15 +2,14 @@ from autotx.utils.ethereum import (
     get_erc20_balance,
     get_eth_balance,
 )
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-
 
 def test_swap(configuration):
     (user, _, client, _) = configuration
 
-    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    network_info = NetworkInfo(client.w3.eth.chain_id)
     weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], client.w3)
 
@@ -43,11 +42,10 @@ def test_swap(configuration):
     new_balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
     assert new_balance == 0.05
 
-
 def test_swap_recieve_eth(configuration):
     (user, _, client, _) = configuration
 
-    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
     usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
 
@@ -102,11 +100,10 @@ def test_swap_recieve_eth(configuration):
     balance = get_eth_balance(client.w3, user_addr)
     assert int(balance) == 9988
 
-
 def test_swap_through_safe(configuration):
     (_, _, client, manager) = configuration
 
-    network_info = SUPPORTED_NETWORKS.get(client.w3.eth.chain_id)
+    network_info = NetworkInfo(client.w3.eth.chain_id)
     weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
     usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
 

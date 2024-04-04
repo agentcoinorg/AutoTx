@@ -1,0 +1,127 @@
+name: benchmarks
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  run:
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/workflows/benchmarks')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Is owner?
+      run: |
+        exists=$(echo $(grep -Fxcs ${CREATOR} .github/CODEOWNERS))
+        if [ "$exists" == "1" ] ; then
+          echo IS_OWNER=true >> $GITHUB_ENV
+        else
+          echo IS_OWNER=false >> $GITHUB_ENV
+        fi
+      env:
+        CREATOR: ${{github.event.comment.user.login}}
+
+    - name: Is not owner...
+      if: env.IS_OWNER == 'false'
+      uses: actions/github-script@0.8.0
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '${{github.event.comment.user.login}} is not an OWNER. Please see the .github/OWNERS file...'
+          })
+
+    - name: Fail if conditions aren't met...
+      if: |
+        env.IS_OWNER != 'true'
+      run: exit 1
+
+    - name: PR comment
+      id: benchmarks_comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const comment = await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '[Running benchmarks...](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})'
+          });
+          return comment.data.id;
+    
+    - name: Save comment ID
+      run: echo "BENCHMARKS_COMMENT_ID=${{ steps.benchmarks_comment.outputs.result }}" >> $GITHUB_ENV
+      
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+
+    - name: Poetry Install
+      run: |
+        poetry install
+    
+    - name: Load Tokens
+      run: |
+        poetry run load_tokens
+
+    - name: Create .env
+      run: |
+        echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .env
+        echo "CHAIN_RPC_URL=${{ secrets.CI_CHAIN_RPC_URL }}" >> .env
+        echo "COINGECKO_API_KEY=${{ secrets.CI_COINGECKO_API_KEY }}" >> .env
+
+    - name: Parse Comment for Arguments
+      id: parse_args
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const commentBody = '${{ github.event.comment.body }}'
+          const args = commentBody.split(' ');
+          let path = 'agents'; // Default path
+          let count = '5'; // Default count
+          if (args.length > 1) {
+            path = args[1];
+            if (args.length > 2) {
+              count = args[2];
+            }
+          }
+          core.setOutput('path', path);
+          core.setOutput('count', count);
+    
+    - name: Run Benchmarks
+      run: |
+        python benchmarks.py ./autotx/tests/${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
+
+    - name: Comment on PR with benchmark results
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './benchmarks/benchmark-results/summary.md';
+          const contents = fs.readFileSync(path, 'utf8');
+          
+          github.rest.issues.updateComment({
+            comment_id: ${{ env.BENCHMARKS_COMMENT_ID }},
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '[Finished benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents
+          })
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: benchmarks-debug
+        path: ./benchmarks/benchmark-results

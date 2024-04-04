@@ -1,14 +1,29 @@
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import load_w3
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 patch_langchain()
 
+def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
+    (_, _, _, manager) = configuration
+    web3 = load_w3()
+    network_info = NetworkInfo(web3.eth.chain_id)
+    shib_address = ETHAddress(network_info.tokens["shib"], web3)
+
+    prompt = "Buy 100000 SHIB with ETH"
+    balance = manager.balance_of(shib_address)
+    assert balance == 0
+    auto_tx.run(prompt, non_interactive=True)
+
+    new_balance = manager.balance_of(shib_address)
+
+    assert 100000 == new_balance
+
 def test_auto_tx_swap_eth(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
 
     prompt = "Buy 100 USDC with ETH"
@@ -23,15 +38,15 @@ def test_auto_tx_swap_eth(configuration, auto_tx):
 def test_auto_tx_swap_multiple(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
 
-    prompt = "Buy 1000 USDC with ETH and then buy 0.01 WBTC with the USDC"
+    prompt = "Buy 1000 USDC with ETH and then buy WBTC with 500 USDC"
     usdc_balance = manager.balance_of(usdc_address)
     wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 1000 == manager.balance_of(usdc_address)
-    assert wbtc_balance + 0.01 == manager.balance_of(wbtc_address)
+    assert usdc_balance + 500 == manager.balance_of(usdc_address)
+    assert wbtc_balance < manager.balance_of(wbtc_address)

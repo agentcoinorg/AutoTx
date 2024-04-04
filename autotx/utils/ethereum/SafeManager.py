@@ -22,7 +22,6 @@ from web3.types import TxParams
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.api.base_api import SafeAPIException
 
-
 class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
@@ -232,7 +231,6 @@ class SafeManager:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
             print("Sending transactions to your smart account...")
-
 
             for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
                 self.send_tx(tx, start_nonce + i)

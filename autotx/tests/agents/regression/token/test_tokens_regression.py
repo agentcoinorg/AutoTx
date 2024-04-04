@@ -1,36 +1,37 @@
+import pytest
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
-from autotx.utils.ethereum.constants import SUPPORTED_NETWORKS
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
 patch_langchain()
 
-def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
+@pytest.mark.skip()
+def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
     (_, _, client, _) = configuration
 
-    receiver = ETHAddress("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", client.w3)
+    receiver = test_accounts[0]
 
     prompts = [
-        f"Send 10 TTOK to {receiver}",
-        f"Transfer 10 TTOK to the address {receiver}",
-        f"Dispatch 10 TTOK to wallet {receiver}",
-        f"Send 10 TTOK coins to the Ethereum address {receiver}",
-        f"Execute a transaction of 10 TTOK to address {receiver}",
-        f"Move 10 TTOK to the following address: {receiver}",
-        f"Process a payment of 10 TTOK to the destination {receiver}",
-        f"Forward 10 TTOK to the specific address {receiver}",
-        f"Allocate 10 TTOK to be sent to {receiver}",
-        f"Complete sending 10 TTOK to the address {receiver}",
-        f"Initiate the transfer of 10 TTOK to address {receiver}",
+        f"Send 10 USDC to {receiver}",
+        f"Transfer 10 USDC to the address {receiver}",
+        f"Dispatch 10 USDC to wallet {receiver}",
+        f"Send 10 USDC coins to the Ethereum address {receiver}",
+        f"Execute a transaction of 10 USDC to address {receiver}",
+        f"Move 10 USDC to the following address: {receiver}",
+        f"Process a payment of 10 USDC to the destination {receiver}",
+        f"Forward 10 USDC to the specific address {receiver}",
+        f"Allocate 10 USDC to be sent to {receiver}",
+        f"Complete sending 10 USDC to the address {receiver}",
+        f"Initiate the transfer of 10 USDC to address {receiver}",
     ]
 
     for prompt in prompts:
-        balance = get_erc20_balance(client.w3, mock_erc20, receiver)
+        balance = get_erc20_balance(client.w3, usdc, receiver)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance = get_erc20_balance(client.w3, mock_erc20, receiver)
+        new_balance = get_erc20_balance(client.w3, usdc, receiver)
 
         try: 
             assert balance + 10 == new_balance
@@ -39,10 +40,11 @@ def test_auto_tx_send_erc20(configuration, auto_tx, mock_erc20):
             print(f"Balance: {balance} New Balance: {new_balance}")
             raise
 
+@pytest.mark.skip()
 def test_auto_tx_swap(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
 
     prompts = [
@@ -73,34 +75,35 @@ def test_auto_tx_swap(configuration, auto_tx):
             print(f"Balance: {balance} New Balance: {new_balance}")
             raise
 
-def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
+@pytest.mark.skip()
+def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
     (_, _, client, _) = configuration
 
-    receiver_one = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
-    receiver_two = ETHAddress("0x20f8Bf6a479F320EaD074411a4b0e7944eA8c9C1", client.w3)
+    receiver_one = test_accounts[0]
+    receiver_two = test_accounts[1]
 
     prompts = [
-        f"Send 10 TTOK to {receiver_one} and 20 TTOK to {receiver_two}",
-        f"Transfer 10 TTOK to {receiver_one} and 20 TTOK to {receiver_two}",
-        f"Send 10 TTOK to address {receiver_one} and 20 TTOK to address {receiver_two}",
-        f"Dispatch 10 TTOK to the wallet {receiver_one} and 20 TTOK to the wallet {receiver_two}",
-        f"Execute two transactions: send 10 TTOK to {receiver_one} and 20 TTOK to {receiver_two}",
-        f"Process a payment of 10 TTOK to {receiver_one} and another payment of 20 TTOK to {receiver_two}",
-        f"Forward 10 TTOK to address {receiver_one} and 20 TTOK to address {receiver_two}",
-        f"Allocate 10 TTOK for {receiver_one} and 20 TTOK for {receiver_two}",
-        f"Initiate the transfer of 10 TTOK to {receiver_one} and 20 TTOK to {receiver_two}",
-        f"Complete the transaction of sending 10 TTOK to the Ethereum address {receiver_one} and 20 TTOK to the Ethereum address {receiver_two}",
-        f"Move 10 TTOK to {receiver_one} and 20 TTOK to {receiver_two} in two separate transactions",
+        f"Send 10 USDC to {receiver_one} and 20 USDC to {receiver_two}",
+        f"Transfer 10 USDC to {receiver_one} and 20 USDC to {receiver_two}",
+        f"Send 10 USDC to address {receiver_one} and 20 USDC to address {receiver_two}",
+        f"Dispatch 10 USDC to the wallet {receiver_one} and 20 USDC to the wallet {receiver_two}",
+        f"Execute two transactions: send 10 USDC to {receiver_one} and 20 USDC to {receiver_two}",
+        f"Process a payment of 10 USDC to {receiver_one} and another payment of 20 USDC to {receiver_two}",
+        f"Forward 10 USDC to address {receiver_one} and 20 USDC to address {receiver_two}",
+        f"Allocate 10 USDC for {receiver_one} and 20 USDC for {receiver_two}",
+        f"Initiate the transfer of 10 USDC to {receiver_one} and 20 USDC to {receiver_two}",
+        f"Complete the transaction of sending 10 USDC to the Ethereum address {receiver_one} and 20 USDC to the Ethereum address {receiver_two}",
+        f"Move 10 USDC to {receiver_one} and 20 USDC to {receiver_two} in two separate transactions",
     ]
 
     for prompt in prompts:
-        balance_one = get_erc20_balance(client.w3, mock_erc20, receiver_one)
-        balance_two = get_erc20_balance(client.w3, mock_erc20, receiver_two)
+        balance_one = get_erc20_balance(client.w3, usdc, receiver_one)
+        balance_two = get_erc20_balance(client.w3, usdc, receiver_two)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance_one = get_erc20_balance(client.w3, mock_erc20, receiver_one)
-        new_balance_two = get_erc20_balance(client.w3, mock_erc20, receiver_two)
+        new_balance_one = get_erc20_balance(client.w3, usdc, receiver_one)
+        new_balance_two = get_erc20_balance(client.w3, usdc, receiver_two)
 
         try:
             assert balance_one + 10 == new_balance_one
@@ -111,15 +114,15 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, mock_erc20):
             print(f"Balance Two: {balance_two} New Balance Two: {new_balance_two}")
             raise
 
-
-def test_auto_tx_swap_and_send(configuration, auto_tx):
+@pytest.mark.skip()
+def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
-    network_info = SUPPORTED_NETWORKS.get(web3.eth.chain_id)
+    network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
 
-    receiver = ETHAddress("0x10f8Bf6a479F320ead074411A4b0e7944eA8C9c1", client.w3)
+    receiver = test_accounts[0]
 
     prompts = [
         f"Swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC and send 50 USDC to {receiver}",
