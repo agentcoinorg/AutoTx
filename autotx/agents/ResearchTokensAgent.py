@@ -3,22 +3,25 @@ import os
 from textwrap import dedent
 from typing import Callable, Optional, Union
 from crewai import Agent
+from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.auto_tx_agent import AutoTxAgent
 from crewai_tools import BaseTool
-from gnosis.eth import EthereumNetwork, EthereumNetworkNotSupported
+from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 from coingecko import GeckoAPIException, CoinGeckoDemoClient
 
-from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING
+from autotx.auto_tx_tool import AutoTxTool
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 
 COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
-    EthereumNetwork.MAINNET: "ethereum",
-    EthereumNetwork.OPTIMISM: "optimistic-ethereum",
-    EthereumNetwork.POLYGON: "polygon-pos",
-    EthereumNetwork.BASE_MAINNET: "base",
-    EthereumNetwork.ARBITRUM_ONE: "arbitrum-one",
-    EthereumNetwork.GNOSIS: "xdai",
+    ChainId.MAINNET: "ethereum",
+    ChainId.OPTIMISM: "optimistic-ethereum",
+    ChainId.POLYGON: "polygon-pos",
+    ChainId.BASE_MAINNET: "base",
+    ChainId.ARBITRUM_ONE: "arbitrum-one",
+    ChainId.GNOSIS: "xdai",
 }
+
 
 def get_coingecko():
     return CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
@@ -27,10 +30,10 @@ def get_coingecko():
 def get_tokens_and_filter_per_network(
     network_name: str,
 ) -> dict[str, Union[str, dict[str, str]]]:
-    network = EthereumNetwork[network_name]
+    network = ChainId[network_name]
     coingecko_network_key = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(network)
     if coingecko_network_key == None:
-        raise EthereumNetworkNotSupported(f"Network {network_name} not supported")
+        raise ChainIdNotSupported(f"Network {network_name} not supported")
 
     token_list_with_addresses = get_coingecko().coins.get_list(include_platform=True)
     return [
@@ -38,6 +41,21 @@ def get_tokens_and_filter_per_network(
         for token in token_list_with_addresses
         if coingecko_network_key in token["platforms"]
     ]
+
+
+def add_tokens_address_if_not_in_registry(
+    tokens_in_category: list[dict[str, str]],
+    tokens: list[str, str],
+    current_network: str,
+):
+    for token_with_address in tokens_in_category:
+        token_symbol = token_with_address["symbol"].lower()
+        token_not_added = token_symbol not in tokens
+        if token_not_added:
+            tokens[token_symbol] = Web3.to_checksum_address(
+                token_with_address["platforms"][current_network]
+            )
+
 
 class GetTokenInformation(BaseTool):
     name: str = "get_token_information"
@@ -130,11 +148,12 @@ class GetAvailableCategories(BaseTool):
         categories = get_coingecko().categories.get_list()
         return json.dumps([category["category_id"] for category in categories])
 
-class GetTokensBasedOnCategory(BaseTool):
+
+class GetTokensBasedOnCategory(AutoTxTool):
     name: str = "get_tokens_based_on_category"
     description: str = dedent(
         f"""
-        Retrieve all tokens with their respective information (id, symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category
+        Retrieve all tokens with their respective information (symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category
 
         Args:
             category (str): Category to retrieve tokens
@@ -166,7 +185,7 @@ class GetTokensBasedOnCategory(BaseTool):
                 per_page=250,
             )
         except GeckoAPIException as e:
-            if "Not found" == e.error_message:
+            if "Not Found" == e.error_message["error"]:
                 raise Exception(
                     f"Category {category} not found. Check the available categories"
                 )
@@ -188,6 +207,17 @@ class GetTokensBasedOnCategory(BaseTool):
                 if token["id"] in filtered_tokens_map
             ]
 
+            current_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
+                self.autotx.network.chain_id
+            )
+            asked_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
+                ChainId[network_name]
+            )
+            if current_network == asked_network:
+                add_tokens_address_if_not_in_registry(
+                    tokens_in_category, self.autotx.network.tokens, current_network
+                )
+
         interval = (
             price_change_percentage_interval
             if price_change_percentage_interval
@@ -196,7 +226,6 @@ class GetTokensBasedOnCategory(BaseTool):
         price_change = f"price_change_percentage_{interval}"
         tokens = [
             {
-                "id": token["id"],
                 "symbol": token["symbol"],
                 "market_cap": token["market_cap"],
                 "total_volume_last_24h": token["total_volume"],
@@ -206,6 +235,7 @@ class GetTokensBasedOnCategory(BaseTool):
         ]
 
         return json.dumps(tokens)
+
 
 class TokenExchanges(BaseTool):
     name: str = "get_exchanges_where_token_can_be_traded"
@@ -222,8 +252,9 @@ class TokenExchanges(BaseTool):
         market_names = {item["market"]["name"] for item in tickers}
         return list(market_names)
 
+
 class ResearchTokensAgent(AutoTxAgent):
-    def __init__(self):
+    def __init__(self, autotx: AutoTx):
         if os.getenv("COINGECKO_API_KEY") == None:
             raise "You must add a value to COINGECKO_API_KEY key in .env file"
 
@@ -235,7 +266,7 @@ class ResearchTokensAgent(AutoTxAgent):
             tools=[
                 GetTokenInformation(),
                 SearchToken(),
-                GetTokensBasedOnCategory(),
+                GetTokensBasedOnCategory(autotx),
                 GetAvailableCategories(),
                 TokenExchanges(),
             ],
@@ -243,7 +274,7 @@ class ResearchTokensAgent(AutoTxAgent):
 
 
 def build_agent_factory() -> Callable[[AutoTx], Agent]:
-    def agent_factory(_: AutoTx) -> ResearchTokensAgent:
-        return ResearchTokensAgent()
+    def agent_factory(autotx: AutoTx) -> ResearchTokensAgent:
+        return ResearchTokensAgent(autotx)
 
     return agent_factory

@@ -8,12 +8,13 @@ from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
+from autotx.utils.ethereum.networks import ChainId
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
 from .constants import MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
 from eth_account import Account
-from gnosis.eth import EthereumClient, EthereumNetwork
+from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.multicall import Multicall
 from gnosis.safe import Safe, SafeOperation, SafeTx
@@ -79,7 +80,7 @@ class SafeManager:
 
         return manager
     
-    def connect_tx_service(self, network: EthereumNetwork, transaction_service_url: str):
+    def connect_tx_service(self, network: ChainId, transaction_service_url: str):
         self.use_tx_service = True
         self.network = network
         self.transaction_service_url = transaction_service_url

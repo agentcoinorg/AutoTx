@@ -1,4 +1,4 @@
-from gnosis.eth import EthereumClient, EthereumNetwork
+from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 import requests
 
@@ -6,19 +6,19 @@ from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
-from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from autotx.utils.ethereum.weth_abi import WETH_ABI
 
 SLIPPAGE = 0.05
 SQRT_PRICE_LIMIT = 0
 
 SUPPORTED_UNISWAP_V3_NETWORKS = {
-    EthereumNetwork.MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
-    EthereumNetwork.OPTIMISM: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-optimism",
-    EthereumNetwork.ARBITRUM_ONE: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-arbitrum",
-    EthereumNetwork.BASE_MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-base",
-    EthereumNetwork.POLYGON: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-polygon",
-    EthereumNetwork.SEPOLIA: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
+    ChainId.MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
+    ChainId.OPTIMISM: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-optimism",
+    ChainId.ARBITRUM_ONE: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-arbitrum",
+    ChainId.BASE_MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-base",
+    ChainId.POLYGON: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-polygon",
+    ChainId.SEPOLIA: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
 }
 
 def get_swap_information(
