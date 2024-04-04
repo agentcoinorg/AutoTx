@@ -5,17 +5,31 @@ from typing import Union
 import requests
 
 KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
-COINGECKO_TOKENS_LIST = "https://tokens.coingecko.com/uniswap/all.json"
+COINGECKO_TOKENS_LISTS = [
+    "https://tokens.coingecko.com/uniswap/all.json",
+    "https://tokens.coingecko.com/ethereum/all.json",
+    "https://tokens.coingecko.com/optimistic-ethereum/all.json",
+    "https://tokens.coingecko.com/polygon-pos/all.json",
+    "https://tokens.coingecko.com/base/all.json",
+    "https://tokens.coingecko.com/arbitrum-one/all.json",
+    "https://tokens.coingecko.com/xdai/all.json",
+    "https://tokens.coingecko.com/zksync/all.json",
+]
 
-TOKENS_LIST = [KLEROS_TOKENS_LIST, COINGECKO_TOKENS_LIST]
+
+TOKENS_LIST = [KLEROS_TOKENS_LIST, *COINGECKO_TOKENS_LISTS]
+
 
 def fetch_tokens_list():
     loaded_tokens: list[dict[str, Union[str, int]]] = []
 
     for token_list_url in TOKENS_LIST:
-        response = requests.get(token_list_url)
-        tokens = json.loads(response.text)["tokens"]
-        loaded_tokens.extend(tokens)
+        try:
+            response = requests.get(token_list_url)
+            tokens = json.loads(response.text)["tokens"]
+            loaded_tokens.extend(tokens)
+        except:
+            print("Error while trying to fetch list:", token_list_url)
 
     loaded_tokens_as_string = json.dumps(loaded_tokens, indent=2)
     content = dedent(
@@ -26,6 +40,7 @@ token_list = {loaded_tokens_as_string}
     )
     with open("autotx/utils/ethereum/helpers/token_list.py", "w") as f:
         f.write(content)
+
 
 def run():
     fetch_tokens_list()

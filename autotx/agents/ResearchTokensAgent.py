@@ -102,17 +102,17 @@ class SearchToken(BaseTool):
     name: str = "search_token"
     description: str = dedent(
         """
-        Search token based on its symbol. It will return the ID of tokens with most market cap
+        Search token based on its symbol. It will return the ID of tokens with the largest market cap
 
         Args:
             token_symbol (str): Symbol of token to search
-            retrieve_all (bool): Only used to retrieve all tokens (Which can happen if they share the same symbol).
-                By default use False unless it's necessary to use True
+            retrieve_duplicate (bool): Set to True to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates.
+                By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested.
         """
     )
 
-    def _run(self, token_symbol: str, retrieve_all: str):
-        retrieve_all = retrieve_all in ["true", "True"]
+    def _run(self, token_symbol: str, retrieve_duplicate: str):
+        retrieve_all = retrieve_duplicate in ["true", "True"]
         response = get_coingecko().search.get(token_symbol)
 
         if len(response["coins"]) == 0:

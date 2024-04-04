@@ -7,17 +7,8 @@ from autotx.auto_tx_agent import AutoTxAgent
 from autotx.auto_tx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
+from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
 from gnosis.eth import EthereumClient, EthereumNetworkNotSupported, EthereumNetwork
-
-SUPPORTED_UNISWAP_V3_NETWORKS = [
-    EthereumNetwork.MAINNET,
-    EthereumNetwork.OPTIMISM,
-    EthereumNetwork.ARBITRUM_ONE,
-    EthereumNetwork.BASE_MAINNET,
-    EthereumNetwork.POLYGON,
-    EthereumNetwork.SEPOLIA,
-]
 
 
 def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):

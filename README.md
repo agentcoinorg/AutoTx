@@ -48,9 +48,9 @@ Please install the following:
 2. Create a new .env file via `cp .env.example .env`
 3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
 4. Find the line that says CHAIN_RPC_URL=, and add your unique Ethereum RPC URL `CHAIN_RPC_URL=https://mainnet.infura.io/v3/...` (see https://www.infura.io/)
-5. Start a new poetry shell `poetry shell`
-6. Install python dependencies `poetry install`
-7. Run `poetry run load_tokens`
+5. Find the line that says COINGECKO_API_KEY=, and add your Coingecko API Key `COINGECKO_API_KEY=CG-...` (see https://docs.coingecko.com/reference/setting-up-your-api-key)
+6. Start a new poetry shell `poetry shell`
+7. Install python dependencies `poetry install`
 
 ## Run The Agent
 

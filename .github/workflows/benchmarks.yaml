@@ -72,15 +72,12 @@ jobs:
     - name: Poetry Install
       run: |
         poetry install
-    
-    - name: Load Tokens
-      run: |
-        poetry run load_tokens
 
     - name: Create .env
       run: |
         echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .env
         echo "CHAIN_RPC_URL=${{ secrets.CI_CHAIN_RPC_URL }}" >> .env
+        echo "COINGECKO_API_KEY=${{ secrets.CI_COINGECKO_API_KEY }}" >> .env
 
     - name: Parse Comment for Arguments
       id: parse_args
