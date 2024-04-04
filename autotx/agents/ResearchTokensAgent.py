@@ -43,6 +43,20 @@ def get_tokens_and_filter_per_network(
     ]
 
 
+def add_tokens_address_if_not_in_registry(
+    tokens_in_category: list[dict[str, str]],
+    tokens: list[str, str],
+    current_network: str,
+):
+    for token_with_address in tokens_in_category:
+        token_symbol = token_with_address["symbol"].lower()
+        token_not_added = token_symbol not in tokens
+        if token_not_added:
+            tokens[token_symbol] = Web3.to_checksum_address(
+                token_with_address["platforms"][current_network]
+            )
+
+
 class GetTokenInformation(BaseTool):
     name: str = "get_token_information"
     description: str = dedent(
@@ -193,23 +207,16 @@ class GetTokensBasedOnCategory(AutoTxTool):
                 if token["id"] in filtered_tokens_map
             ]
 
-            # If token is not in our token registry, we add it
             current_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
-                self.autotx.network.network
+                self.autotx.network_info.network
             )
             asked_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
                 EthereumNetwork[network_name]
             )
             if current_network == asked_network:
-                for token_with_address in tokens_in_category:
-                    token_symbol = token_with_address["symbol"].lower()
-                    token_not_added = token_symbol not in self.autotx.network.tokens
-                    if token_not_added:
-                        self.autotx.network.tokens[token_symbol] = (
-                            Web3.to_checksum_address(
-                                token_with_address["platforms"][current_network]
-                            )
-                        )
+                add_tokens_address_if_not_in_registry(
+                    tokens_in_category, self.autotx.network_info.tokens, current_network
+                )
 
         interval = (
             price_change_percentage_interval

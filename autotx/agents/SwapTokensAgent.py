@@ -55,7 +55,7 @@ class ExecuteSwapExactInTool(AutoTxTool):
 
     def _run(self, exact_amount_in: float, token_in: str, token_out: str) -> str:
         (token_in_address, token_out_address) = get_tokens_address(
-            token_in, token_out, self.autotx.network
+            token_in, token_out, self.autotx.network_info
         )
 
         swap_transactions = build_swap_transaction(
@@ -96,7 +96,7 @@ class ExecuteSwapExactOutTool(AutoTxTool):
 
     def _run(self, exact_amount_out: float, token_in: str, token_out: str) -> str:
         (token_in_address, token_out_address) = get_tokens_address(
-            token_in, token_out, self.autotx.network
+            token_in, token_out, self.autotx.network_info
         )
 
         swap_transactions = build_swap_transaction(
