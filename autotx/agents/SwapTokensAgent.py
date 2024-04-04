@@ -73,7 +73,7 @@ class ExecuteSwapExactInTool(AutoTxTool):
             token_in_address,
             token_out_address,
             self.recipient.hex,
-            is_exact_input=True,
+            True,
         )
         self.autotx.transactions.extend(swap_transactions)
 
@@ -114,7 +114,7 @@ class ExecuteSwapExactOutTool(AutoTxTool):
             token_in_address,
             token_out_address,
             self.recipient.hex,
-            is_exact_input=False,
+            False,
         )
         self.autotx.transactions.extend(swap_transactions)
 
