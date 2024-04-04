@@ -81,6 +81,7 @@ jobs:
       run: |
         echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .env
         echo "CHAIN_RPC_URL=${{ secrets.CI_CHAIN_RPC_URL }}" >> .env
+        echo "COINGECKO_API_KEY=${{ secrets.CI_COINGECKO_API_KEY }}" >> .env
 
     - name: Parse Comment for Arguments
       id: parse_args
