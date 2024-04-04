@@ -47,9 +47,9 @@ def test_check_liquidity(token_research_agent: Agent):
 
 def test_get_top_5_tokens_from_base(token_research_agent: Agent):
     task = Task(
-        description="What are the top 5 tokens on Base network?",
+        description="What are the top 5 tokens on Base chain?",
         agent=token_research_agent,
-        expected_output="Top 5 tokens from base network",
+        expected_output="Top 5 tokens from base chain",
     )
     response = token_research_agent.execute_task(task)
     assert "The top 5 tokens" in response
