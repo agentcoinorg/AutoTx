@@ -88,7 +88,7 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
                     "agent": "swap-tokens",
                     "expected_output": "A successful swap transaction from WBTC to USDC where the user ends up with exactly 1000 USDC",
                     "context": null,
-                    "extra_information": "Use the exact_output mode for the swap, ensuring the exact amount of 1000 USDC is received. The exact amount of 0.05 WBTC is to be swapped."
+                    "extra_information": "Use the exact_output mode for the swap, ensuring the exact amount of 1000 USDC is received."
                 }},
                 {{
                     "task": "Transfer 50 USDC to the Ethereum Name Service (ENS) domain 'vitalik.eth'",
