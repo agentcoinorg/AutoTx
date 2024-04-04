@@ -72,7 +72,7 @@ def define_tasks(goal: str, agents_information: str, agents: list[Agent]) -> lis
             ]
         }}
         
-        Goal: First, swap Ethereum (ETH) to 0.05 Wrapped Bitcoin (WBTC), ensuring the right amount of ETH is swapped for exactly 0.05 WBTC. After successfully swapping to WBTC, proceed to swap 0.05 WBTC to 1000 USD Coin (USDC), making sure to receive exactly 1000 USDC from the swap. Following these swaps, transfer 50 USDC to the Ethereum Name Service (ENS) domain 'vitalik.eth'.
+        Goal: First, swap Ethereum (ETH) to 0.05 Wrapped Bitcoin (WBTC), ensuring the right amount of ETH is swapped for exactly 0.05 WBTC. After successfully swapping to WBTC, proceed to swap WBTC to 1000 USD Coin (USDC), making sure to receive exactly 1000 USDC from the swap. Following these swaps, transfer 50 USDC to the Ethereum Name Service (ENS) domain 'vitalik.eth'.
         Output:
         {{
             "tasks": [
