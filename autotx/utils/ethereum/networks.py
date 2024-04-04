@@ -60,7 +60,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[EthereumNetwork, NetworkConfiguration
             "weth": "0x4200000000000000000000000000000000000006",
             "usdc": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
             "dai": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
-            "usdt": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "usdt": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
         },
     ),
     EthereumNetwork.ZKSYNC_V2: NetworkConfiguration(
@@ -115,3 +115,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[EthereumNetwork, NetworkConfiguration
         },
     ),
 }
+
+SUPPORTED_NETWORKS_AS_STRING = ", ".join(
+    [network.name for network in SUPPORTED_NETWORKS_CONFIGURATION_MAP.keys()]
+)
