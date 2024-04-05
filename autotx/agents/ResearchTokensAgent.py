@@ -43,6 +43,21 @@ def get_tokens_and_filter_per_network(
     ]
 
 
+def filter_token_list_by_network(tokens: list[dict[str, str]], network_name: str):
+    tokens_in_category_map = {category["id"]: category for category in tokens}
+    filtered_tokens_map = {
+        token["id"]: token for token in get_tokens_and_filter_per_network(network_name)
+    }
+    return [
+        {
+            **tokens_in_category_map[token["id"]],
+            **filtered_tokens_map[token["id"]],
+        }
+        for token in tokens
+        if token["id"] in filtered_tokens_map
+    ]
+
+
 def add_tokens_address_if_not_in_registry(
     tokens_in_category: list[dict[str, str]],
     tokens: list[str, str],
@@ -191,22 +206,9 @@ class GetTokensBasedOnCategory(AutoTxTool):
                 )
 
         if network_name:
-            tokens_in_category_map = {
-                category["id"]: category for category in tokens_in_category
-            }
-            filtered_tokens_map = {
-                token["id"]: token
-                for token in get_tokens_and_filter_per_network(network_name)
-            }
-            tokens_in_category = [
-                {
-                    **tokens_in_category_map[token["id"]],
-                    **filtered_tokens_map[token["id"]],
-                }
-                for token in tokens_in_category
-                if token["id"] in filtered_tokens_map
-            ]
-
+            tokens_in_category = filter_token_list_by_network(
+                tokens_in_category, network_name
+            )
             current_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
                 self.autotx.network.chain_id
             )
