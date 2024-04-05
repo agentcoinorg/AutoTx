@@ -17,7 +17,7 @@ def test_auto_tx_research_and_swap_meme_token(configuration, auto_tx):
     assert shib_balance_in_safe > 1000
 
 
-def test_auto_tx_research_and_swap_governance_token(configuration, auto_tx):
+def test_auto_tx_research_swap_and_send_governance_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     uni_address = ETHAddress(auto_tx.network.tokens["uni"], web3)
