@@ -15,9 +15,9 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
     token_in = token_in.lower()
     token_out = token_out.lower()
 
-    if not network_info.network in SUPPORTED_UNISWAP_V3_NETWORKS:
+    if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
         raise ChainIdNotSupported(
-            f"Network {network_info.network.name} not supported for swap"
+            f"Network {network_info.chain_id.name} not supported for swap"
         )
 
     if token_in not in network_info.tokens:
