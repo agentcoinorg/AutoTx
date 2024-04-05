@@ -1,4 +1,3 @@
-from crewai import Task, Agent
 import pytest
 from autotx.agents.ResearchTokensAgent import (
     ResearchTokensAgent,
@@ -7,11 +6,9 @@ from autotx.agents.ResearchTokensAgent import (
 )
 from autotx.utils.ethereum.networks import ChainId
 
-
 @pytest.fixture()
 def token_research_agent(auto_tx) -> Agent:
     return ResearchTokensAgent(auto_tx)
-
 
 def test_price_change_information(token_research_agent: Agent):
     token_information = get_coingecko().coins.get_id(

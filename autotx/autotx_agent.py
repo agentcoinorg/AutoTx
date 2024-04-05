@@ -1,6 +1,6 @@
 import autogen
 
-class AutoTxAutogenAgent():
+class AutoTxAgent():
     autogen_agent: autogen.Agent
     tools: list[str]
 

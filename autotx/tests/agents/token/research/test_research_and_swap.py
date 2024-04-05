@@ -2,7 +2,6 @@ from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 
-
 def test_auto_tx_research_and_swap_meme_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
@@ -15,7 +14,6 @@ def test_auto_tx_research_and_swap_meme_token(configuration, auto_tx):
     auto_tx.run(prompt, non_interactive=True)
     shib_balance_in_safe = manager.balance_of(shib_address)
     assert shib_balance_in_safe > 1000
-
 
 def test_auto_tx_research_swap_and_send_governance_token(configuration, auto_tx):
     (_, _, _, manager) = configuration

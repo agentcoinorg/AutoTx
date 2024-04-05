@@ -2,7 +2,7 @@ from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
 from typing import Optional
-from autotx.autotx_autogen_agent import AutoTxAutogenAgent
+from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
@@ -22,7 +22,7 @@ class AutoTx:
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     user_proxy: UserProxyAgent
-    agent_factories: list[Callable[['AutoTx', UserProxyAgent, Optional[Dict[str, Any]]], AutoTxAutogenAgent]]
+    agent_factories: list[Callable[['AutoTx', UserProxyAgent, Optional[Dict[str, Any]]], AutoTxAgent]]
 
     def __init__(
         self, manager: SafeManager, network: NetworkInfo, agent_factories: list[Callable[['AutoTx', UserProxyAgent, Optional[Dict[str, Any]]], Agent]], config: Optional[Config],
@@ -88,7 +88,7 @@ class AutoTx:
         self.transactions.clear()
        
 
-    def get_agents_information(self, agents: list[AutoTxAutogenAgent]) -> str:
+    def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []
         for agent in agents:
             tools_available = "\n".join(

@@ -12,7 +12,7 @@ from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
-from autotx.agents import ResearchTokensAutogenAgent, SendTokensAutogenAgent, SwapTokensAutogenAgent
+from autotx.agents import ResearchTokensAgent, SendTokensAgent, SwapTokensAgent
 
 patch_langchain()
 
@@ -62,9 +62,9 @@ def run(prompt: str, non_interactive: bool):
         manager, 
         network_info, 
         [
-            SendTokensAutogenAgent.build_agent_factory(),
-            SwapTokensAutogenAgent.build_agent_factory(),
-            ResearchTokensAutogenAgent.build_agent_factory()
+            SendTokensAgent.build_agent_factory(),
+            SwapTokensAgent.build_agent_factory(),
+            ResearchTokensAgent.build_agent_factory()
         ], 
         None, get_llm_config=get_llm_config
     )

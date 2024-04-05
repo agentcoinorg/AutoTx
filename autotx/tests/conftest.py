@@ -11,7 +11,7 @@ from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 load_dotenv()
 
 import pytest
-from autotx.agents import ResearchTokensAutogenAgent, SendTokensAutogenAgent, SwapTokensAutogenAgent
+from autotx.agents import ResearchTokensAgent, SendTokensAgent, SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
@@ -55,9 +55,9 @@ def auto_tx(configuration):
         manager, 
         network_info, 
         [
-            SendTokensAutogenAgent.build_agent_factory(),
-            SwapTokensAutogenAgent.build_agent_factory(),
-            ResearchTokensAutogenAgent.build_agent_factory()
+            SendTokensAgent.build_agent_factory(),
+            SwapTokensAgent.build_agent_factory(),
+            ResearchTokensAgent.build_agent_factory()
         ], 
         None, get_llm_config=get_llm_config
     )
