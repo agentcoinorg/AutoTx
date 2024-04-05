@@ -60,6 +60,21 @@ jobs:
     - name: Save comment ID
       run: echo "BENCHMARKS_COMMENT_ID=${{ steps.benchmarks_comment.outputs.result }}" >> $GITHUB_ENV
       
+    - name: Get PR branch
+      id: pr-info
+      run: |
+        PR_API_URL="${{ github.event.issue.pull_request.url }}"
+        PR_DATA=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -X GET "$PR_API_URL")
+        PR_REF=$(echo "$PR_DATA" | jq -r .head.ref)
+        echo "PR branch is $PR_REF"
+        echo "::set-output name=branch::${PR_REF}"
+
+    - name: Checkout PR branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ steps.pr-info.outputs.branch }}
+        submodules: 'recursive'
+
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:
