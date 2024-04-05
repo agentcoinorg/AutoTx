@@ -68,12 +68,6 @@ class AutoTx:
             code_execution_config=False,
         )
 
-        # @user_proxy.register_for_execution()
-        # @verifier_agent.register_for_llm(name="Clear_all_prepared_transactions", description= "Clears all prepared transactions")
-        # def clear_prepared_txs():
-        #     self.transactions.clear()
-        #     return "All prepared transactions have been cleared"
-
         groupchat = autogen.GroupChat(agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], messages=[], max_round=12)
         manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
 
