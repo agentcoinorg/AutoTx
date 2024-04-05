@@ -51,7 +51,6 @@ Please install the following:
 5. Find the line that says COINGECKO_API_KEY=, and add your Coingecko API Key `COINGECKO_API_KEY=CG-...` (see https://docs.coingecko.com/reference/setting-up-your-api-key)
 6. Start a new poetry shell `poetry shell`
 7. Install python dependencies `poetry install`
-8. Run `poetry run load_tokens`
 
 ## Run The Agent
 

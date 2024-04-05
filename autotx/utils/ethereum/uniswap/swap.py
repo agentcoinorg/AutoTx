@@ -2,16 +2,24 @@ from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 import requests
 
-from web3.contract.contract import Contract
-
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
+from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from autotx.utils.ethereum.weth_abi import WETH_ABI
 
 SLIPPAGE = 0.05
 SQRT_PRICE_LIMIT = 0
+
+SUPPORTED_UNISWAP_V3_NETWORKS = {
+    ChainId.MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
+    ChainId.OPTIMISM: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-optimism",
+    ChainId.ARBITRUM_ONE: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-arbitrum",
+    ChainId.BASE_MAINNET: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-base",
+    ChainId.POLYGON: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-polygon",
+    ChainId.SEPOLIA: "https://api.thegraph.com/subgraphs/name/revert-finance/uniswap-v3-mainnet",
+}
 
 def get_swap_information(
     amount: float,
@@ -35,7 +43,7 @@ def get_swap_information(
             "exactOutputSingle",
         )
 
-def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
+def get_best_fee_tier(token_in_address: str, token_out_address: str, subgraph_url: str) -> int:
     token_in_lower = token_in_address.lower()
     token_out_lower = token_out_address.lower()
     reversed = token_in_lower > token_out_lower
@@ -72,8 +80,7 @@ def get_best_fee_tier(token_in_address: str, token_out_address: str) -> int:
         """,
         "variables": {"token0": token0, "token1": token1},
     }
-    url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3"
-    response = requests.post(url, json=data)
+    response = requests.post(url=subgraph_url, json=data)
 
     if response.status_code == 200:
         if not "data" in response.json():
@@ -168,8 +175,9 @@ def build_swap_transaction(
                     tx,
                 )
             )
+    subgraph_url = SUPPORTED_UNISWAP_V3_NETWORKS[NetworkInfo(web3.eth.chain_id).network]
 
-    fee = get_best_fee_tier(token_in.address, token_out.address)
+    fee = get_best_fee_tier(token_in.address, token_out.address, subgraph_url)
     swap_transaction = uniswap.router.functions[method](
         (
             token_in.address,
