@@ -17,8 +17,8 @@ class NetworkInfo:
         self,
         chain_id: int,
     ):
-        self.network = ChainId(chain_id)
-        config = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(self.network)
+        self.chain_id = ChainId(chain_id)
+        config = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(self.chain_id)
 
         if config == None:
             raise Exception(f"Chain ID {chain_id} is not supported")

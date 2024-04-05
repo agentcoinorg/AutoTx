@@ -17,6 +17,7 @@ requests = "^2.31.0"
 python-dotenv = "^1.0.0"
 crewai = "0.22.5"
 coingecko = "^0.13"
+pyautogen = "^0.2.21"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"

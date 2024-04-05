@@ -17,7 +17,7 @@ def get_configuration():
     for i in range(10):
         if w3.is_connected():
             break
-        if i == 9:
+        if i == 15:
             sys.exit("Can not connect with local node. Did you run `poetry run start-fork`?")
         sleep(0.5)
 

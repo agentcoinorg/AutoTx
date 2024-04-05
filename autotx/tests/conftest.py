@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from eth_account import Account
 
@@ -10,8 +11,7 @@ from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 load_dotenv()
 
 import pytest
-from autotx.agents import ResearchTokensAgent, SendTokensAgent
-from autotx.agents import SwapTokensAgent
+from autotx.agents import ResearchTokensAutogenAgent, SendTokensAutogenAgent, SwapTokensAutogenAgent
 from autotx.AutoTx import AutoTx
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
@@ -49,12 +49,18 @@ def configuration():
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
 
-    return AutoTx(manager, network_info, [
-        SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(client, manager.address),
-        ResearchTokensAgent.build_agent_factory()
-    ], None)
+    return AutoTx(
+        manager, 
+        network_info, 
+        [
+            SendTokensAutogenAgent.build_agent_factory(),
+            SwapTokensAutogenAgent.build_agent_factory(),
+            ResearchTokensAutogenAgent.build_agent_factory()
+        ], 
+        None, get_llm_config=get_llm_config
+    )
 
 @pytest.fixture()
 def usdc(configuration) -> ETHAddress:

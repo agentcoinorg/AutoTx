@@ -1,11 +1,10 @@
+import os
 import click
 from dotenv import load_dotenv
+load_dotenv()
 
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
-load_dotenv()
-from autotx.agents import ResearchTokensAgent, SwapTokensAgent, SendTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.patch import patch_langchain
 from autotx.utils.ethereum.agent_account import get_agent_account, create_agent_account, delete_agent_account
@@ -13,6 +12,7 @@ from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
+from autotx.agents import ResearchTokensAutogenAgent, SendTokensAutogenAgent, SwapTokensAutogenAgent
 
 patch_langchain()
 
@@ -43,7 +43,7 @@ def run(prompt: str, non_interactive: bool):
         print(f"Smart account connected: {smart_account_addr}")
         manager = SafeManager.connect(client, smart_account_addr, agent)
 
-        manager.connect_tx_service(network_info.network, network_info.transaction_service_url)
+        manager.connect_tx_service(network_info.chain_id, network_info.transaction_service_url)
     else:
         print("No smart account connected, deploying a new one...")
         dev_account = get_dev_account()
@@ -55,18 +55,25 @@ def run(prompt: str, non_interactive: bool):
         print(f"Sent 10 ETH to smart account for testing purposes")
 
         print("Starting smart account balances:")
-        show_address_balances(web3, network_info.network, manager.address)
+        show_address_balances(web3, network_info.chain_id, manager.address)
 
-    autotx = AutoTx(manager, network_info, [
-        SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(client, manager.address),
-        ResearchTokensAgent.build_agent_factory()
-    ], None)
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
+    autotx = AutoTx(
+        manager, 
+        network_info, 
+        [
+            SendTokensAutogenAgent.build_agent_factory(),
+            SwapTokensAutogenAgent.build_agent_factory(),
+            ResearchTokensAutogenAgent.build_agent_factory()
+        ], 
+        None, get_llm_config=get_llm_config
+    )
+
     autotx.run(prompt, non_interactive)
 
     if not smart_account_addr:
         print("Final smart account balances:")
-        show_address_balances(web3, network_info.network, manager.address)
+        show_address_balances(web3, network_info.chain_id, manager.address)
 
 @main.group()
 def agent():

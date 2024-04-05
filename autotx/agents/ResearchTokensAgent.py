@@ -140,7 +140,7 @@ class GetAvailableCategories(BaseTool):
     name: str = "get_available_categories"
     description: str = dedent(
         """
-        Retrieve all categories id
+        Retrieve all category ids
         """
     )
 
