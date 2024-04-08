@@ -224,7 +224,7 @@ class GetTokensBasedOnCategoryTool(AutoTxTool):
 
         return run
 
-class GetExchangesWhereTocanCanBeTradedTool(AutoTxTool):
+class GetExchangesWhereTokenCanBeTradedTool(AutoTxTool):
     name: str = "get_exchanges_where_token_can_be_traded"
     description: str = "Retrieve exchanges where token can be traded"
 
@@ -253,5 +253,5 @@ class ResearchTokensAgent(AutoTxAgent):
         SearchTokenTool(),
         GetAvailableCategoriesTool(),
         GetTokensBasedOnCategoryTool(),
-        GetExchangesWhereTocanCanBeTradedTool(),
+        GetExchangesWhereTokenCanBeTradedTool(),
     ]

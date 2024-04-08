@@ -1,8 +1,13 @@
 from textwrap import dedent
-from autotx.AutoTx import AutoTx
 from typing import Annotated, Callable
-from autotx.autotx_agent import AutoTxAgent
-from autotx.autotx_tool import AutoTxTool
+from autotx import AutoTx, AutoTxAgent, AutoTxTool
+
+name = "Example Agent"
+
+system_message = f"""
+Example of an agent system message.
+...
+"""
 
 class ExampleTool(AutoTxTool):
     name: str = "example_tool"
@@ -28,12 +33,8 @@ class ExampleTool(AutoTxTool):
         return run
 
 class ExampleAgent(AutoTxAgent):
-    name="swap-tokens"
-    system_message=dedent(
-        f"""
-        Example of an agent system message.
-        """
-    )
+    name=name
+    system_message=dedent(system_message)
     tools=[
         ExampleTool(),
         # AnotherTool(...),
