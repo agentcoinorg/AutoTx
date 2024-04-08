@@ -21,7 +21,7 @@ def test_auto_tx_research_swap_and_send_governance_token(configuration, auto_tx)
     uni_address = ETHAddress(auto_tx.network.tokens["uni"], web3)
     uni_balance_in_safe = manager.balance_of(uni_address)
     assert uni_balance_in_safe == 0
-    receiver = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    receiver = ETHAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", web3)
     prompt = f"Swap 1 ETH for the governance token with the largest market cap in ethereum mainnet and send 100 units of the bought token to {receiver}"
     auto_tx.run(prompt, non_interactive=True)
     uni_balance_in_safe = manager.balance_of(uni_address)
