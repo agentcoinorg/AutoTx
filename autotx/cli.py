@@ -1,8 +1,8 @@
-import os
-import click
 from dotenv import load_dotenv
 load_dotenv()
 
+import click
+from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx
@@ -57,7 +57,7 @@ def run(prompt: str, non_interactive: bool):
         print("Starting smart account balances:")
         show_address_balances(web3, network_info.chain_id, manager.address)
 
-    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     autotx = AutoTx(
         manager, 
         network_info, 

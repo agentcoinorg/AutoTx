@@ -10,6 +10,7 @@ from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 from coingecko import GeckoAPIException, CoinGeckoDemoClient
 
 from autotx.autotx_agent import AutoTxAgent
+from autotx.utils.constants import COINGECKO_API_KEY
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 
 COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
@@ -22,7 +23,7 @@ COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
 }
 
 def get_coingecko():
-    return CoinGeckoDemoClient(api_key=os.getenv("COINGECKO_API_KEY"))
+    return CoinGeckoDemoClient(api_key=COINGECKO_API_KEY)
 
 
 def get_tokens_and_filter_per_network(
@@ -90,8 +91,8 @@ get_exchanges_where_token_can_be_traded_info = {
 
 def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
     def agent_factory(autotx: AutoTx, user_proxy: UserProxyAgent, llm_config: dict) -> AutoTxAgent:
-        if os.getenv("COINGECKO_API_KEY") == None:
-            raise "You must add a value to COINGECKO_API_KEY key in .env file"
+        if COINGECKO_API_KEY == None:
+            raise Exception("You must add a value to COINGECKO_API_KEY key in .env file")
         
         agent = AssistantAgent(
             name="research-tokens",

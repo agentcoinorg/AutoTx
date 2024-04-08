@@ -1,14 +1,14 @@
-import os
 from dotenv import load_dotenv
+load_dotenv()
+
 from eth_account import Account
 
+from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
-
-load_dotenv()
 
 import pytest
 from autotx.agents import ResearchTokensAgent, SendTokensAgent, SwapTokensAgent
@@ -49,7 +49,7 @@ def configuration():
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
-    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
 
     return AutoTx(
         manager, 

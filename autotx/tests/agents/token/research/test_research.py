@@ -9,11 +9,12 @@ from autotx.agents.ResearchTokensAgent import (
 from autogen import AssistantAgent, UserProxyAgent, GroupChatManager
 import autogen
 
+from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import ChainId
 
 @pytest.fixture()
 def user_proxy_agent() -> UserProxyAgent:
-    llm_config = { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
+    llm_config = { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     user_proxy_agent = UserProxyAgent(
         name="user_proxy_agent",
         is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
@@ -27,7 +28,7 @@ def user_proxy_agent() -> UserProxyAgent:
 
 @pytest.fixture()
 def manager(auto_tx, user_proxy_agent) -> GroupChatManager:
-    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": "gpt-4", "api_key": os.getenv("OPENAI_API_KEY")}]}
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
    
     verifier_agent = AssistantAgent(
         name="verifier",
@@ -158,4 +159,4 @@ def test_get_top_5_memecoins_in_optimism(user_proxy_agent: UserProxyAgent, manag
     tokens = filter_token_list_by_network(tokens, ChainId.OPTIMISM.name)
     for token in tokens[:5]:
         symbol: str = token["symbol"]
-        assert symbol.lower() in result.summary.lower() or symbol.lower() in result.summary.lower()
+        assert symbol.lower() in result.summary.lower()

@@ -1,4 +1,4 @@
 from langchain_openai import ChatOpenAI
-import os
+from autotx.utils.constants import OPENAI_MODEL_NAME
 
-open_ai_llm = ChatOpenAI(temperature=0, model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo-preview")) # type: ignore
+open_ai_llm = ChatOpenAI(temperature=0, model=OPENAI_MODEL_NAME) # type: ignore
