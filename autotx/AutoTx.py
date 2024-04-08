@@ -2,6 +2,7 @@ from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
 from autogen import UserProxyAgent, AssistantAgent, Agent, GroupChat, GroupChatManager
+from termcolor import cprint
 from typing import Optional
 from autogen.io import IOStream
 from autotx.autotx_agent import AutoTxAgent
@@ -92,7 +93,11 @@ class AutoTx:
             """
         ))
 
-        self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        try:
+            self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        except Exception as e:
+            cprint(e, "red")
+
         self.transactions.clear()
        
 

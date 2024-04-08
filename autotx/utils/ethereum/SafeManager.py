@@ -1,5 +1,7 @@
+from logging import getLogger
 import sys
 from typing import Optional
+import re
 
 from web3 import Web3
 
@@ -22,6 +24,13 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from web3.types import TxParams
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.api.base_api import SafeAPIException
+import logging
+
+# Disable safe warning logs
+logging.getLogger('gnosis.safe.safe').setLevel(logging.CRITICAL + 1)
+
+class ExecutionRevertedError(Exception):
+    pass
 
 class SafeManager:
     multisend: MultiSend | None = None
@@ -43,6 +52,7 @@ class SafeManager:
         self.use_tx_service = False
         self.safe_nonce = None
         self.address = ETHAddress(safe.address, self.web3)
+
 
     @classmethod
     def deploy_safe(
@@ -143,19 +153,27 @@ class SafeManager:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
 
-        safe_tx = self.build_tx(tx, safe_nonce)
+        try:
+            safe_tx = self.build_tx(tx, safe_nonce)
 
-        safe_tx.sign(self.agent.key.hex())
+            safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.dev_account.address)
+            safe_tx.call(tx_sender_address=self.dev_account.address)
 
-        tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.dev_account.key.hex()
-        )
+            tx_hash, _ = safe_tx.execute(
+                tx_sender_private_key=self.dev_account.key.hex()
+            )
 
-        print(f"Executed safe tx hash: {tx_hash.hex()}")
+            print(f"Executed safe tx hash: {tx_hash.hex()}")
 
-        return tx_hash
+            return tx_hash
+        except Exception as e:
+            extracted_message = re.search(r"revert: ([^,]+)", str(e))
+            if extracted_message:
+                raise ExecutionRevertedError(extracted_message.group(0))
+            
+            raise Exception("Unknown error executing transaction", e)
+
 
     def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
         if not self.dev_account:
@@ -253,8 +271,11 @@ class SafeManager:
 
             print("Executing transactions...")
 
-            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
-                self.send_tx(tx, start_nonce + i)
+            for i, prepared_tx in enumerate([prepared_tx for prepared_tx in txs]):
+                try:
+                    self.send_tx(prepared_tx.tx, start_nonce + i)
+                except ExecutionRevertedError as e:
+                    raise Exception(f"{prepared_tx.summary} failed with error: {e}")
         
             print("Transactions executed.")
 
