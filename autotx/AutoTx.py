@@ -7,7 +7,6 @@ from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.llm import open_ai_llm
 from autogen import UserProxyAgent, AssistantAgent, Agent
 import autogen
 
