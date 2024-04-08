@@ -206,6 +206,8 @@ class SafeManager:
             return hash.hex()
 
     def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool: # Returns true if successful
+        print("=" * 50)
+
         if not txs:
             print("No transactions to send.")
             return True
