@@ -110,11 +110,11 @@ def build_swap_transaction(
 
     token_in = web3.eth.contract(
         address=uniswap.weth_address if token_in_is_native else token_in_address,
-        abi=WETH_ABI if token_in_is_native else ERC20_ABI,
+        abi=WETH_ABI if token_in_address == uniswap.weth_address else ERC20_ABI,
     )
     token_out = web3.eth.contract(
         address=uniswap.weth_address if token_out_is_native else token_out_address,
-        abi=WETH_ABI if token_out_is_native else ERC20_ABI,
+        abi=WETH_ABI if token_out_address == uniswap.weth_address else ERC20_ABI,
     )
 
     transactions: list[PreparedTx] = []
