@@ -24,7 +24,7 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 
     return (network_info.tokens[token_in], network_info.tokens[token_out])
 
-swap_info = {
+swap_tool_info = {
     "name": "swap",
     "description": "Prepares a swap transaction for given amount in decimals for given token. Swap should only include the amount for one of the tokens, the other token amount will be calculated automatically."
 }
@@ -64,8 +64,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
     
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=swap_info["name"],
-            description=swap_info["description"]
+            name=swap_tool_info["name"],
+            description=swap_tool_info["description"]
         )
         def swap_tool(
             token_to_sell: Annotated[str, "Token to sell. E.g. '10 USDC' or just 'USDC'"],
@@ -110,7 +110,7 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             return f"Transaction to buy {token_out_amount}{token_out} with {token_in_amount}{token_in} has been prepared"
 
         return AutoTxAgent(agent, tools=[
-            f"{swap_info['name']}: {swap_info['description']}"
+            f"{swap_tool_info['name']}: {swap_tool_info['description']}"
         ])
 
     return agent_factory

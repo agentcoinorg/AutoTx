@@ -14,7 +14,7 @@ smart_account_addr = get_env_vars()
 
 def get_configuration():
     w3 = Web3(HTTPProvider(FORK_RPC_URL))
-    for i in range(10):
+    for i in range(16):
         if w3.is_connected():
             break
         if i == 15:

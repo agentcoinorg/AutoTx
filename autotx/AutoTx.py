@@ -1,15 +1,14 @@
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
+from autogen import UserProxyAgent, AssistantAgent, Agent, GroupChat, GroupChatManager
+from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
-from autogen import UserProxyAgent, AssistantAgent, Agent
-import autogen
-from termcolor import cprint
 
 @dataclass(kw_only=True)
 class Config:
@@ -68,8 +67,8 @@ class AutoTx:
             code_execution_config=False,
         )
 
-        groupchat = autogen.GroupChat(agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], messages=[], max_round=12)
-        manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
+        groupchat = GroupChat(agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], messages=[], max_round=12)
+        manager = GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
 
         user_proxy.initiate_chat(manager, message=dedent(
             f"""
