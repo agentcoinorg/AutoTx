@@ -107,6 +107,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             token_in_amount = f"{exact_amount} " if is_exact_input else ""
             token_out_amount = f"{exact_amount} " if not is_exact_input else ""
 
+            print(f"Prepared transaction: Buy {token_out_amount}{token_out} with {token_in_amount}{token_in}")
+
             return f"Transaction to buy {token_out_amount}{token_out} with {token_in_amount}{token_in} has been prepared"
 
         return AutoTxAgent(agent, tools=[

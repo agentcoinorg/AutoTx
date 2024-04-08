@@ -15,4 +15,6 @@ def show_address_balances(web3: Web3, network: ChainId, address: ETHAddress):
             continue
         token_address = ETHAddress(tokens[token], web3)
         balance = get_erc20_balance(web3, token_address, address)
-        print(f"{token.upper()} balance: {balance}")
+
+        if balance > 0:
+            print(f"{token.upper()} balance: {balance}")

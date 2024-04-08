@@ -117,6 +117,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         def get_token_information_tool(
             token_id: Annotated[str, "ID of token"]
         ) -> str:
+            print(f"Fetching token information for {token_id}")
+           
             token_information = get_coingecko().coins.get_id(
                 id=token_id,
                 localization=False,
@@ -124,6 +126,7 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
                 community_data=False,
                 sparkline=False,
             )
+
             return json.dumps(
                 {
                     "name": token_information["name"],
@@ -168,6 +171,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             token_symbol: Annotated[str, "Symbol of token to search"],
             retrieve_duplicate: Annotated[bool, "Set to true to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates. By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested."]
         ) -> str:
+            print(f"Searching for token with symbol: {token_symbol}")
+
             response = get_coingecko().search.get(token_symbol)
 
             if len(response["coins"]) == 0:
@@ -182,6 +187,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             description=get_available_categories_tool_info["description"]
         )
         def get_available_categories_tool() -> str:
+            print("Fetching available token categories")
+
             categories = get_coingecko().categories.get_list()
             return json.dumps([category["category_id"] for category in categories])
         
@@ -197,6 +204,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             price_change_percentage_interval: Annotated[str, "Interval of time in price change percentage. It can be: '1h' | '24h' | '7d' | '14d' | '30d' | '200d' | '1y'. '24h' is the default"],
             network_name: Annotated[Optional[str], f"Possible values include: {SUPPORTED_NETWORKS_AS_STRING}. Use this parameter only if you require analysis for a specific network. Otherwise, pass an empty string"]
         ) -> str:
+            print(f"Fetching tokens from category: {category}")
+
             try:
                 tokens_in_category = get_coingecko().coins.get_markets(
                     vs_currency="usd",
@@ -253,6 +262,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         def get_exchanges_where_token_can_be_traded_tool(
             token_id: Annotated[str, "ID of token"]
         ) -> List[str]:
+            print(f"Fetching exchanges where token ({token_id}) can be traded")
+
             tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
             market_names = {item["market"]["name"] for item in tickers}
             return list(market_names)
