@@ -23,10 +23,13 @@ def main():
     pass
 
 @main.command()
-@click.option("--prompt", prompt="Prompt", required=True, help="Prompt")
+@click.argument('prompt', required=False)
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
-def run(prompt: str, non_interactive: bool, verbose: bool):
+def run(prompt: str | None, non_interactive: bool, verbose: bool):
+    if prompt == None:
+        prompt = click.prompt("What do you want to do?")
+
     (smart_account_addr, agent, client) = get_configuration()
     web3 = client.w3
 
