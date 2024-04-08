@@ -68,23 +68,23 @@ def add_tokens_address_if_not_in_registry(
                 token_with_address["platforms"][current_network]
             )
 
-get_token_information_info = {
+get_token_information_tool_info = {
     "name": "get_token_information",
     "description": "Retrieve token information (description, current price, market cap and price change percentage)"
 }
-search_token_info = {
+search_token_tool_info = {
     "name": "search_token",
     "description": "Search token based on its symbol. It will return the ID of tokens with the largest market cap"
 }
-get_available_categories_info = {
+get_available_categories_tool_info = {
     "name": "get_available_categories",
     "description": "Retrieve all category ids"
 }
-get_tokens_based_on_category_info = {
+get_tokens_based_on_category_tool_info = {
     "name": "get_tokens_based_on_category",
     "description": "Retrieve all tokens with their respective information (symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category"
 }
-get_exchanges_where_token_can_be_traded_info = {
+get_exchanges_where_token_can_be_traded_tool_info = {
     "name": "get_exchanges_where_token_can_be_traded",
     "description": "Retrieve exchanges where token can be traded"
 }
@@ -111,12 +111,14 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
 
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_token_information_info["name"],
-            description=get_token_information_info["description"]
+            name=get_token_information_tool_info["name"],
+            description=get_token_information_tool_info["description"]
         )
         def get_token_information_tool(
             token_id: Annotated[str, "ID of token"]
         ) -> str:
+            print(f"Fetching token information for {token_id}")
+           
             token_information = get_coingecko().coins.get_id(
                 id=token_id,
                 localization=False,
@@ -124,6 +126,7 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
                 community_data=False,
                 sparkline=False,
             )
+
             return json.dumps(
                 {
                     "name": token_information["name"],
@@ -161,13 +164,15 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=search_token_info["name"],
-            description=search_token_info["description"]
+            name=search_token_tool_info["name"],
+            description=search_token_tool_info["description"]
         )
         def search_token_tool(
             token_symbol: Annotated[str, "Symbol of token to search"],
             retrieve_duplicate: Annotated[bool, "Set to true to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates. By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested."]
         ) -> str:
+            print(f"Searching for token with symbol: {token_symbol}")
+
             response = get_coingecko().search.get(token_symbol)
 
             if len(response["coins"]) == 0:
@@ -178,17 +183,19 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_available_categories_info["name"],
-            description=get_available_categories_info["description"]
+            name=get_available_categories_tool_info["name"],
+            description=get_available_categories_tool_info["description"]
         )
         def get_available_categories_tool() -> str:
+            print("Fetching available token categories")
+
             categories = get_coingecko().categories.get_list()
             return json.dumps([category["category_id"] for category in categories])
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_tokens_based_on_category_info["name"],
-            description=get_tokens_based_on_category_info["description"]
+            name=get_tokens_based_on_category_tool_info["name"],
+            description=get_tokens_based_on_category_tool_info["description"]
         )
         def get_tokens_based_on_category_tool(
             category: Annotated[str, "Category to retrieve tokens"],
@@ -197,6 +204,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             price_change_percentage_interval: Annotated[str, "Interval of time in price change percentage. It can be: '1h' | '24h' | '7d' | '14d' | '30d' | '200d' | '1y'. '24h' is the default"],
             network_name: Annotated[Optional[str], f"Possible values include: {SUPPORTED_NETWORKS_AS_STRING}. Use this parameter only if you require analysis for a specific network. Otherwise, pass an empty string"]
         ) -> str:
+            print(f"Fetching tokens from category: {category}")
+
             try:
                 tokens_in_category = get_coingecko().coins.get_markets(
                     vs_currency="usd",
@@ -247,22 +256,24 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_exchanges_where_token_can_be_traded_info["name"],
-            description=get_exchanges_where_token_can_be_traded_info["description"]
+            name=get_exchanges_where_token_can_be_traded_tool_info["name"],
+            description=get_exchanges_where_token_can_be_traded_tool_info["description"]
         )
         def get_exchanges_where_token_can_be_traded_tool(
             token_id: Annotated[str, "ID of token"]
         ) -> List[str]:
+            print(f"Fetching exchanges where token ({token_id}) can be traded")
+
             tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
             market_names = {item["market"]["name"] for item in tickers}
             return list(market_names)
         
         return AutoTxAgent(agent, tools=[
-            f"{get_token_information_info['name']}: {get_token_information_info['description']}",
-            f"{search_token_info['name']}: {search_token_info['description']}",
-            f"{get_available_categories_info['name']}: {get_available_categories_info['description']}",
-            f"{get_tokens_based_on_category_info['name']}: {get_tokens_based_on_category_info['description']}",
-            f"{get_exchanges_where_token_can_be_traded_info['name']}: {get_exchanges_where_token_can_be_traded_info['description']}"
+            f"{get_token_information_tool_info['name']}: {get_token_information_tool_info['description']}",
+            f"{search_token_tool_info['name']}: {search_token_tool_info['description']}",
+            f"{get_available_categories_tool_info['name']}: {get_available_categories_tool_info['description']}",
+            f"{get_tokens_based_on_category_tool_info['name']}: {get_tokens_based_on_category_tool_info['description']}",
+            f"{get_exchanges_where_token_can_be_traded_tool_info['name']}: {get_exchanges_where_token_can_be_traded_tool_info['description']}"
         ])
 
     return agent_factory

@@ -4,7 +4,7 @@ from typing import Annotated, Callable
 from autogen import AssistantAgent, UserProxyAgent, Agent
 from autotx.autotx_agent import AutoTxAgent
 
-example_info = {
+example_tool_info = {
     "name": "example_tool",
     "description": "Example of an agent tool."
 }
@@ -24,8 +24,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
     
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=example_info["name"],
-            description=example_info["description"]
+            name=example_tool_info["name"],
+            description=example_tool_info["description"]
         )
         def example_tool(
             amount: Annotated[float, "Amount of something."],
@@ -35,12 +35,12 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             print(f"ExampleTool run: {amount} {receiver}")
             
             # NOTE: you can add transactions to AutoTx's current bundle
-            # self.autotx.transactions.append(tx)
+            # autotx.transactions.append(tx)
 
             return f"Something useful has been done with {amount} to {receiver}"
 
         return AutoTxAgent(agent, tools=[
-            f"{example_info['name']}: {example_info['description']}"
+            f"{example_tool_info['name']}: {example_tool_info['description']}"
         ])
 
     return agent_factory

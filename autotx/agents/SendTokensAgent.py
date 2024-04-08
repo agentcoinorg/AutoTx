@@ -13,19 +13,19 @@ from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autogen import AssistantAgent, UserProxyAgent, Agent
 
-transfer_eth_info = {
+transfer_eth_tool_info = {
     "name": "prepare_transfer_eth_transaction",
     "description": "Prepares a transfer transaction for given amount in decimals for ETH"
 }
-transfer_erc20_info = {
+transfer_erc20_tool_info = {
     "name": "prepare_transfer_erc20_token_transaction",
     "description": "Prepares a transfer transaction for given amount in decimals for given token"
 }
-get_eth_balance_info = {
+get_eth_balance_tool_info = {
     "name": "get_eth_balance",
     "description": "Check owner balance in ETH"
 }
-get_erc20_balance_info = {
+get_erc20_balance_tool_info = {
     "name": "get_erc20_balance",
     "description": "Check owner balance in ERC20 token"
 }
@@ -52,8 +52,8 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
     
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=transfer_eth_info["name"],
-            description=transfer_eth_info["description"]
+            name=transfer_eth_tool_info["name"],
+            description=transfer_eth_tool_info["description"]
         )
         def transfer_eth_tool(
             amount: Annotated[float, "Amount given by the user to transfer. The function will take care of converting the amount to needed decimals."],
@@ -68,13 +68,15 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             prepared_tx = PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx)
 
             autotx.transactions.append(prepared_tx)
+
+            print(f"Prepared transaction: {prepared_tx.summary}")
             
             return prepared_tx.summary
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=transfer_erc20_info["name"],
-            description=transfer_erc20_info["description"]
+            name=transfer_erc20_tool_info["name"],
+            description=transfer_erc20_tool_info["description"]
         )
         def transfer_erc20_token_tool(
             amount: Annotated[float, "Amount given by the user to transfer. The function will take care of converting the amount to needed decimals."],
@@ -92,12 +94,14 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
         
             autotx.transactions.append(prepared_tx)
         
+            print(f"Prepared transaction: {prepared_tx.summary}")
+           
             return prepared_tx.summary
         
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_eth_balance_info["name"],
-            description=get_eth_balance_info["description"]
+            name=get_eth_balance_tool_info["name"],
+            description=get_eth_balance_tool_info["description"]
         )
         def get_eth_balance_tool(
             owner: Annotated[str, "The owner's address or ENS domain"]
@@ -108,12 +112,14 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
 
             eth_balance = web3.eth.get_balance(owner_addr.hex)
 
+            print(f"Fetching ETH balance for {str(owner_addr)}: {eth_balance / 10 ** 18} ETH")
+          
             return eth_balance / 10 ** 18
 
         @user_proxy.register_for_execution()
         @agent.register_for_llm(
-            name=get_erc20_balance_info["name"],
-            description=get_erc20_balance_info["description"]
+            name=get_erc20_balance_tool_info["name"],
+            description=get_erc20_balance_tool_info["description"]
         )
         def get_erc20_balance_tool(
             token: Annotated[str, "Token symbol of erc20"],
@@ -122,14 +128,18 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             web3 = load_w3()
             token_address = ETHAddress(tokens[token.lower()], web3)
             owner_addr = ETHAddress(owner, web3)
+
+            balance = get_erc20_balance(web3, token_address, owner_addr)
+
+            print(f"Fetching {token} balance for {str(owner_addr)}: {balance} {token}")
             
-            return get_erc20_balance(web3, token_address, owner_addr)
+            return balance
 
         return AutoTxAgent(agent, tools=[
-            f"{transfer_eth_info['name']}: {transfer_eth_info['description']}",
-            f"{transfer_erc20_info['name']}: {transfer_erc20_info['description']}",
-            f"{get_eth_balance_info['name']}: {get_eth_balance_info['description']}",
-            f"{get_erc20_balance_info['name']}: {get_erc20_balance_info['description']}",
+            f"{transfer_eth_tool_info['name']}: {transfer_eth_tool_info['description']}",
+            f"{transfer_erc20_tool_info['name']}: {transfer_erc20_tool_info['description']}",
+            f"{get_eth_balance_tool_info['name']}: {get_eth_balance_tool_info['description']}",
+            f"{get_erc20_balance_tool_info['name']}: {get_erc20_balance_tool_info['description']}",
         ])
 
     return agent_factory

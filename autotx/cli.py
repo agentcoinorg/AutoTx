@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+
+from autotx.utils.ethereum import get_eth_balance
 load_dotenv()
 
 import click
@@ -23,19 +25,21 @@ def main():
 @main.command()
 @click.argument('prompt', required=False)
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
-def run(prompt: str | None, non_interactive: bool):
+@click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
+def run(prompt: str | None, non_interactive: bool, verbose: bool):
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
     (smart_account_addr, agent, client) = get_configuration()
     web3 = client.w3
 
-    print_agent_address()
-
     chain_id = web3.eth.chain_id
-    print(f"Chain ID: {chain_id}")
 
     network_info = NetworkInfo(chain_id)
+    
+    print(f"Network: {network_info.chain_id.name}")
+
+    print_agent_address()
 
     manager: SafeManager
 
@@ -54,11 +58,14 @@ def run(prompt: str | None, non_interactive: bool):
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        send_eth(dev_account, manager.address, 10, web3)
-        print(f"Sent 10 ETH to smart account for testing purposes")
+        if get_eth_balance(web3, manager.address) < 10:
+            send_eth(dev_account, manager.address, 10, web3)
+            print(f"Sent 10 ETH to smart account for testing purposes")
 
+        print("=" * 50)
         print("Starting smart account balances:")
         show_address_balances(web3, network_info.chain_id, manager.address)
+        print("=" * 50)
 
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     autotx = AutoTx(
@@ -72,11 +79,13 @@ def run(prompt: str | None, non_interactive: bool):
         None, get_llm_config=get_llm_config
     )
 
-    autotx.run(prompt, non_interactive)
+    autotx.run(prompt, non_interactive, silent=not verbose)
 
     if not smart_account_addr:
+        print("=" * 50)
         print("Final smart account balances:")
         show_address_balances(web3, network_info.chain_id, manager.address)
+        print("=" * 50)
 
 @main.group()
 def agent():

@@ -112,7 +112,15 @@ if __name__ == "__main__":
     test_path, iterations = sys.argv[1], int(sys.argv[2])
     benchmark_name = sys.argv[3] if len(sys.argv) == 4 else None
 
-    tests = collect_tests(test_path)
+    path_parts = test_path.split(',')
+    tests = []
+
+    for path in path_parts:
+        tests += collect_tests(path)
+
+    # Filter unique tests
+    tests = list(set(tests))
+
     if not tests:
         print("No tests found.")
         sys.exit(1)
@@ -122,6 +130,7 @@ if __name__ == "__main__":
     print(f"Tests found: {len(tests)}")
     for test in tests:
         print(test)
+
     print("=" * 50)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
