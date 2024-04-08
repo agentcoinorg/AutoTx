@@ -77,7 +77,11 @@ class AutoTx:
             """
         ))
 
-        self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        try:
+            self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        except Exception as e:
+            print(e)
+
         self.transactions.clear()
        
 
