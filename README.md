@@ -55,7 +55,7 @@ Please install the following:
 ## Run The Agent
 
 1. AutoTx requires a fork of the blockchain network you want to transact with. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
-2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan.
+2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). You can also provide the prompt as an argument for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan. The `--verbose` (or `-v`) flag will enable verbose logging.
 
 ### Test Offline
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
