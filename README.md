@@ -64,9 +64,7 @@ By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, 
 AutoTx can be connected to your existing smart account by doing the following:
 
 1. Set the `SMART_ACCOUNT_ADDRESS` to the address of your smart account in your `.env`. This tells AutoTx which account it should interact with.
-
 2. AutoTx's agent address, which it generates locally, must be set as a signer in your Safe's configuration to allow it to create transactions on behalf of the smart account. To get this address, run `poetry run agent address`.
-
 3. Update the `CHAIN_RPC_URL` value in your `.env` with the correct RPC URL of the network where your smart account is deployed.
 
 
