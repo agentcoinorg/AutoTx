@@ -9,6 +9,7 @@ from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
 from autogen import UserProxyAgent, AssistantAgent, Agent
 import autogen
+from termcolor import cprint
 
 @dataclass(kw_only=True)
 class Config:
@@ -80,7 +81,7 @@ class AutoTx:
         try:
             self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
         except Exception as e:
-            print(e)
+            cprint(e, "red")
 
         self.transactions.clear()
        
