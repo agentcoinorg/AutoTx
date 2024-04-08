@@ -1,14 +1,16 @@
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
+from autogen import UserProxyAgent, AssistantAgent, Agent, GroupChat, GroupChatManager
+from termcolor import cprint
 from typing import Optional
+from autogen.io import IOStream
 from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
-from autogen import UserProxyAgent, AssistantAgent, Agent
-import autogen
+from autotx.utils.io_silent import IOConsole, IOSilent
 
 @dataclass(kw_only=True)
 class Config:
@@ -34,7 +36,7 @@ class AutoTx:
             self.config = config
         self.agent_factories = agent_factories
 
-    def run(self, prompt: str, non_interactive: bool):
+    def run(self, prompt: str, non_interactive: bool, silent: bool = False):
         print("Running AutoTx with the following prompt: ", prompt)
 
         user_proxy = UserProxyAgent(
@@ -57,9 +59,9 @@ class AutoTx:
             is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
             system_message=dedent(
                     """
-                    You are an expert in verifiying if user goals are met.
-                    You analyze chat and respond with TERMINATE if the goal is met.
-                    You can consider the goal met if the other agents have prepared the necessary transactions.
+                    Verifier is an expert in verifiying if user goals are met.
+                    Verifier analyzes chat and responds with TERMINATE if the goal is met.
+                    Verifier can consider the goal met if the other agents have prepared the necessary transactions.
                     """
                 ),
             llm_config=self.get_llm_config(),
@@ -67,8 +69,22 @@ class AutoTx:
             code_execution_config=False,
         )
 
-        groupchat = autogen.GroupChat(agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], messages=[], max_round=12)
-        manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
+        groupchat = GroupChat(
+            agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], 
+            messages=[], 
+            max_round=20,
+            select_speaker_prompt_template = (
+                """
+                Read the above conversation. Then select the next role from {agentlist} to play. Only return the role and NOTHING else.
+                """
+            )
+        )
+        manager = GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
+
+        if silent:
+            IOStream.set_global_default(IOSilent())
+        else:
+            IOStream.set_global_default(IOConsole())
 
         user_proxy.initiate_chat(manager, message=dedent(
             f"""
@@ -77,7 +93,11 @@ class AutoTx:
             """
         ))
 
-        self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        try:
+            self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+        except Exception as e:
+            cprint(e, "red")
+
         self.transactions.clear()
        
 

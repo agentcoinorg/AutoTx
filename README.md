@@ -48,14 +48,14 @@ Please install the following:
 2. Create a new .env file via `cp .env.example .env`
 3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
 4. (Optional) If you have an Infura API Key, find the line that says CHAIN_RPC_URL=, and update the infura key `CHAIN_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY` (see https://www.infura.io/). 
-5. Find the line that says COINGECKO_API_KEY=, and add your Coingecko API Key `COINGECKO_API_KEY=CG-...` (see https://docs.coingecko.com/reference/setting-up-your-api-key)
+5. (Optional) If you have a Coingecko API Key, find the line that says `COINGECKO_API_KEY=`, and add it `COINGECKO_API_KEY=CG-...` (see [Coingecko API Documentation](https://docs.coingecko.com/reference/setting-up-your-api-key)). Note: Without the Coingecko API Key, the Token Research Agent will not be added to the agent's execution loop.
 6. Start a new poetry shell `poetry shell`
 7. Install python dependencies `poetry install`
 
 ## Run The Agent
 
 1. AutoTx requires a fork of the blockchain network you want to transact with. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
-2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). The `--prompt "..."` option can be used for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan.
+2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). You can also provide the prompt as an argument for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan. The `--verbose` (or `-v`) flag will enable verbose logging.
 
 ### Test Offline
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
