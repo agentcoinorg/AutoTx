@@ -35,7 +35,7 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             print(f"ExampleTool run: {amount} {receiver}")
             
             # NOTE: you can add transactions to AutoTx's current bundle
-            # self.autotx.transactions.append(tx)
+            # autotx.transactions.append(tx)
 
             return f"Something useful has been done with {amount} to {receiver}"
 
