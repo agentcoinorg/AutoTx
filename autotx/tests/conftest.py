@@ -1,6 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
+from autotx.agents.SendTokensAgent import SendTokensAgent
+from autotx.agents.SwapTokensAgent import SwapTokensAgent
+
 from eth_account import Account
 
 from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
@@ -11,7 +15,6 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
 import pytest
-from autotx.agents import ResearchTokensAgent, SendTokensAgent, SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
@@ -55,9 +58,9 @@ def auto_tx(configuration):
         manager, 
         network_info, 
         [
-            SendTokensAgent.build_agent_factory(),
-            SwapTokensAgent.build_agent_factory(),
-            ResearchTokensAgent.build_agent_factory()
+            SendTokensAgent(),
+            SwapTokensAgent(),
+            ResearchTokensAgent()
         ], 
         None, get_llm_config=get_llm_config
     )

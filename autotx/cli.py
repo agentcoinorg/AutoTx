@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
 
+from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
+from autotx.agents.SendTokensAgent import SendTokensAgent
+from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from autotx.utils.ethereum import get_eth_balance
 load_dotenv()
 
@@ -14,7 +17,6 @@ from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
-from autotx.agents import ResearchTokensAgent, SendTokensAgent, SwapTokensAgent
 
 patch_langchain()
 
@@ -69,12 +71,12 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool):
 
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     agents = [
-        SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(),
+        SendTokensAgent(),
+        SwapTokensAgent()
     ]
 
     if COINGECKO_API_KEY:
-        agents.append(ResearchTokensAgent.build_agent_factory())
+        agents.append(ResearchTokensAgent())
 
     autotx = AutoTx(
         manager, 

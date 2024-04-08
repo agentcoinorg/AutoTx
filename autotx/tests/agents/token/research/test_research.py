@@ -1,8 +1,8 @@
 import os
 from textwrap import dedent
 import pytest
-from autotx.agents import ResearchTokensAgent
 from autotx.agents.ResearchTokensAgent import (
+    ResearchTokensAgent,
     filter_token_list_by_network,
     get_coingecko,
 )
@@ -45,7 +45,7 @@ def manager(auto_tx, user_proxy_agent) -> GroupChatManager:
         code_execution_config=False,
     )
 
-    token_research_agent = ResearchTokensAgent.build_agent_factory()(auto_tx, user_proxy_agent, get_llm_config()).autogen_agent
+    token_research_agent = ResearchTokensAgent().build_autogen_agent(auto_tx, user_proxy_agent, get_llm_config())
 
     groupchat = autogen.GroupChat(agents=[user_proxy_agent, verifier_agent, token_research_agent], messages=[], max_round=20)
     manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=get_llm_config())
