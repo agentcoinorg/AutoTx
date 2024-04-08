@@ -1,7 +1,7 @@
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
-from autogen import UserProxyAgent, AssistantAgent, Agent, GroupChat, GroupChatManager
+from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
 from termcolor import cprint
 from typing import Optional
 from autogen.io import IOStream
@@ -23,10 +23,10 @@ class AutoTx:
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     user_proxy: UserProxyAgent
-    agent_factories: list[Callable[['AutoTx', UserProxyAgent, Optional[Dict[str, Any]]], AutoTxAgent]]
+    agents: list[AutoTxAgent]
 
     def __init__(
-        self, manager: SafeManager, network: NetworkInfo, agent_factories: list[Callable[['AutoTx', UserProxyAgent, Optional[Dict[str, Any]]], Agent]], config: Optional[Config],
+        self, manager: SafeManager, network: NetworkInfo, agents: list[AutoTxAgent], config: Optional[Config],
         get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     ):
         self.manager = manager
@@ -34,7 +34,7 @@ class AutoTx:
         self.get_llm_config = get_llm_config
         if config:
             self.config = config
-        self.agent_factories = agent_factories
+        self.agents = agents
 
     def run(self, prompt: str, non_interactive: bool, silent: bool = False):
         print("Running AutoTx with the following prompt: ", prompt)
@@ -48,9 +48,8 @@ class AutoTx:
             llm_config=self.get_llm_config(),
             code_execution_config=False,
         )
-        agents = [factory(self, user_proxy, self.get_llm_config()) for factory in self.agent_factories]
 
-        agents_information = self.get_agents_information(agents)
+        agents_information = self.get_agents_information(self.agents)
 
         goal = build_goal(prompt, agents_information, self.manager.address, non_interactive)
 
@@ -69,8 +68,10 @@ class AutoTx:
             code_execution_config=False,
         )
 
+        autogen_agents = [agent.build_autogen_agent(self, user_proxy, self.get_llm_config()) for agent in self.agents]
+
         groupchat = GroupChat(
-            agents=[agent.autogen_agent for agent in agents] + [user_proxy, verifier_agent], 
+            agents=autogen_agents + [user_proxy, verifier_agent], 
             messages=[], 
             max_round=20,
             select_speaker_prompt_template = (
@@ -107,10 +108,10 @@ class AutoTx:
             tools_available = "\n".join(
                 [
                     f"\n- {tool}"
-                    for tool in agent.tools
+                    for tool in agent.tool_descriptions
                 ]
             )
-            description = f"Agent name: {agent.autogen_agent.name}\nTools available:{tools_available}"
+            description = f"Agent name: {agent.name}\nTools available:{tools_available}"
             agent_descriptions.append(description)
 
         agents_information = "\n".join(agent_descriptions)

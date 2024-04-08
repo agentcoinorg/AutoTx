@@ -2,14 +2,13 @@
 import json
 from textwrap import dedent
 from typing import Annotated, Callable, List, Optional, Union
-from autogen import AssistantAgent, UserProxyAgent, Agent
-import os
 from web3 import Web3
 from autotx.AutoTx import AutoTx
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 from coingecko import GeckoAPIException, CoinGeckoDemoClient
 
 from autotx.autotx_agent import AutoTxAgent
+from autotx.autotx_tool import AutoTxTool
 from autotx.utils.constants import COINGECKO_API_KEY
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 
@@ -68,50 +67,16 @@ def add_tokens_address_if_not_in_registry(
                 token_with_address["platforms"][current_network]
             )
 
-get_token_information_tool_info = {
-    "name": "get_token_information",
-    "description": "Retrieve token information (description, current price, market cap and price change percentage)"
-}
-search_token_tool_info = {
-    "name": "search_token",
-    "description": "Search token based on its symbol. It will return the ID of tokens with the largest market cap"
-}
-get_available_categories_tool_info = {
-    "name": "get_available_categories",
-    "description": "Retrieve all category ids"
-}
-get_tokens_based_on_category_tool_info = {
-    "name": "get_tokens_based_on_category",
-    "description": "Retrieve all tokens with their respective information (symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category"
-}
-get_exchanges_where_token_can_be_traded_tool_info = {
-    "name": "get_exchanges_where_token_can_be_traded",
-    "description": "Retrieve exchanges where token can be traded"
-}
+class GetTokenInformationTool(AutoTxTool):
+    name: str = "get_token_information"
+    description: str = dedent(
+        """
+        Retrieve token information (description, current price, market cap and price change percentage)
+        """
+    )
 
-def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
-    def agent_factory(autotx: AutoTx, user_proxy: UserProxyAgent, llm_config: dict) -> AutoTxAgent:
-        agent = AssistantAgent(
-            name="research-tokens",
-            system_message=f"You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.\n" + 
-                dedent(
-                    """
-                    You are an expert in Ethereum tokens and can help users research tokens.
-                    You use the tools available to assist the user in their tasks.
-                    Retrieve token information, get token price, market cap, and price change percentage
-                    """
-                ),
-            llm_config=llm_config,
-            human_input_mode="NEVER",
-            code_execution_config=False,
-        )
-
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=get_token_information_tool_info["name"],
-            description=get_token_information_tool_info["description"]
-        )
-        def get_token_information_tool(
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             token_id: Annotated[str, "ID of token"]
         ) -> str:
             print(f"Fetching token information for {token_id}")
@@ -158,13 +123,15 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
                     ],
                 }
             )
-        
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=search_token_tool_info["name"],
-            description=search_token_tool_info["description"]
-        )
-        def search_token_tool(
+
+        return run
+
+class SearchTokenTool(AutoTxTool):
+    name: str = "search_token"
+    description: str = "Search token based on its symbol. It will return the ID of tokens with the largest market cap"
+
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             token_symbol: Annotated[str, "Symbol of token to search"],
             retrieve_duplicate: Annotated[bool, "Set to true to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates. By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested."]
         ) -> str:
@@ -177,24 +144,28 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
 
             tokens = [token["api_symbol"] for token in response["coins"]]
             return json.dumps(tokens if retrieve_duplicate else tokens[0])
-        
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=get_available_categories_tool_info["name"],
-            description=get_available_categories_tool_info["description"]
-        )
-        def get_available_categories_tool() -> str:
+
+        return run
+
+class GetAvailableCategoriesTool(AutoTxTool):
+    name: str = "get_available_categories"
+    description: str = "Retrieve all available category ids of tokens"
+
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run() -> str:
             print("Fetching available token categories")
 
             categories = get_coingecko().categories.get_list()
             return json.dumps([category["category_id"] for category in categories])
         
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=get_tokens_based_on_category_tool_info["name"],
-            description=get_tokens_based_on_category_tool_info["description"]
-        )
-        def get_tokens_based_on_category_tool(
+        return run
+    
+class GetTokensBasedOnCategoryTool(AutoTxTool):
+    name: str = "get_tokens_based_on_category"
+    description: str = "Retrieve all tokens with their respective information (symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category"
+
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             category: Annotated[str, "Category to retrieve tokens"],
             sort_by: Annotated[str, "Sort tokens by field. It can be: 'volume_desc' | 'volume_asc' | 'market_cap_desc' | 'market_cap_asc'. 'market_cap_desc' is the default"],
             limit: Annotated[int, "The number of tokens to return from the category"],
@@ -250,13 +221,15 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             ]
 
             return json.dumps(tokens)
-        
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=get_exchanges_where_token_can_be_traded_tool_info["name"],
-            description=get_exchanges_where_token_can_be_traded_tool_info["description"]
-        )
-        def get_exchanges_where_token_can_be_traded_tool(
+
+        return run
+
+class GetExchangesWhereTocanCanBeTradedTool(AutoTxTool):
+    name: str = "get_exchanges_where_token_can_be_traded"
+    description: str = "Retrieve exchanges where token can be traded"
+
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             token_id: Annotated[str, "ID of token"]
         ) -> List[str]:
             print(f"Fetching exchanges where token ({token_id}) can be traded")
@@ -264,14 +237,21 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
             tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
             market_names = {item["market"]["name"] for item in tickers}
             return list(market_names)
-        
-        return AutoTxAgent(agent, tools=[
-            f"{get_token_information_tool_info['name']}: {get_token_information_tool_info['description']}",
-            f"{search_token_tool_info['name']}: {search_token_tool_info['description']}",
-            f"{get_available_categories_tool_info['name']}: {get_available_categories_tool_info['description']}",
-            f"{get_tokens_based_on_category_tool_info['name']}: {get_tokens_based_on_category_tool_info['description']}",
-            f"{get_exchanges_where_token_can_be_traded_tool_info['name']}: {get_exchanges_where_token_can_be_traded_tool_info['description']}"
-        ])
 
-    return agent_factory
+        return run
 
+class ResearchTokensAgent(AutoTxAgent):
+    name = "research-tokens"
+    system_message = lambda autotx: f"""
+        You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.
+        You are an expert in Ethereum tokens and can help users research tokens.
+        You use the tools available to assist the user in their tasks.
+        Retrieve token information, get token price, market cap, and price change percentage
+        """
+    tools = [
+        GetTokenInformationTool(),
+        SearchTokenTool(),
+        GetAvailableCategoriesTool(),
+        GetTokensBasedOnCategoryTool(),
+        GetExchangesWhereTocanCanBeTradedTool(),
+    ]

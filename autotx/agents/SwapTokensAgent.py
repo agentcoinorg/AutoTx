@@ -1,8 +1,8 @@
 from textwrap import dedent
 from typing import Annotated, Callable
-from autogen import AssistantAgent, UserProxyAgent, Agent
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
+from autotx.autotx_tool import AutoTxTool
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
@@ -24,50 +24,16 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 
     return (network_info.tokens[token_in], network_info.tokens[token_out])
 
-swap_tool_info = {
-    "name": "swap",
-    "description": "Prepares a swap transaction for given amount in decimals for given token. Swap should only include the amount for one of the tokens, the other token amount will be calculated automatically."
-}
+class SwapTool(AutoTxTool):
+    name: str = "prepare_swap_transaction"
+    description: str = dedent(
+        """
+        Prepares a swap transaction for given amount in decimals for given token. Swap should only include the amount for one of the tokens, the other token amount will be calculated automatically.
+        """
+    )
 
-def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
-    def agent_factory(autotx: AutoTx, user_proxy: UserProxyAgent, llm_config: dict) -> AutoTxAgent:
-        agent = AssistantAgent(
-            name="swap-tokens",
-            system_message=dedent(f"""
-                You are an expert at buying and selling tokens. Assist the user (address: {autotx.manager.address}) in their task of swapping tokens.
-                You use the tools available to assist the user in their tasks.
-                Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol
-                An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.
-                Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
-                Examples:
-                {{
-                    "token_to_sell": "5 ETH",
-                    "token_to_buy": "USDC"
-                }} // Prepares a swap transaction to sell 5 ETH and buy USDC
-
-                {{
-                    "token_to_sell": "ETH",
-                    "token_to_buy": "5 USDC"
-                }} // Prepares a swap transaction to sell ETH and buy 5 USDC
-
-                Invalid Example:
-                {{
-                    "token_to_sell": "5 ETH",
-                    "token_to_buy": "5 USDC"
-                }} // Invalid input. Only one token amount should be provided, not both.
-                """
-            ),
-            llm_config=llm_config,
-            human_input_mode="NEVER",
-            code_execution_config=False,
-        )
-    
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=swap_tool_info["name"],
-            description=swap_tool_info["description"]
-        )
-        def swap_tool(
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             token_to_sell: Annotated[str, "Token to sell. E.g. '10 USDC' or just 'USDC'"],
             token_to_buy: Annotated[str, "Token to buy. E.g. '10 USDC' or just 'USDC'"],
         ) -> str:
@@ -111,8 +77,34 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
 
             return f"Transaction to buy {token_out_amount}{token_out} with {token_in_amount}{token_in} has been prepared"
 
-        return AutoTxAgent(agent, tools=[
-            f"{swap_tool_info['name']}: {swap_tool_info['description']}"
-        ])
+        return run
+    
+class SwapTokensAgent(AutoTxAgent):
+    name = "swap-tokens"
+    system_message = lambda autotx: dedent(f"""
+        You are an expert at buying and selling tokens. Assist the user (address: {autotx.manager.address}) in their task of swapping tokens.
+        You use the tools available to assist the user in their tasks.
+        Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol
+        An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.
+        Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
+        Examples:
+        {{
+            "token_to_sell": "5 ETH",
+            "token_to_buy": "USDC"
+        }} // Prepares a swap transaction to sell 5 ETH and buy USDC
 
-    return agent_factory
+        {{
+            "token_to_sell": "ETH",
+            "token_to_buy": "5 USDC"
+        }} // Prepares a swap transaction to sell ETH and buy 5 USDC
+
+        Invalid Example:
+        {{
+            "token_to_sell": "5 ETH",
+            "token_to_buy": "5 USDC"
+        }} // Invalid input. Only one token amount should be provided, not both.
+        """
+    )
+    tools = [
+        SwapTool()
+    ]

@@ -1,33 +1,19 @@
 from textwrap import dedent
 from autotx.AutoTx import AutoTx
 from typing import Annotated, Callable
-from autogen import AssistantAgent, UserProxyAgent, Agent
 from autotx.autotx_agent import AutoTxAgent
+from autotx.autotx_tool import AutoTxTool
 
-example_tool_info = {
-    "name": "example_tool",
-    "description": "Example of an agent tool."
-}
+class ExampleTool(AutoTxTool):
+    name: str = "example_tool"
+    description: str = dedent(
+        """
+        This tool does something very useful.
+        """
+    )
 
-def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
-    def agent_factory(autotx: AutoTx, user_proxy: UserProxyAgent, llm_config: dict) -> AutoTxAgent:
-        agent = AssistantAgent(
-            name="swap-tokens",
-            system_message=dedent(f"""
-                Example of an agent system message.
-                """
-            ),
-            llm_config=llm_config,
-            human_input_mode="NEVER",
-            code_execution_config=False,
-        )
-    
-        @user_proxy.register_for_execution()
-        @agent.register_for_llm(
-            name=example_tool_info["name"],
-            description=example_tool_info["description"]
-        )
-        def example_tool(
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
             amount: Annotated[float, "Amount of something."],
             receiver: Annotated[str, "The receiver of something."]
         ) -> str:
@@ -39,8 +25,17 @@ def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
 
             return f"Something useful has been done with {amount} to {receiver}"
 
-        return AutoTxAgent(agent, tools=[
-            f"{example_tool_info['name']}: {example_tool_info['description']}"
-        ])
+        return run
 
-    return agent_factory
+class ExampleAgent(AutoTxAgent):
+    name="swap-tokens"
+    system_message=dedent(
+        f"""
+        Example of an agent system message.
+        """
+    )
+    tools=[
+        ExampleTool(),
+        # AnotherTool(...),
+        # AndAnotherTool(...)
+    ]
