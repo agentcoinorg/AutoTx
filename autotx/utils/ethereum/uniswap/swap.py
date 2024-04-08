@@ -29,7 +29,6 @@ def get_swap_information(
     token_out_decimals: int,
     price: float,
     exact_input: bool,
-    web3: Web3
 ):
     if exact_input:
         amount_compared_with_token = amount * price
@@ -155,7 +154,7 @@ def build_swap_transaction(
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
     (amount_out, amount_in, method) = get_swap_information(
-        amount, token_in_decimals, token_out_decimals, price, exact_input, web3
+        amount, token_in_decimals, token_out_decimals, price, exact_input
     )
 
     token_in_symbol = token_in.functions.symbol().call()
