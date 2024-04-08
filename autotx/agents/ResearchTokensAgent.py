@@ -91,9 +91,6 @@ get_exchanges_where_token_can_be_traded_info = {
 
 def build_agent_factory() -> Callable[[AutoTx, UserProxyAgent, dict], Agent]:
     def agent_factory(autotx: AutoTx, user_proxy: UserProxyAgent, llm_config: dict) -> AutoTxAgent:
-        if COINGECKO_API_KEY == None:
-            raise Exception("You must add a value to COINGECKO_API_KEY key in .env file")
-        
         agent = AssistantAgent(
             name="research-tokens",
             system_message=f"You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.\n" + 
