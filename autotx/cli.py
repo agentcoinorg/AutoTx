@@ -4,7 +4,7 @@ from autotx.utils.ethereum import get_eth_balance
 load_dotenv()
 
 import click
-from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
+from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx
@@ -68,14 +68,18 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool):
         print("=" * 50)
 
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
+    agents = [
+        SendTokensAgent.build_agent_factory(),
+        SwapTokensAgent.build_agent_factory(),
+    ]
+
+    if COINGECKO_API_KEY:
+        agents.append(ResearchTokensAgent.build_agent_factory())
+
     autotx = AutoTx(
         manager, 
         network_info, 
-        [
-            SendTokensAgent.build_agent_factory(),
-            SwapTokensAgent.build_agent_factory(),
-            ResearchTokensAgent.build_agent_factory()
-        ], 
+        agents, 
         None, get_llm_config=get_llm_config
     )
 
