@@ -1,3 +1,4 @@
+from typing import Optional, cast
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from autotx.utils.ethereum.cache import cache
@@ -5,11 +6,12 @@ from autotx.utils.ethereum.cache import cache
 AGENT_PK_FILE_NAME = "agent.pk.txt"
 
 
-def get_agent_account() -> LocalAccount | None:
+def get_agent_account() -> Optional[LocalAccount]:
     try:
         account = cache.read(AGENT_PK_FILE_NAME)
         if account:
-            return Account.from_key(account)
+            return cast(LocalAccount, Account.from_key(account))
+        return None
     except FileNotFoundError:
         return None
     except Exception as e:
@@ -20,7 +22,7 @@ def get_agent_account() -> LocalAccount | None:
 def create_agent_account() -> LocalAccount:
     agent_account: str = Account.create().key.hex()
     cache.write(AGENT_PK_FILE_NAME, agent_account)
-    return Account.from_key(agent_account)
+    return cast(LocalAccount, Account.from_key(agent_account))
 
 
 def get_or_create_agent_account() -> LocalAccount:
@@ -30,5 +32,5 @@ def get_or_create_agent_account() -> LocalAccount:
     return create_agent_account()
 
 
-def delete_agent_account():
+def delete_agent_account() -> None:
     cache.remove(AGENT_PK_FILE_NAME)

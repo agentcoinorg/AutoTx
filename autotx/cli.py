@@ -13,7 +13,7 @@ from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MOD
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx
-from autotx.utils.ethereum.agent_account import get_agent_account, create_agent_account, delete_agent_account
+from autotx.utils.ethereum.agent_account import get_or_create_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
@@ -102,9 +102,7 @@ def agent_address() -> None:
     print_agent_address()
 
 def print_agent_address() -> None:
-    agent_account = get_agent_account()
-    acc = agent_account if agent_account else create_agent_account()
-
+    acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
 if __name__ == "__main__":

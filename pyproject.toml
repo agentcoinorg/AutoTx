@@ -38,6 +38,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.mypy]
 
 strict = true
+
+exclude = [
+    "autotx/tests/",
+]
+
 ignore_missing_imports = true
 install_types = true
 non_interactive = true
@@ -56,4 +61,3 @@ warn_unused_ignores = true
 
 disallow_incomplete_defs = true
 disallow_untyped_decorators = true
-disallow_any_unimported = true

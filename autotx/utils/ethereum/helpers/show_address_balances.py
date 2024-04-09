@@ -5,16 +5,18 @@ from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP, ChainId
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-def show_address_balances(web3: Web3, network: ChainId, address: ETHAddress):
+def show_address_balances(web3: Web3, network: ChainId, address: ETHAddress) -> None:
     eth_balance = get_eth_balance(web3, address)
     print(f"ETH balance: {eth_balance}")
 
-    tokens = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(network).default_tokens
-    for token in tokens:
-        if tokens[token] == NATIVE_TOKEN_ADDRESS:
-            continue
-        token_address = ETHAddress(tokens[token], web3)
-        balance = get_erc20_balance(web3, token_address, address)
+    current_network = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(network)
+     
+    if current_network: 
+        for token in current_network.default_tokens:
+            if current_network.default_tokens[token] == NATIVE_TOKEN_ADDRESS:
+                continue
+            token_address = ETHAddress(current_network.default_tokens[token], web3)
+            balance = get_erc20_balance(web3, token_address, address)
 
-        if balance > 0:
-            print(f"{token.upper()} balance: {balance}")
+            if balance > 0:
+                print(f"{token.upper()} balance: {balance}")

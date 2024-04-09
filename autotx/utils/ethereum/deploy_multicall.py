@@ -1,20 +1,20 @@
 import os
-from eth_account import Account
 from gnosis.eth import EthereumClient
 from gnosis.eth.multicall import Multicall
+from eth_account.signers.local import LocalAccount
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 from .cache import cache
 
-def deploy_multicall(client: EthereumClient, account: Account) -> ETHAddress:
+def deploy_multicall(client: EthereumClient, account: LocalAccount) -> ETHAddress:
     if os.getenv("MULTICALL_ADDRESS"):
         return os.getenv("MULTICALL_ADDRESS")
     multicall_address = deploy(client, account)
     cache.write("multicall-address.txt", multicall_address)
     return ETHAddress(multicall_address, client.w3)
 
-def deploy(client: EthereumClient, account: Account) -> str:
+def deploy(client: EthereumClient, account: LocalAccount) -> str:
     tx =  Multicall.deploy_contract(client, account) 
 
     if not tx.contract_address:

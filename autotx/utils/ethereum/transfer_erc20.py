@@ -1,6 +1,7 @@
-from eth_account import Account
+from eth_account.signers.local import LocalAccount
+from hexbytes import HexBytes
 from web3 import Web3
-from web3.middleware import construct_sign_and_send_raw_middleware
+from web3.middleware.signing import construct_sign_and_send_raw_middleware
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
@@ -8,7 +9,7 @@ from .constants import GAS_PRICE_MULTIPLIER
 
 from .erc20_abi import ERC20_ABI
 
-def transfer_erc20(web3: Web3, token_address: ETHAddress, from_account: Account, to: ETHAddress, value: float):
+def transfer_erc20(web3: Web3, token_address: ETHAddress, from_account: LocalAccount, to: ETHAddress, value: float) -> HexBytes:
     account_middleware = construct_sign_and_send_raw_middleware(from_account)
     web3.middleware_onion.add(account_middleware)
 

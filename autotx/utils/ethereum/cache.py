@@ -4,10 +4,10 @@ from typing import Optional
 class Cache:
     folder: str = ".cache"
 
-    def __init__(self, folder: Optional[str] = ".cache"):
+    def __init__(self, folder: Optional[str]):
         if folder:
             self.folder = folder
-        os.makedirs(folder, exist_ok=True)
+        os.makedirs(self.folder, exist_ok=True)
 
     def read(self, file_name: str) -> str | None:
         try:
@@ -33,4 +33,4 @@ class Cache:
             print(f"An error occurred while deleting {file_name}: {e}")
             raise
 
-cache = Cache()
+cache = Cache(folder=None)

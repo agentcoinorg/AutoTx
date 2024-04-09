@@ -21,7 +21,7 @@ COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
     ChainId.GNOSIS: "xdai",
 }
 
-def get_coingecko() -> Any:
+def get_coingecko() -> CoinGeckoDemoClient:
     return CoinGeckoDemoClient(api_key=COINGECKO_API_KEY)
 
 

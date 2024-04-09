@@ -1,13 +1,17 @@
 import random
-from eth_account import Account
+from eth_account.signers.local import LocalAccount
+from eth_typing import ChecksumAddress, HexStr
 from gnosis.eth import EthereumClient
 from gnosis.safe import ProxyFactory
 from gnosis.safe.safe_create2_tx import SafeCreate2TxBuilder
+from hexbytes import HexBytes
+from web3 import Web3
+from web3.types import Wei
 
 from .send_tx import send_tx
 from .constants import GAS_PRICE_MULTIPLIER, MASTER_COPY_ADDRESS, PROXY_FACTORY_ADDRESS
 
-def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: list[str], threshold: int) -> str:
+def deploy_safe_with_create2(client: EthereumClient, account: LocalAccount, signers: list[str], threshold: int) -> ChecksumAddress:
     w3 = client.w3
 
     salt_nonce = generate_salt_nonce()
@@ -22,10 +26,10 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
         owners=signers,
         threshold=threshold,
     )
-    safe_address = builder.calculate_create2_address(setup_data, salt_nonce)
+    safe_address: ChecksumAddress = builder.calculate_create2_address(setup_data, salt_nonce)
 
     # Check if safe is already deployed
-    if w3.eth.get_code(safe_address) != w3.to_bytes(hexstr="0x"):
+    if w3.eth.get_code(safe_address) != w3.to_bytes(hexstr=HexStr("0x")):
         print("Safe already deployed", safe_address)
         return safe_address
     
@@ -39,21 +43,21 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     if safe_address != safe_creation_tx.safe_address:
         raise ValueError("Create2 address mismatch")
 
-    tx_hash = send_tx(
+    send_tx(
         w3,
         {
             "to": safe_creation_tx.safe_address,
             "value": safe_creation_tx.payment,
-            "gasPrice": int(w3.eth.gas_price * GAS_PRICE_MULTIPLIER)
+            "gasPrice": Wei(int(w3.eth.gas_price * GAS_PRICE_MULTIPLIER))
         },
         account=account,
     )
 
-    proxy_factory = ProxyFactory(PROXY_FACTORY_ADDRESS, client)
+    proxy_factory = ProxyFactory(Web3.to_checksum_address(PROXY_FACTORY_ADDRESS), client)
 
     ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
         account,
-        MASTER_COPY_ADDRESS,
+        Web3.to_checksum_address(MASTER_COPY_ADDRESS),
         safe_creation_tx.safe_setup_data,
         salt_nonce,
         safe_creation_tx.gas,
@@ -61,7 +65,7 @@ def deploy_safe_with_create2(client: EthereumClient, account: Account, signers: 
     )
 
     print("Deploying safe address: ", safe_address, ", tx: ", ethereum_tx_sent.tx_hash.hex())
-    tx_receipt = w3.eth.wait_for_transaction_receipt(ethereum_tx_sent.tx_hash)
+    tx_receipt = w3.eth.wait_for_transaction_receipt(HexBytes(ethereum_tx_sent.tx_hash))
     if tx_receipt["status"] != 1:
         raise ValueError("Transaction failed")
 

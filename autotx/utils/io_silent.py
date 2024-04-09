@@ -8,4 +8,4 @@ class IOSilent(IOConsole): # type: ignore
         pass
     # Pass all args to the base class
     def input(self, prompt: str = "", *, password: bool = False) -> str:
-        return super().input(prompt, password=password)
+        return super().input(prompt, password=password) # type: ignore
