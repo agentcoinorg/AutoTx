@@ -1,9 +1,18 @@
-from logging import getLogger
 import sys
 from typing import Optional
 import re
+import logging
 
 from web3 import Web3
+from gnosis.eth import EthereumClient
+from gnosis.eth.constants import NULL_ADDRESS
+from gnosis.eth.multicall import Multicall
+from gnosis.safe import Safe, SafeOperation, SafeTx
+from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from web3.types import TxParams
+from gnosis.safe.api import TransactionServiceApi
+from gnosis.safe.api.base_api import SafeAPIException
+from eth_account.signers.local import LocalAccount
 
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 from autotx.utils.PreparedTx import PreparedTx
@@ -15,16 +24,7 @@ from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
 from .constants import MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
-from eth_account import Account
-from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.multicall import Multicall
-from gnosis.safe import Safe, SafeOperation, SafeTx
-from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from web3.types import TxParams
-from gnosis.safe.api import TransactionServiceApi
-from gnosis.safe.api.base_api import SafeAPIException
-import logging
+
 
 # Disable safe warning logs
 logging.getLogger('gnosis.safe.safe').setLevel(logging.CRITICAL + 1)
@@ -36,13 +36,13 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
-    dev_account: Account | None = None
+    dev_account: LocalAccount | None = None
     address: ETHAddress
 
     def __init__(
         self, 
         client: EthereumClient, 
-        agent: Account, 
+        agent: LocalAccount, 
         safe: Safe
     ):
         self.client = client
@@ -58,8 +58,8 @@ class SafeManager:
     def deploy_safe(
         cls, 
         client: EthereumClient, 
-        dev_account: Account, 
-        agent: Account, 
+        dev_account: LocalAccount, 
+        agent: LocalAccount, 
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
@@ -80,7 +80,7 @@ class SafeManager:
         cls, 
         client: EthereumClient, 
         safe_address: ETHAddress,
-        agent: Account, 
+        agent: LocalAccount, 
     ) -> 'SafeManager':
         safe = Safe(Web3.to_checksum_address(safe_address.hex), client)
 

@@ -1,7 +1,8 @@
+from eth_typing import ChecksumAddress
 from web3 import Web3
 
 class ETHAddress:
-    hex: str
+    hex: ChecksumAddress
     ens_domain: str | None
 
     def __init__(self, hex_or_ens: str, web3: Web3):

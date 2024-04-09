@@ -1,7 +1,7 @@
 
 import json
 from textwrap import dedent
-from typing import Annotated, Callable, List, Optional, Union
+from typing import Annotated, Any, Callable, Optional, Type, Union, cast
 from web3 import Web3
 from autotx.AutoTx import AutoTx
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
@@ -21,14 +21,14 @@ COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
     ChainId.GNOSIS: "xdai",
 }
 
-def get_coingecko():
+def get_coingecko() -> Any:
     return CoinGeckoDemoClient(api_key=COINGECKO_API_KEY)
 
 
 def get_tokens_and_filter_per_network(
     network_name: str,
-) -> dict[str, Union[str, dict[str, str]]]:
-    network = ChainId[network_name]
+) -> list[dict[str, Union[str, dict[str, str]]]]:
+    network = ChainId[network_name] # type: ignore
     coingecko_network_key = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(network)
     if coingecko_network_key == None:
         raise ChainIdNotSupported(f"Network {network_name} not supported")
@@ -40,11 +40,12 @@ def get_tokens_and_filter_per_network(
         if coingecko_network_key in token["platforms"]
     ]
 
-def filter_token_list_by_network(tokens: list[dict[str, str]], network_name: str):
+def filter_token_list_by_network(tokens: list[dict[str, str]], network_name: str) -> list[dict[str, Union[str, dict[str, str]]]]:
     tokens_in_category_map = {category["id"]: category for category in tokens}
     filtered_tokens_map = {
         token["id"]: token for token in get_tokens_and_filter_per_network(network_name)
     }
+
     return [
         {
             **tokens_in_category_map[token["id"]],
@@ -55,16 +56,17 @@ def filter_token_list_by_network(tokens: list[dict[str, str]], network_name: str
     ]
 
 def add_tokens_address_if_not_in_registry(
-    tokens_in_category: list[dict[str, str]],
-    tokens: list[str, str],
+    tokens_in_category: list[dict[str, Union[str, dict[str, str]]]],
+    tokens: dict[str, str],
     current_network: str,
-):
+) -> None:
     for token_with_address in tokens_in_category:
-        token_symbol = token_with_address["symbol"].lower()
+        token_symbol = cast(str, token_with_address["symbol"]).lower()
         token_not_added = token_symbol not in tokens
         if token_not_added:
+            platforms = cast(dict[str, str], token_with_address["platforms"]) 
             tokens[token_symbol] = Web3.to_checksum_address(
-                token_with_address["platforms"][current_network]
+                platforms[current_network]
             )
 
 class GetTokenInformationTool(AutoTxTool):
@@ -75,7 +77,7 @@ class GetTokenInformationTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str], str]:
         def run(
             token_id: Annotated[str, "ID of token"]
         ) -> str:
@@ -130,7 +132,7 @@ class SearchTokenTool(AutoTxTool):
     name: str = "search_token"
     description: str = "Search token based on its symbol. It will return the ID of tokens with the largest market cap"
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str, bool], str]:
         def run(
             token_symbol: Annotated[str, "Symbol of token to search"],
             retrieve_duplicate: Annotated[bool, "Set to true to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates. By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested."]
@@ -151,7 +153,7 @@ class GetAvailableCategoriesTool(AutoTxTool):
     name: str = "get_available_categories"
     description: str = "Retrieve all available category ids of tokens"
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[], str]:
         def run() -> str:
             print("Fetching available token categories")
 
@@ -164,7 +166,7 @@ class GetTokensBasedOnCategoryTool(AutoTxTool):
     name: str = "get_tokens_based_on_category"
     description: str = "Retrieve all tokens with their respective information (symbol, market cap, price change percentages and total traded volume in the last 24 hours) from a given category"
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str, str, int, str, Optional[str]], str]:
         def run(
             category: Annotated[str, "Category to retrieve tokens"],
             sort_by: Annotated[str, "Sort tokens by field. It can be: 'volume_desc' | 'volume_asc' | 'market_cap_desc' | 'market_cap_asc'. 'market_cap_desc' is the default"],
@@ -197,11 +199,11 @@ class GetTokensBasedOnCategoryTool(AutoTxTool):
                     autotx.network.chain_id
                 )
                 asked_network = COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP.get(
-                    ChainId[network_name]
+                    ChainId[network_name] # type: ignore
                 )
                 if current_network == asked_network:
                     add_tokens_address_if_not_in_registry(
-                        tokens_in_category, autotx.network.tokens, current_network
+                        tokens_in_category, autotx.network.tokens, cast(str, current_network)
                     )
             
             interval = (
@@ -228,10 +230,10 @@ class GetExchangesWhereTokenCanBeTradedTool(AutoTxTool):
     name: str = "get_exchanges_where_token_can_be_traded"
     description: str = "Retrieve exchanges where token can be traded"
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str], list[str]]:
         def run(
             token_id: Annotated[str, "ID of token"]
-        ) -> List[str]:
+        ) -> list[str]:
             print(f"Fetching exchanges where token ({token_id}) can be traded")
 
             tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]

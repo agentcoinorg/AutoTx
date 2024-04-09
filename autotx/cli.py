@@ -1,34 +1,34 @@
+from typing import cast
 from dotenv import load_dotenv
+import click
+
+load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from autotx.utils.ethereum import get_eth_balance
-load_dotenv()
 
-import click
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx
-from autotx.patch import patch_langchain
 from autotx.utils.ethereum.agent_account import get_agent_account, create_agent_account, delete_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_eth import send_eth
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
 
-patch_langchain()
 
 @click.group()
-def main():
+def main() -> None:
     pass
 
 @main.command()
 @click.argument('prompt', required=False)
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
-def run(prompt: str | None, non_interactive: bool, verbose: bool):
+def run(prompt: str | None, non_interactive: bool, verbose: bool) -> None:
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
@@ -85,7 +85,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool):
         None, get_llm_config=get_llm_config
     )
 
-    autotx.run(prompt, non_interactive, silent=not verbose)
+    autotx.run(cast(str, prompt), non_interactive, silent=not verbose)
 
     if not smart_account_addr:
         print("=" * 50)
@@ -94,18 +94,16 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool):
         print("=" * 50)
 
 @main.group()
-def agent():
+def agent() -> None:
     pass
 
 @agent.command(name="address")
-def agent_address():
+def agent_address() -> None:
     print_agent_address()
 
-def print_agent_address():
-    acc = get_agent_account()
-
-    if acc == None:
-        acc = create_agent_account()
+def print_agent_address() -> None:
+    agent_account = get_agent_account()
+    acc = agent_account if agent_account else create_agent_account()
 
     print(f"Agent address: {acc.address}")
 

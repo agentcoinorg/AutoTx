@@ -1,8 +1,5 @@
-from autotx.patch import patch_langchain
 from autotx.utils.agent.build_goal import DefineGoalResponse, analyze_user_prompt
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
-
-patch_langchain()
 
 def test_with_missing_amount(auto_tx):
     response = analyze_prompt("Send ETH to 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", auto_tx)

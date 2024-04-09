@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Self
 import autogen
 if TYPE_CHECKING:
     from autotx.autotx_tool import AutoTxTool
@@ -10,7 +10,7 @@ class AutoTxAgent():
     tools: list['AutoTxTool']
     tool_descriptions: list[str]
 
-    def __init__(self):
+    def __init__(self) -> Self:
         self.tool_descriptions = [
             f"{tool.name}: {tool.description}" for tool in self.tools
         ]

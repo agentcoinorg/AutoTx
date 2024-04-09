@@ -2,10 +2,11 @@ import os
 from typing import Optional
 
 class Cache:
-    folder: str = None
+    folder: str = ".cache"
 
     def __init__(self, folder: Optional[str] = ".cache"):
-        self.folder = folder
+        if folder:
+            self.folder = folder
         os.makedirs(folder, exist_ok=True)
 
     def read(self, file_name: str) -> str | None:
@@ -19,11 +20,11 @@ class Cache:
             print(f"An error occurred while reading {file_name}: {e}")
             raise
 
-    def write(self, file_name: str, data: str):
+    def write(self, file_name: str, data: str) -> None:
         with open(os.path.join(self.folder, file_name), "w") as f:
             f.write(data)
 
-    def remove(self, file_name: str):
+    def remove(self, file_name: str) -> None:
         try:
             os.remove(os.path.join(self.folder, file_name))
         except FileNotFoundError:

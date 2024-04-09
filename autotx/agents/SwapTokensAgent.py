@@ -7,7 +7,7 @@ from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
-def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):
+def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo) -> tuple[str, str]:
     token_in = token_in.lower()
     token_out = token_out.lower()
 
@@ -32,7 +32,7 @@ class SwapTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str, str], str]:
         def run(
             token_to_sell: Annotated[str, "Token to sell. E.g. '10 USDC' or just 'USDC'"],
             token_to_buy: Annotated[str, "Token to buy. E.g. '10 USDC' or just 'USDC'"],

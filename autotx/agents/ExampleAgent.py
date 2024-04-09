@@ -17,7 +17,7 @@ class ExampleTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[float, str], str]:
         def run(
             amount: Annotated[float, "Amount of something."],
             receiver: Annotated[str, "The receiver of something."]
