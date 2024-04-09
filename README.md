@@ -81,6 +81,19 @@ Future possibilities:
 * `What proposals are being voted on right now?`
 * `Donate $100 to environmental impact projects.`
 
+## Running with Opensoruce Models
+
+To run AutoTx with your favorite OS model, you can use any provider that simulates the OpenAI API Schema and provides a Base URL to query.
+
+One of the easiest way to do this is using [together.ai](https://docs.together.ai/docs/quickstart) and following these steps:
+
+1. Make a together.ai account, make sure you have credits, they should give you 25$ for free when you register.
+1. Edit the `.env` file to include the API key you find [here](https://api.together.xyz/settings/api-keys) after signing up 
+1. Also edit in the `.env` the `OPENAI_BASE_URL` and `OPENAI_API_BASE` to point to `https://api.together.xyz/v1`
+1. Find your favorite model in the chat section of the [model gallery](https://api.together.xyz/models)
+1. Add that model to the `OPENAI_MODEL_NAME` variable of your `.env`
+1. After you have followed all setup steps above, just run `poetry run ask` and chat with AutoTX, powered by your favorite OS model
+
 ## How To Contribute
 Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build! Additionally, checkout the [repository's issues](https://github.com/polywrap/AutoTx/issues) that will remain updated with the project's latest developments. Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
