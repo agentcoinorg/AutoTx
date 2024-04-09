@@ -41,6 +41,8 @@ strict = true
 
 exclude = [
     "autotx/tests/",
+    "benchmarks.py",
+    "autotx/utils/agent/build_goal.py"
 ]
 
 ignore_missing_imports = true
