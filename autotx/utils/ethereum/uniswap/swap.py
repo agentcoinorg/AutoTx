@@ -1,8 +1,9 @@
 from decimal import Decimal
+from typing import Literal, Union
 from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 import requests
-from web3 import Web3
+from web3.types import Wei
 
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
@@ -29,7 +30,7 @@ def get_swap_information(
     token_out_decimals: int,
     price: float,
     exact_input: bool,
-):
+) -> tuple[int, int, Union[Literal["exactInputSingle"] | Literal["exactOutputSingle"]]]:
     if exact_input:
         amount_compared_with_token = amount * price
         minimum_amount_out = int(Decimal(amount_compared_with_token) * 10**token_out_decimals)
@@ -109,11 +110,11 @@ def build_swap_transaction(
     token_out_is_native = token_out_address == NATIVE_TOKEN_ADDRESS
 
     token_in = web3.eth.contract(
-        address=uniswap.weth_address if token_in_is_native else token_in_address,
+        address=uniswap.weth_address if token_in_is_native else web3.to_checksum_address(token_in_address),
         abi=WETH_ABI if token_in_address == uniswap.weth_address else ERC20_ABI,
     )
     token_out = web3.eth.contract(
-        address=uniswap.weth_address if token_out_is_native else token_out_address,
+        address=uniswap.weth_address if token_out_is_native else web3.to_checksum_address(token_out_address),
         abi=WETH_ABI if token_out_address == uniswap.weth_address else ERC20_ABI,
     )
 
@@ -125,9 +126,9 @@ def build_swap_transaction(
                 token_out.functions.deposit().build_transaction(
                     {
                         "from": _from,
-                        "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-                        "gas": None,
-                        "value": int(Decimal(amount) * 10**18),
+                        "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
+                        "gas": None, # type: ignore
+                        "value": Wei(int(Decimal(amount) * 10**18)),
                     }
                 ),
             )
@@ -141,8 +142,8 @@ def build_swap_transaction(
                 token_out.functions.withdraw(int(Decimal(amount) * 10**18)).build_transaction(
                     {
                         "from": _from,
-                        "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-                        "gas": None,
+                        "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
+                        "gas": None, # type: ignore
                     }
                 ),
             )
@@ -168,7 +169,7 @@ def build_swap_transaction(
             ).build_transaction(
                 {
                     "from": _from,
-                    "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+                    "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
                 }
             )
             transactions.append(
@@ -180,7 +181,7 @@ def build_swap_transaction(
     subgraph_url = SUPPORTED_UNISWAP_V3_NETWORKS[NetworkInfo(web3.eth.chain_id).chain_id]
 
     fee = get_best_fee_tier(token_in.address, token_out.address, subgraph_url)
-    swap_transaction = uniswap.router.functions[method](
+    swap_transaction = uniswap.router.functions[method]( # type: ignore
         (
             token_in.address,
             token_out.address,
@@ -194,7 +195,7 @@ def build_swap_transaction(
         {
             "value": amount_in if token_in_is_native else 0,
             "gas": None,
-            "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+            "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
         }
     )
     transactions.append(
@@ -208,8 +209,8 @@ def build_swap_transaction(
         tx = token_out.functions.withdraw(amount_out).build_transaction(
             {
                 "from": _from,
-                "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
-                "gas": None,
+                "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
+                "gas": None, # type: ignore
             }
         )
         transactions.append(PreparedTx(f"Convert WETH to ETH", tx))

@@ -1,5 +1,7 @@
 from textwrap import dedent
 from typing import Annotated, Callable
+
+from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
@@ -57,7 +59,7 @@ class TransferERC20Tool(AutoTxTool):
             receiver: Annotated[str, "The receiver's address or ENS domain"],
             token: Annotated[str, "Symbol of token to transfer"]
         ) -> str:
-            token_address = autotx.network.tokens[token.lower()]
+            token_address = Web3.to_checksum_address(autotx.network.tokens[token.lower()])
             web3 = load_w3()
       
             receiver_addr = ETHAddress(receiver, web3)

@@ -1,8 +1,7 @@
 from eth_account.signers.local import LocalAccount
 from eth_typing import Address
 from web3 import Web3
-from web3.types import TxReceipt
-from web3.types import TxParams
+from web3.types import TxParams, TxReceipt, Wei
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
@@ -16,8 +15,8 @@ def send_eth(account: LocalAccount, to: ETHAddress, value: float, web3: Web3) ->
     tx: TxParams = {
         'from': account.address,
         'to': to.hex,
-        'value': int(value * 10 ** 18),
-        'gasPrice': int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
+        'value': Wei(int(value * 10 ** 18)),
+        'gasPrice': Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
         'nonce': nonce,
         'chainId': web3.eth.chain_id
     }
@@ -25,7 +24,7 @@ def send_eth(account: LocalAccount, to: ETHAddress, value: float, web3: Web3) ->
     gas = web3.eth.estimate_gas(tx)
     tx.update({'gas': gas})
 
-    signed_tx = account.sign_transaction(tx)
+    signed_tx = account.sign_transaction(tx) # type: ignore
 
     web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 

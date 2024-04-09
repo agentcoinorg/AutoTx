@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, cast
 from gnosis.eth import EthereumNetwork
 from web3 import Web3
 
@@ -20,15 +20,15 @@ class NetworkInfo:
         self.chain_id = ChainId(chain_id)
         config = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(self.chain_id)
 
-        if config == None:
+        if not config:
             raise Exception(f"Chain ID {chain_id} is not supported")
 
         self.transaction_service_url = config.transaction_service_url
-        self.tokens = self.fetch_tokens_for_chain(chain_id) | config.default_tokens
+        self.tokens = self.fetch_tokens_for_chain(chain_id) or config.default_tokens
 
-    def fetch_tokens_for_chain(self, chain_id: int) -> list[dict[str, Union[str, int]]]:
+    def fetch_tokens_for_chain(self, chain_id: int) -> dict[str, str]:
         return {
-            token["symbol"].lower(): Web3.to_checksum_address(token["address"])
+            cast(str, token["symbol"]).lower(): Web3.to_checksum_address(cast(str, token["address"]))
             for token in token_list
             if token["chainId"] == chain_id
         }

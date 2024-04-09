@@ -12,7 +12,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 
 smart_account_addr = get_env_vars()
 
-def get_configuration() -> tuple[ETHAddress, LocalAccount, EthereumClient]:
+def get_configuration() -> tuple[ETHAddress | None, LocalAccount, EthereumClient]:
     w3 = Web3(HTTPProvider(FORK_RPC_URL))
     for i in range(16):
         if w3.is_connected():
