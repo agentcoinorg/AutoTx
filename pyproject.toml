@@ -29,7 +29,8 @@ start-fork = "autotx.chain_fork:start"
 stop-fork = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
-load_tokens = "autotx.load_tokens:run"
+load-tokens = "autotx.load_tokens:run"
+build-check = "autotx.build_check:run"
 
 [build-system]
 requires = ["poetry-core"]
