@@ -24,7 +24,7 @@ class NetworkInfo:
             raise Exception(f"Chain ID {chain_id} is not supported")
 
         self.transaction_service_url = config.transaction_service_url
-        self.tokens = self.fetch_tokens_for_chain(chain_id) or config.default_tokens
+        self.tokens = { **self.fetch_tokens_for_chain(chain_id), **config.default_tokens }
 
     def fetch_tokens_for_chain(self, chain_id: int) -> dict[str, str]:
         return {

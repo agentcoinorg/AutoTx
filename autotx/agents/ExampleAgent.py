@@ -4,10 +4,11 @@ from autotx import AutoTx, AutoTxAgent, AutoTxTool
 
 name = "example-agent"
 
-system_message = f"""
-Example of an agent system message.
-...
-"""
+system_message = dedent(f"""
+    Example of an agent system message.
+    ...
+    """
+)
 
 class ExampleTool(AutoTxTool):
     name: str = "example_tool"
@@ -34,7 +35,7 @@ class ExampleTool(AutoTxTool):
 
 class ExampleAgent(AutoTxAgent):
     name=name
-    system_message=dedent(system_message)
+    system_message=system_message
     tools=[
         ExampleTool(),
         # AnotherTool(...),

@@ -15,6 +15,17 @@ from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
 from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.eth_address import ETHAddress
 
+name = "send-tokens"
+
+system_message = lambda autotx: dedent(f"""
+    You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their tasks by fetching balances and preparing transactions to send tokens.
+    You are an expert in Ethereum tokens and can help users send tokens and check their balances.
+    You use the tools available to assist the user in their tasks. 
+    Your job is to only prepare the transactions and the user will take care of executing them.
+    NOTE: There is no reason to call get_erc20_balance after calling transfer as the transfers are only prepared and not executed. 
+    """
+)
+
 class TransferETHTool(AutoTxTool):
     name: str = "prepare_transfer_eth_transaction"
     description: str = dedent(
@@ -126,16 +137,8 @@ class GetERC20BalanceTool(AutoTxTool):
         return run
 
 class SendTokensAgent(AutoTxAgent):
-    name: str = "send-tokens"
-    system_message: Callable[[AutoTx], str] = lambda autotx: dedent(
-        f"""
-        You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their tasks by fetching balances and preparing transactions to send tokens.
-        You are an expert in Ethereum tokens and can help users send tokens and check their balances.
-        You use the tools available to assist the user in their tasks. 
-        Your job is to only prepare the transactions and the user will take care of executing them.
-        NOTE: There is no reason to call get_erc20_balance after calling transfer as the transfers are only prepared and not executed. 
-        """
-    )
+    name = name
+    system_message = system_message
     tools = [
         TransferETHTool(),
         TransferERC20Tool(),

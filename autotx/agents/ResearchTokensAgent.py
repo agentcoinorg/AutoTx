@@ -12,6 +12,16 @@ from autotx.autotx_tool import AutoTxTool
 from autotx.utils.constants import COINGECKO_API_KEY
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 
+name = "research-tokens"
+
+system_message = lambda autotx: dedent(f"""
+    You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.
+    You are an expert in Ethereum tokens and can help users research tokens.
+    You use the tools available to assist the user in their tasks.
+    Retrieve token information, get token price, market cap, and price change percentage
+    """
+)
+
 COINGECKO_NETWORKS_TO_SUPPORTED_NETWORKS_MAP = {
     ChainId.MAINNET: "ethereum",
     ChainId.OPTIMISM: "optimistic-ethereum",
@@ -243,13 +253,8 @@ class GetExchangesWhereTokenCanBeTradedTool(AutoTxTool):
         return run
 
 class ResearchTokensAgent(AutoTxAgent):
-    name = "research-tokens"
-    system_message = lambda autotx: f"""
-        You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.
-        You are an expert in Ethereum tokens and can help users research tokens.
-        You use the tools available to assist the user in their tasks.
-        Retrieve token information, get token price, market cap, and price change percentage
-        """
+    name = name
+    system_message = system_message
     tools = [
         GetTokenInformationTool(),
         SearchTokenTool(),
