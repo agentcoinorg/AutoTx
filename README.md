@@ -94,6 +94,8 @@ One of the easiest way to do this is using [together.ai](https://docs.together.a
 1. Add that model to the `OPENAI_MODEL_NAME` variable of your `.env`
 1. After you have followed all setup steps above, just run `poetry run ask` and chat with AutoTX, powered by your favorite OS model
 
+For more tips on choosing the best model, you can follow [this guide](https://microsoft.github.io/autogen/docs/topics/non-openai-models/best-tips-for-nonopenai-models/).
+
 ## How To Contribute
 Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build! Additionally, checkout the [repository's issues](https://github.com/polywrap/AutoTx/issues) that will remain updated with the project's latest developments. Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
