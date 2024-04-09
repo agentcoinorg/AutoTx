@@ -7,6 +7,33 @@ from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
+name = "swap-tokens"
+
+system_message = lambda autotx: dedent(f"""
+    You are an expert at buying and selling tokens. Assist the user (address: {autotx.manager.address}) in their task of swapping tokens.
+    You use the tools available to assist the user in their tasks.
+    Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol
+    An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.
+    Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
+    Examples:
+    {{
+        "token_to_sell": "5 ETH",
+        "token_to_buy": "USDC"
+    }} // Prepares a swap transaction to sell 5 ETH and buy USDC
+
+    {{
+        "token_to_sell": "ETH",
+        "token_to_buy": "5 USDC"
+    }} // Prepares a swap transaction to sell ETH and buy 5 USDC
+
+    Invalid Example:
+    {{
+        "token_to_sell": "5 ETH",
+        "token_to_buy": "5 USDC"
+    }} // Invalid input. Only one token amount should be provided, not both.
+    """
+)
+
 def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):
     token_in = token_in.lower()
     token_out = token_out.lower()
@@ -80,31 +107,8 @@ class SwapTool(AutoTxTool):
         return run
     
 class SwapTokensAgent(AutoTxAgent):
-    name = "swap-tokens"
-    system_message = lambda autotx: dedent(f"""
-        You are an expert at buying and selling tokens. Assist the user (address: {autotx.manager.address}) in their task of swapping tokens.
-        You use the tools available to assist the user in their tasks.
-        Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol
-        An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.
-        Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
-        Examples:
-        {{
-            "token_to_sell": "5 ETH",
-            "token_to_buy": "USDC"
-        }} // Prepares a swap transaction to sell 5 ETH and buy USDC
-
-        {{
-            "token_to_sell": "ETH",
-            "token_to_buy": "5 USDC"
-        }} // Prepares a swap transaction to sell ETH and buy 5 USDC
-
-        Invalid Example:
-        {{
-            "token_to_sell": "5 ETH",
-            "token_to_buy": "5 USDC"
-        }} // Invalid input. Only one token amount should be provided, not both.
-        """
-    )
+    name = name
+    system_message = system_message
     tools = [
         SwapTool()
     ]
