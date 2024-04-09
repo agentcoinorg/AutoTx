@@ -2,7 +2,7 @@ from textwrap import dedent
 from typing import Annotated, Callable
 from autotx import AutoTx, AutoTxAgent, AutoTxTool
 
-name = "Example Agent"
+name = "example-agent"
 
 system_message = f"""
 Example of an agent system message.
