@@ -61,6 +61,9 @@ class AutoTx:
                     Verifier is an expert in verifiying if user goals are met.
                     Verifier analyzes chat and responds with TERMINATE if the goal is met.
                     Verifier can consider the goal met if the other agents have prepared the necessary transactions.
+                    
+                    If some information needs to be returned to the user, add it in your answer and then say the word TERMINATE.
+                    Make sure to only add information if the user explicitly ask for a question that needs to be answered
                     """
                 ),
             llm_config=self.get_llm_config(),
@@ -87,12 +90,15 @@ class AutoTx:
         else:
             IOStream.set_global_default(IOConsole())
 
-        user_proxy.initiate_chat(manager, message=dedent(
+        chat = user_proxy.initiate_chat(manager, message=dedent(
             f"""
                 My goal is: {prompt}
                 Advisor reworded: {goal}
             """
         ))
+
+        if chat.summary:
+            cprint(chat.summary.replace("\n", ""), "green")
 
         try:
             self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
