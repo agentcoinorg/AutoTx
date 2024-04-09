@@ -1,51 +1,42 @@
-from typing import Callable
 from textwrap import dedent
-from crewai import Agent
-from autotx.AutoTx import AutoTx
-from autotx.auto_tx_agent import AutoTxAgent
-from autotx.auto_tx_tool import AutoTxTool
+from typing import Annotated, Callable
+from autotx import AutoTx, AutoTxAgent, AutoTxTool
+
+name = "example-agent"
+
+system_message = f"""
+Example of an agent system message.
+...
+"""
 
 class ExampleTool(AutoTxTool):
-    name: str = "Example tool that does something useful"
+    name: str = "example_tool"
     description: str = dedent(
         """
         This tool does something very useful.
-
-        Args:
-            amount (float): Amount of something.
-            receiver (str): The receiver of something.
-        Returns:
-            The result of the useful tool in a useful format.
         """
     )
 
-    def _run(
-        self, amount: float, receiver: str
-    ) -> str:
+    def build_tool(self, autotx: AutoTx) -> Callable:
+        def run(
+            amount: Annotated[float, "Amount of something."],
+            receiver: Annotated[str, "The receiver of something."]
+        ) -> str:
+            # TODO: do something useful
+            print(f"ExampleTool run: {amount} {receiver}")
+            
+            # NOTE: you can add transactions to AutoTx's current bundle
+            # autotx.transactions.append(tx)
 
-        # TODO: do something useful
-        print(f"ExampleTool run: {amount} {receiver}")
-        
-        # NOTE: you can add transactions to AutoTx's current bundle
-        # self.autotx.transactions.append(tx)
+            return f"Something useful has been done with {amount} to {receiver}"
 
-        return f"Something useful has been done with {amount} to {receiver}"
+        return run
 
 class ExampleAgent(AutoTxAgent):
-    def __init__(self, autotx: AutoTx):
-        super().__init__(
-            name="example-agent",
-            role="Example agent role",
-            goal="Example agent goal",
-            backstory="Example agent backstory",
-            tools=[
-                ExampleTool(autotx),
-                # AnotherTool(...),
-                # AndAnotherTool(...)
-            ],
-        )
-
-def build_agent_factory() -> Callable[[AutoTx], Agent]:
-    def agent_factory(autotx: AutoTx) -> ExampleAgent:
-        return ExampleAgent(autotx)
-    return agent_factory
+    name=name
+    system_message=dedent(system_message)
+    tools=[
+        ExampleTool(),
+        # AnotherTool(...),
+        # AndAnotherTool(...)
+    ]

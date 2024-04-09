@@ -1,6 +1,8 @@
+from decimal import Decimal
 from gnosis.eth import EthereumClient
 from gnosis.eth.oracles.uniswap_v3 import UniswapV3Oracle
 import requests
+from web3 import Web3
 
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
@@ -30,15 +32,15 @@ def get_swap_information(
 ):
     if exact_input:
         amount_compared_with_token = amount * price
-        minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
-        amount_out = int(minimum_amount_out - (minimum_amount_out * SLIPPAGE))
-        return (amount_out, int(amount * 10**token_in_decimals), "exactInputSingle")
+        minimum_amount_out = int(Decimal(amount_compared_with_token) * 10**token_out_decimals)
+        amount_out = int(minimum_amount_out - Decimal(minimum_amount_out * SLIPPAGE))
+        return (amount_out, int(Decimal(amount) * 10**token_in_decimals), "exactInputSingle")
     else:
         amount_compared_with_token = amount / price
-        max_amount_in = int(amount_compared_with_token * 10**token_in_decimals)
-        amount_in = int(max_amount_in + (max_amount_in * SLIPPAGE))
+        max_amount_in = int(Decimal(amount_compared_with_token) * 10**token_in_decimals)
+        amount_in = int(max_amount_in + Decimal(max_amount_in * SLIPPAGE))
         return (
-            int(amount * 10**token_out_decimals),
+            int(Decimal(amount) * 10**token_out_decimals),
             amount_in,
             "exactOutputSingle",
         )
@@ -108,11 +110,11 @@ def build_swap_transaction(
 
     token_in = web3.eth.contract(
         address=uniswap.weth_address if token_in_is_native else token_in_address,
-        abi=WETH_ABI if token_in_is_native else ERC20_ABI,
+        abi=WETH_ABI if token_in_address == uniswap.weth_address else ERC20_ABI,
     )
     token_out = web3.eth.contract(
         address=uniswap.weth_address if token_out_is_native else token_out_address,
-        abi=WETH_ABI if token_out_is_native else ERC20_ABI,
+        abi=WETH_ABI if token_out_address == uniswap.weth_address else ERC20_ABI,
     )
 
     transactions: list[PreparedTx] = []
@@ -125,7 +127,7 @@ def build_swap_transaction(
                         "from": _from,
                         "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
                         "gas": None,
-                        "value": int(amount * 10**18),
+                        "value": int(Decimal(amount) * 10**18),
                     }
                 ),
             )
@@ -136,7 +138,7 @@ def build_swap_transaction(
         transactions.append(
             PreparedTx(
                 f"Swap WETH to ETH",
-                token_out.functions.withdraw(int(amount * 10**18)).build_transaction(
+                token_out.functions.withdraw(int(Decimal(amount) * 10**18)).build_transaction(
                     {
                         "from": _from,
                         "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
@@ -171,7 +173,7 @@ def build_swap_transaction(
             )
             transactions.append(
                 PreparedTx(
-                    f"Approve {amount_in / 10 ** token_in_decimals} {token_in_symbol} to Uniswap",
+                    f"Approve {Decimal(amount_in) / 10 ** token_in_decimals} {token_in_symbol} to Uniswap",
                     tx,
                 )
             )
@@ -197,7 +199,7 @@ def build_swap_transaction(
     )
     transactions.append(
         PreparedTx(
-            f"Swap {amount_in / 10 ** token_in_decimals} {token_in_symbol} for {amount_out / 10 ** token_out_decimals} {token_out_symbol}",
+            f"Swap {Decimal(amount_in) / 10 ** token_in_decimals} {token_in_symbol} for {Decimal(amount_out) / 10 ** token_out_decimals} {token_out_symbol}",
             swap_transaction,
         )
     )

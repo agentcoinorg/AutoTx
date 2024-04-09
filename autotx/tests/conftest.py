@@ -1,17 +1,20 @@
 from dotenv import load_dotenv
+load_dotenv()
+
+from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
+from autotx.agents.SendTokensAgent import SendTokensAgent
+from autotx.agents.SwapTokensAgent import SwapTokensAgent
+
 from eth_account import Account
 
+from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
-load_dotenv()
-
 import pytest
-from autotx.agents import ResearchTokensAgent, SendTokensAgent
-from autotx.agents import SwapTokensAgent
 from autotx.AutoTx import AutoTx
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
@@ -49,12 +52,18 @@ def configuration():
 def auto_tx(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
+    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
 
-    return AutoTx(manager, network_info, [
-        SendTokensAgent.build_agent_factory(),
-        SwapTokensAgent.build_agent_factory(client, manager.address),
-        ResearchTokensAgent.build_agent_factory()
-    ], None)
+    return AutoTx(
+        manager, 
+        network_info, 
+        [
+            SendTokensAgent(),
+            SwapTokensAgent(),
+            ResearchTokensAgent()
+        ], 
+        None, get_llm_config=get_llm_config
+    )
 
 @pytest.fixture()
 def usdc(configuration) -> ETHAddress:
