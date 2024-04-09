@@ -81,6 +81,16 @@ Future possibilities:
 * `What proposals are being voted on right now?`
 * `Donate $100 to environmental impact projects.`
 
+## Use AutoTx With Open-Source Models
+
+To run AutoTx with your favorite OS model, you can use any provider that simulates the OpenAI API. One of the easiest way to do this is using [together.ai](https://docs.together.ai/docs/quickstart) and following these steps:  
+1. Make a together.ai account.
+1. Set `OPENAI_API_KEY` in the `.env` file to your together.ai account's API key ([found here](https://api.together.xyz/settings/api-keys))
+1. Set `OPENAI_BASE_URL` and `OPENAI_API_BASE` to point to `https://api.together.xyz/v1`
+1. Set `OPENAI_MODEL_NAME` to one of these recommended JSON-enabled models: `mistralai/Mixtral-8x7B-Instruct-v0.1`, `mistralai/Mistral-7B-Instruct-v0.1`
+
+Now simply run AutoTx as normally do. For more tips on choosing the best model, you can follow [this guide](https://microsoft.github.io/autogen/docs/topics/non-openai-models/best-tips-for-nonopenai-models/).
+
 ## How To Contribute
 Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build! Additionally, checkout the [repository's issues](https://github.com/polywrap/AutoTx/issues) that will remain updated with the project's latest developments. Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
