@@ -24,23 +24,23 @@ SUPPORTED_UNISWAP_V3_NETWORKS = {
 }
 
 def get_swap_information(
-    amount: float,
+    amount: Decimal,
     token_in_decimals: int,
     token_out_decimals: int,
-    price: float,
+    price: Decimal,
     exact_input: bool,
 ):
     if exact_input:
         amount_compared_with_token = amount * price
-        minimum_amount_out = int(Decimal(amount_compared_with_token) * 10**token_out_decimals)
-        amount_out = int(minimum_amount_out - Decimal(minimum_amount_out * SLIPPAGE))
-        return (amount_out, int(Decimal(amount) * 10**token_in_decimals), "exactInputSingle")
+        minimum_amount_out = int(amount_compared_with_token * 10**token_out_decimals)
+        amount_out = int(minimum_amount_out - int(Decimal(minimum_amount_out) * Decimal(str(SLIPPAGE))))
+        return (amount_out, int(amount * 10**token_in_decimals), "exactInputSingle")
     else:
         amount_compared_with_token = amount / price
-        max_amount_in = int(Decimal(amount_compared_with_token) * 10**token_in_decimals)
-        amount_in = int(max_amount_in + Decimal(max_amount_in * SLIPPAGE))
+        max_amount_in = int(amount_compared_with_token * 10**token_in_decimals)
+        amount_in = int(max_amount_in + int(Decimal(max_amount_in) * Decimal(str(SLIPPAGE))))
         return (
-            int(Decimal(amount) * 10**token_out_decimals),
+            int(amount * 10**token_out_decimals),
             amount_in,
             "exactOutputSingle",
         )
@@ -96,12 +96,14 @@ def get_best_fee_tier(token_in_address: str, token_out_address: str, subgraph_ur
 
 def build_swap_transaction(
     etherem_client: EthereumClient,
-    amount: float,
+    amount: Decimal,
     token_in_address: str,
     token_out_address: str,
     _from: str,
     exact_input: bool,
 ) -> list[PreparedTx]:
+    amount_dec = Decimal(str(amount)) # Convert to Decimal to avoid floating point errors
+
     uniswap = UniswapV3Oracle(etherem_client)
     web3 = etherem_client.w3
 
@@ -127,7 +129,7 @@ def build_swap_transaction(
                         "from": _from,
                         "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
                         "gas": None,
-                        "value": int(Decimal(amount) * 10**18),
+                        "value": int(amount_dec * 10**18),
                     }
                 ),
             )
@@ -138,7 +140,7 @@ def build_swap_transaction(
         transactions.append(
             PreparedTx(
                 f"Swap WETH to ETH",
-                token_out.functions.withdraw(int(Decimal(amount) * 10**18)).build_transaction(
+                token_out.functions.withdraw(int(amount_dec * 10**18)).build_transaction(
                     {
                         "from": _from,
                         "gasPrice": int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER),
@@ -150,11 +152,12 @@ def build_swap_transaction(
         return transactions
 
     price = uniswap.get_price(token_in.address, token_out.address)
+    price_dec = Decimal(str(price))
 
     token_in_decimals = token_in.functions.decimals().call()
     token_out_decimals = token_out.functions.decimals().call()
     (amount_out, amount_in, method) = get_swap_information(
-        amount, token_in_decimals, token_out_decimals, price, exact_input
+        amount_dec, token_in_decimals, token_out_decimals, price_dec, exact_input
     )
 
     token_in_symbol = token_in.functions.symbol().call()
