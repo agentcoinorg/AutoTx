@@ -81,7 +81,7 @@ Future possibilities:
 * `What proposals are being voted on right now?`
 * `Donate $100 to environmental impact projects.`
 
-## Running with Opensoruce Models
+## (Optional) Running with Opensoruce Models
 
 To run AutoTx with your favorite OS model, you can use any provider that simulates the OpenAI API Schema and provides a Base URL to query.
 
@@ -90,7 +90,7 @@ One of the easiest way to do this is using [together.ai](https://docs.together.a
 1. Make a together.ai account, make sure you have credits, they should give you 25$ for free when you register.
 1. Edit the `.env` file to include the API key you find [here](https://api.together.xyz/settings/api-keys) after signing up 
 1. Also edit in the `.env` the `OPENAI_BASE_URL` and `OPENAI_API_BASE` to point to `https://api.together.xyz/v1`
-1. Find your favorite model in the chat section of the [model gallery](https://api.together.xyz/models)
+1. Choose one of these JSON enabled models: `mistralai/Mixtral-8x7B-Instruct-v0.1`, `mistralai/Mistral-7B-Instruct-v0.1`, or `togethercomputer/CodeLlama-34b-Instruct`.
 1. Add that model to the `OPENAI_MODEL_NAME` variable of your `.env`
 1. After you have followed all setup steps above, just run `poetry run ask` and chat with AutoTX, powered by your favorite OS model
 
