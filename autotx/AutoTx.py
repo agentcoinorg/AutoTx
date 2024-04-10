@@ -4,13 +4,14 @@ from dataclasses import dataclass
 from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
 from termcolor import cprint
 from typing import Optional
-from autogen.io import IOStream
+from autogen.io import IOStream, IOConsole
 from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.io_silent import IOConsole, IOSilent
+from autotx.utils.io_silent import IOSilent
+
 
 @dataclass(kw_only=True)
 class Config:
@@ -22,7 +23,6 @@ class AutoTx:
     transactions: list[PreparedTx] = []
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
-    user_proxy: UserProxyAgent
     agents: list[AutoTxAgent]
 
     def __init__(
@@ -36,7 +36,7 @@ class AutoTx:
             self.config = config
         self.agents = agents
 
-    def run(self, prompt: str, non_interactive: bool, silent: bool = False):
+    def run(self, prompt: str, non_interactive: bool, silent: bool = False) -> None:
         print("Running AutoTx with the following prompt: ", prompt)
 
         user_proxy = UserProxyAgent(

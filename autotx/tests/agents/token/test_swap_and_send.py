@@ -1,9 +1,7 @@
-from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-patch_langchain()
 
 def test_auto_tx_swap_and_send_simple(configuration, auto_tx):
     (_, _, client, manager) = configuration

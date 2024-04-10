@@ -4,7 +4,7 @@ from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 
 container_name = "autotx_chain_fork"
 
-def start():
+def start() -> None:
     delete_cached_safe_address()
 
     build = subprocess.run(
@@ -32,5 +32,5 @@ def start():
         check=True,
     )
 
-def stop():
+def stop() -> None:
     subprocess.run(["docker", "container", "rm", container_name, "-f"], check=True)

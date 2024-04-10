@@ -1,3 +1,4 @@
+from decimal import Decimal
 from textwrap import dedent
 from typing import Annotated, Callable
 from autotx.AutoTx import AutoTx
@@ -34,7 +35,7 @@ system_message = lambda autotx: dedent(f"""
     """
 )
 
-def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo):
+def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo) -> tuple[str, str]:
     token_in = token_in.lower()
     token_out = token_out.lower()
 
@@ -59,7 +60,7 @@ class SwapTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str, str], str]:
         def run(
             token_to_sell: Annotated[str, "Token to sell. E.g. '10 USDC' or just 'USDC'"],
             token_to_buy: Annotated[str, "Token to buy. E.g. '10 USDC' or just 'USDC'"],
@@ -89,7 +90,7 @@ class SwapTool(AutoTxTool):
 
             swap_transactions = build_swap_transaction(
                 autotx.manager.client,
-                float(exact_amount),
+                Decimal(exact_amount),
                 token_in_address,
                 token_out_address,
                 autotx.manager.address.hex,

@@ -10,7 +10,7 @@ class AutoTxAgent():
     tools: list['AutoTxTool']
     tool_descriptions: list[str]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.tool_descriptions = [
             f"{tool.name}: {tool.description}" for tool in self.tools
         ]
@@ -20,7 +20,7 @@ class AutoTxAgent():
         if isinstance(self.system_message, str):
             system_message = self.system_message
         else:
-            get_system_message = self.system_message.__func__
+            get_system_message = self.system_message.__func__ # type: ignore
             system_message = get_system_message(autotx)
         
         agent = autogen.AssistantAgent(

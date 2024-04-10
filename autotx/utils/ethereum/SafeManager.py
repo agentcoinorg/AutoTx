@@ -1,9 +1,20 @@
-from logging import getLogger
 import sys
-from typing import Optional
+from typing import Optional, cast
 import re
+import logging
 
+from eth_typing import ChecksumAddress
+from hexbytes import HexBytes
 from web3 import Web3
+from gnosis.eth import EthereumClient
+from gnosis.eth.constants import NULL_ADDRESS
+from gnosis.eth.multicall import Multicall
+from gnosis.safe import Safe, SafeOperation, SafeTx
+from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from web3.types import TxParams, TxReceipt
+from gnosis.safe.api import TransactionServiceApi
+from gnosis.safe.api.base_api import SafeAPIException
+from eth_account.signers.local import LocalAccount
 
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 from autotx.utils.PreparedTx import PreparedTx
@@ -15,16 +26,7 @@ from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
 from .constants import MULTI_SEND_ADDRESS, GAS_PRICE_MULTIPLIER
-from eth_account import Account
-from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.multicall import Multicall
-from gnosis.safe import Safe, SafeOperation, SafeTx
-from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from web3.types import TxParams
-from gnosis.safe.api import TransactionServiceApi
-from gnosis.safe.api.base_api import SafeAPIException
-import logging
+
 
 # Disable safe warning logs
 logging.getLogger('gnosis.safe.safe').setLevel(logging.CRITICAL + 1)
@@ -36,13 +38,16 @@ class SafeManager:
     multisend: MultiSend | None = None
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
-    dev_account: Account | None = None
+    dev_account: LocalAccount | None = None
+    network: ChainId | None = None
+    transaction_service_url: str | None = None
     address: ETHAddress
+    use_tx_service: bool
 
     def __init__(
         self, 
         client: EthereumClient, 
-        agent: Account, 
+        agent: LocalAccount, 
         safe: Safe
     ):
         self.client = client
@@ -58,8 +63,8 @@ class SafeManager:
     def deploy_safe(
         cls, 
         client: EthereumClient, 
-        dev_account: Account, 
-        agent: Account, 
+        dev_account: LocalAccount, 
+        agent: LocalAccount, 
         owners: list[str], 
         threshold: int
     ) -> 'SafeManager':
@@ -71,7 +76,7 @@ class SafeManager:
         manager = cls(client, agent, Safe(Web3.to_checksum_address(safe_address), client))
         manager.dev_account = dev_account
 
-        manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
+        manager.multisend = MultiSend(client, address=Web3.to_checksum_address(MULTI_SEND_ADDRESS))
 
         return manager
     
@@ -80,47 +85,51 @@ class SafeManager:
         cls, 
         client: EthereumClient, 
         safe_address: ETHAddress,
-        agent: Account, 
+        agent: LocalAccount, 
     ) -> 'SafeManager':
         safe = Safe(Web3.to_checksum_address(safe_address.hex), client)
 
         manager = cls(client, agent, safe)
 
-        manager.multisend = MultiSend(client, address=MULTI_SEND_ADDRESS)
+        manager.multisend = MultiSend(client, address=Web3.to_checksum_address(MULTI_SEND_ADDRESS))
 
         return manager
     
-    def connect_tx_service(self, network: ChainId, transaction_service_url: str):
+    def connect_tx_service(self, network: ChainId, transaction_service_url: str) -> None:
         self.use_tx_service = True
         self.network = network
         self.transaction_service_url = transaction_service_url
     
-    def disconnect_tx_service(self):
+    def disconnect_tx_service(self) -> None:
         self.use_tx_service = False
         self.network = None
         self.transaction_service_url = None
 
-    def connect_multisend(self, address: str):
+    def connect_multisend(self, address: ChecksumAddress) -> None:
         self.multisend = MultiSend(self.client, address=address)
 
-    def connect_multicall(self, address: ETHAddress):
+    def connect_multicall(self, address: ETHAddress) -> None:
         self.client.multicall = Multicall(self.client, address.hex)
 
-    def deploy_multicall(self):
+    def deploy_multicall(self) -> None:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
         multicall_addr = deploy_multicall(self.client, self.dev_account)
         self.connect_multicall(multicall_addr)
     
     def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
+        if not self.multisend:
+            raise Exception("No multisend contract address has been set to SafeManager")
+
         multisend_txs = [
-            MultiSendTx(MultiSendOperation.CALL, tx["to"], tx["value"], tx["data"])
+            MultiSendTx(MultiSendOperation.CALL, str(tx["to"]), tx["value"], tx["data"])
             for tx in txs
         ]
         safe_multisend_data = self.multisend.build_tx_data(multisend_txs)
 
+
         safe_tx = self.safe.build_multisig_tx(
-            to=self.multisend.address,
+            to=str(self.multisend.address),
             value=sum(tx["value"] for tx in txs),
             data=safe_multisend_data,
             operation=SafeOperation.DELEGATE_CALL.value,
@@ -133,9 +142,9 @@ class SafeManager:
         safe_tx = SafeTx(
             self.client,
             self.address.hex,
-            tx["to"],
+            str(tx["to"]),
             tx["value"],
-            tx["data"],
+            cast(bytes, tx["data"]),
             0,
             0,
             0,
@@ -149,7 +158,7 @@ class SafeManager:
 
         return safe_tx
     
-    def execute_tx(self, tx: TxParams, safe_nonce: Optional[int] = None):
+    def execute_tx(self, tx: TxParams, safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
 
@@ -175,7 +184,7 @@ class SafeManager:
             raise Exception("Unknown error executing transaction", e)
 
 
-    def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+    def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
 
@@ -191,7 +200,10 @@ class SafeManager:
 
         return tx_hash
     
-    def post_transaction(self, tx: TxParams, safe_nonce: Optional[int] = None):
+    def post_transaction(self, tx: TxParams, safe_nonce: Optional[int] = None) -> None:
+        if not self.network:
+            raise Exception("Network not defined for transaction service")
+            
         try:
             ts_api = TransactionServiceApi(
                 self.network, ethereum_client=self.client, base_url=self.transaction_service_url
@@ -205,7 +217,10 @@ class SafeManager:
             if "is not an owner or delegate" in str(e):
                 sys.exit(f"Agent with address {self.agent.address} is not a signer of the safe with address {self.address.hex}. Please add it and try again") 
 
-    def post_multisend_transaction(self, txs: list[TxParams], safe_nonce: Optional[int] = None):
+    def post_multisend_transaction(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> None:
+        if not self.network:
+            raise Exception("Network not defined for transaction service")
+
         ts_api = TransactionServiceApi(
             self.network, ethereum_client=self.client, base_url=self.transaction_service_url
         )
@@ -281,7 +296,7 @@ class SafeManager:
 
             return True
 
-    def send_empty_tx(self, safe_nonce: Optional[int] = None):
+    def send_empty_tx(self, safe_nonce: Optional[int] = None) -> str | None:
         tx: TxParams = {
             "to": self.address.hex,
             "value": self.web3.to_wei(0, "ether"),
@@ -291,7 +306,7 @@ class SafeManager:
 
         return self.send_tx(tx, safe_nonce)
 
-    def wait(self, tx_hash: str):
+    def wait(self, tx_hash: HexBytes) -> TxReceipt:
         return self.web3.eth.wait_for_transaction_receipt(tx_hash)
 
     def balance_of(self, token_address: ETHAddress | None = None) -> float:

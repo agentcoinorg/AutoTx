@@ -8,8 +8,8 @@ def get_cached_safe_address() -> str | None:
     except Exception as e:
         return None
 
-def save_cached_safe_address(safe_address: str):
+def save_cached_safe_address(safe_address: str) -> None:
     cache.write(SAFE_ADDRESS_FILE_NAME, safe_address)
 
-def delete_cached_safe_address():
+def delete_cached_safe_address() -> None:
     cache.remove(SAFE_ADDRESS_FILE_NAME)
