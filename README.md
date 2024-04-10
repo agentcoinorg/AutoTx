@@ -82,14 +82,14 @@ AutoTx currently supports prompts such as:
 | Token Research | Research leveraged tokens I can buy directly on Ethereum mainnet  |
 | Send Tokens | Send tokens 10 DAI and 0.01 ETH to 0x... |
 | Send Tokens, ENS | Send tokens 1 ETH and 1000 USDC to vitalik.eth. |
-| *Wrap Eth | Swap 1 ETH for WETH (Wrapped Ether) |
 | Swap Tokens | Buy 100 USDC with ETH |
 | Swap Tokens | Swap tokens directly through Uniswap. |
 | Multi Task | Identify the top AI coins by trading volume on the Ethereum mainnet using CoinGecko. Buy 1 ETH of the top 2. |
 | Multi Task| Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x... |
-| *Multi Task, Airdrop | Buy 10 WLD with ETH, then 50% of the purchased amount of WLD should be sent in equal amounts to each of these addresses 0x..., 0x... 0x... |
+| Multi Task, Airdrop | Buy 10 WLD with ETH, then 50% of the purchased amount of WLD should be sent in equal amounts to each of these addresses: vitalik.eth, 0x... |
 
 Future possibilities:
+* `Swap 1 ETH for WETH (Wrapped Ether)`
 * `Buy me 5 small cap AI tokens`
 * `Send the most popular meme coin to vitalik.eth`
 * `Purchase mainnet ETH with my USDC on optimism`
