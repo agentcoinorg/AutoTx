@@ -25,8 +25,8 @@ pytest = "^8.0.0"
 pytest-vcr = "^1.0.2"
 
 [tool.poetry.scripts]
-start-fork = "autotx.chain_fork:start"
-stop-fork = "autotx.chain_fork:stop"
+start-devnet = "autotx.chain_fork:start"
+stop-devnet = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
 load-tokens = "autotx.load_tokens:run"
