@@ -109,18 +109,12 @@ jobs:
             }
           }
 
-          core.setOutput(
-            'path', 
-            path
-              .split(',')
-              .map(x => `./autotx/tests/${x}`)
-              .join(',')
-          );
+          core.setOutput('path', path);
           core.setOutput('count', count);
     
     - name: Run Benchmarks
       run: |
-        python benchmarks.py ${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
+        python benchmarks.py ./autotx/tests/${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
 
     - name: Comment on PR with benchmark results
       uses: actions/github-script@v6
