@@ -41,14 +41,14 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 
     if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
         raise ChainIdNotSupported(
-            f"Network {network_info.chain_id.name} not supported for swap"
+            f"Network {network_info.chain_id.name.lower()} not supported for swap"
         )
 
     if token_in not in network_info.tokens:
-        raise Exception(f"Token {token_in} is not supported")
+        raise Exception(f"Token {token_in} is not supported in network {network_info.chain_id.name.lower()}")
 
     if token_out not in network_info.tokens:
-        raise Exception(f"Token {token_out} is not supported")
+        raise Exception(f"Token {token_out} is not supported in network {network_info.chain_id.name.lower()}")
 
     return (network_info.tokens[token_in], network_info.tokens[token_out])
 
