@@ -9,6 +9,8 @@ AutoTx is a personal assistant that plans and proposes on-chain transactions for
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
 
+<img src="https://github.com/polywrap/AutoTx/assets/12145726/99ead143-bf9a-4225-9caa-e8014347de31" alt="gifautotx" width="400">
+
 ## How It Works
 
 AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user's prompt, it will first create a plan for how it will satisfy the user's intents. During the plan's execution, individual agents are used to complete tasks described within the plan.
