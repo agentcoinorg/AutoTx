@@ -201,6 +201,10 @@ def build_swap_transaction(
             "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
         }
     )
+
+    token_in_symbol = "ETH" if token_in_is_native else token_in_symbol
+    token_out_symbol = "ETH" if token_out_is_native else token_out_symbol
+
     transactions.append(
         PreparedTx(
             f"Swap {Decimal(amount_in) / 10 ** token_in_decimals} {token_in_symbol} for {Decimal(amount_out) / 10 ** token_out_decimals} {token_out_symbol}",
