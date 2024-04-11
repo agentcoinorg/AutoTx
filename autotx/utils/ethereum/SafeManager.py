@@ -347,7 +347,7 @@ class SafeManager:
         else:
             return safe_nonce
     
-    def reset_nonce(self, starting_safe_nonce: Optional[int] = None) -> int:
+    def reset_nonce(self, starting_safe_nonce: Optional[int] = None) -> None:
         if starting_safe_nonce is None:
             self.safe_nonce = None
         else:
