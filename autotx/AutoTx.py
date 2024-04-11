@@ -21,6 +21,7 @@ class Config:
 class PastRun:
     feedback: str
     transactions_info: str
+
 class AutoTx:
     manager: SafeManager
     config: Config = Config(verbose=False)

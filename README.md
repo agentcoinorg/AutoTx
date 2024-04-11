@@ -12,9 +12,9 @@ AutoTx is a personal assistant that generates on-chain transactions for you. The
 
 ## How It Works
 
-AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user's prompt, it will first create a plan for how it will satisfy the user's intents. During the plan's execution, individual agents are used to complete tasks described within the plan.
+AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user prompt, AutoTx will create a new shared context amongst all agents in the form of an [Autogen Group Chat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat). Individual agents will contribute their unique expert opinions to the shared conversation. Agent tools will be selected and run to progressively solve for the goal(s) defined within the user's original prompt.
 
-Agents can add transactions to the bundle, which will later be proposed to the user's smart account for final approval before on-chain execution. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account. AutoTx can create a new smart account for the user, or connect to an existing account (instructions below).
+Agent tools can add transactions to a batch, which will later be proposed to the user's smart account for final approval before being executed on-chain. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account.
 
 ## Agents
 
@@ -55,7 +55,13 @@ Please install the following:
 
 ## Run The Agent
 
-Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). You can also provide the prompt as an argument for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan. The `--verbose` (or `-v`) flag will enable verbose logging.
+1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-offline).  
+2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you when asked (example: `Send 1 ETH to vitalik.eth`). Additionally you can pass the prompt you want to run in as an argument `poetry run ask "..."`.
+
+| Run Options |  |
+|-|-|  
+| `--verbose, -v` | enable verbose logging. |  
+| `--non-interactive, -n` | Disable all requests for user input. |  
 
 ### Test Offline
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. 
@@ -113,9 +119,10 @@ Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any ques
 ## Building Agents
 
 To add agents to AutoTx, we recommend starting with the [`ExampleAgent.py`](./autotx/agents/ExampleAgent.py) starter template. From there you'll want to:
+1. Define the agent's `name` and `system_message`.
 1. Implement the tools (functions) you want the agent to be able to call.
-2. Add all tools to the agent's `tools=[...]` array.
-3. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
+1. Add all tools to the agent's `tools=[...]` array.
+1. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
 
 ### Testing
 
