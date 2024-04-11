@@ -2,6 +2,8 @@ from typing import cast
 from dotenv import load_dotenv
 import click
 
+from autotx.utils.is_dev_env import is_dev_env
+
 load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
@@ -39,7 +41,10 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool) -> None:
 
     network_info = NetworkInfo(chain_id)
     
-    print(f"Network: {network_info.chain_id.name}")
+    if is_dev_env():
+        print(f"Connected to fork of {network_info.chain_id.name} network.")
+    else:
+        print(f"Connected to {network_info.chain_id.name} network.")
 
     print_agent_address()
 
