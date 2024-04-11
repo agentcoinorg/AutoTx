@@ -1,12 +1,12 @@
 from web3 import Web3
 
-from autotx.utils.ethereum import get_erc20_balance, get_eth_balance
+from autotx.utils.ethereum import get_erc20_balance, get_native_balance
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP, ChainId
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 def show_address_balances(web3: Web3, network: ChainId, address: ETHAddress) -> None:
-    eth_balance = get_eth_balance(web3, address)
+    eth_balance = get_native_balance(web3, address)
     print(f"ETH balance: {eth_balance}")
 
     current_network = SUPPORTED_NETWORKS_CONFIGURATION_MAP.get(network)

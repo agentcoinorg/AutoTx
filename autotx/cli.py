@@ -7,7 +7,7 @@ load_dotenv()
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
-from autotx.utils.ethereum import get_eth_balance
+from autotx.utils.ethereum import get_native_balance
 
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -15,7 +15,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
-from autotx.utils.ethereum.send_eth import send_eth
+from autotx.utils.ethereum.send_native import send_native
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.configuration import get_configuration
 
@@ -60,8 +60,8 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool) -> None:
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        if get_eth_balance(web3, manager.address) < 10:
-            send_eth(dev_account, manager.address, 10, web3)
+        if get_native_balance(web3, manager.address) < 10:
+            send_native(dev_account, manager.address, 10, web3)
             print(f"Sent 10 ETH to smart account for testing purposes")
 
         print("=" * 50)

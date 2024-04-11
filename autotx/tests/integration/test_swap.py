@@ -1,6 +1,6 @@
 from autotx.utils.ethereum import (
     get_erc20_balance,
-    get_eth_balance,
+    get_native_balance,
 )
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -42,7 +42,7 @@ def test_swap(configuration):
     new_balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
     assert new_balance == 0.05
 
-def test_swap_recieve_eth(configuration):
+def test_swap_recieve_native(configuration):
     (user, _, client, _) = configuration
 
     network_info = NetworkInfo(client.w3.eth.chain_id)
@@ -51,7 +51,7 @@ def test_swap_recieve_eth(configuration):
 
     user_addr = ETHAddress(user.address, client.w3)
 
-    balance = get_eth_balance(client.w3, user_addr)
+    balance = get_native_balance(client.w3, user_addr)
     assert int(balance) == 9989
 
     tx = build_swap_transaction(
@@ -73,7 +73,7 @@ def test_swap_recieve_eth(configuration):
     if receipt["status"] == 0:
         print(f"Transaction to swap ETH -> USDC failed ")
 
-    balance = get_eth_balance(client.w3, user_addr)
+    balance = get_native_balance(client.w3, user_addr)
     assert int(balance) == 9984
 
     txs = build_swap_transaction(
@@ -97,7 +97,7 @@ def test_swap_recieve_eth(configuration):
             print(f"Transaction #{i} to swap USDC -> ETH failed ")
             break
 
-    balance = get_eth_balance(client.w3, user_addr)
+    balance = get_native_balance(client.w3, user_addr)
     assert int(balance) == 9988
 
 def test_swap_through_safe(configuration):

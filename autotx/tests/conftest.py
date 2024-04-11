@@ -20,7 +20,7 @@ from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
     SafeManager,
-    send_eth,
+    send_native,
     transfer_erc20,
 )
 from gnosis.eth import EthereumClient
@@ -44,7 +44,7 @@ def configuration():
     )
 
     # Send 10 ETH to the smart account for tests
-    send_eth(dev_account, manager.address, 10, client.w3)
+    send_native(dev_account, manager.address, 10, client.w3)
 
     return (dev_account, agent, client, manager)
 
