@@ -18,7 +18,7 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
 
     assert 100000 == new_balance
 
-def test_auto_tx_swap_eth(configuration, auto_tx):
+def test_auto_tx_swap_native(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)

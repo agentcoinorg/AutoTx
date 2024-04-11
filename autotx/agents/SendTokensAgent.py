@@ -11,11 +11,11 @@ from autotx.utils.ethereum import (
     get_erc20_balance,
 )
 from autotx.utils.ethereum import load_w3
-from autotx.utils.ethereum.build_transfer_eth import build_transfer_eth
+from autotx.utils.ethereum.build_transfer_native import build_transfer_native
 from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.get_eth_balance import get_eth_balance
+from autotx.utils.ethereum.get_native_balance import get_native_balance
 
 name = "send-tokens"
 
@@ -49,7 +49,7 @@ class TransferTokenTool(AutoTxTool):
             prepared_tx: PreparedTx | None = None
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
-                tx = build_transfer_eth(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
+                tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
 
                 prepared_tx = PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx)
             else:
@@ -85,7 +85,7 @@ class GetTokenBalanceTool(AutoTxTool):
             balance: float = 0
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
-                balance = get_eth_balance(web3, owner_addr)
+                balance = get_native_balance(web3, owner_addr)
             else:
                 balance = get_erc20_balance(web3, token_address, owner_addr)
 

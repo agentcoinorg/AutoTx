@@ -7,7 +7,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 
 from .constants import GAS_PRICE_MULTIPLIER
 
-def send_eth(account: LocalAccount, to: ETHAddress, value: float, web3: Web3) -> tuple[str, TxReceipt]:
+def send_native(account: LocalAccount, to: ETHAddress, value: float, web3: Web3) -> tuple[str, TxReceipt]:
     bytes_address: Address = Address(bytes.fromhex(account.address[2:]))
 
     nonce = web3.eth.get_transaction_count(bytes_address)

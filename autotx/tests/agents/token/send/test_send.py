@@ -1,16 +1,16 @@
 from autotx.utils.ethereum import get_erc20_balance
-from autotx.utils.ethereum.get_eth_balance import get_eth_balance
+from autotx.utils.ethereum.get_native_balance import get_native_balance
 
 
-def test_auto_tx_send_eth(configuration, auto_tx, test_accounts):
+def test_auto_tx_send_native(configuration, auto_tx, test_accounts):
     (_, _, client, _) = configuration
     receiver = test_accounts[0]
-    balance = get_eth_balance(client.w3, receiver)
+    balance = get_native_balance(client.w3, receiver)
     assert balance == 0
 
     auto_tx.run(f"Send 1 ETH to {receiver}", non_interactive=True)
 
-    balance = get_eth_balance(client.w3, receiver)
+    balance = get_native_balance(client.w3, receiver)
     assert balance == 1
 
 def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
@@ -28,18 +28,18 @@ def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
 
     assert balance + 10 == new_balance
 
-def test_auto_tx_send_eth_sequential(configuration, auto_tx, test_accounts):
+def test_auto_tx_send_native_sequential(configuration, auto_tx, test_accounts):
     (_, _, client, _) = configuration
     receiver = test_accounts[0]
 
     auto_tx.run(f"Send 1 ETH to {receiver}", non_interactive=True)
 
-    balance = get_eth_balance(client.w3, receiver)
+    balance = get_native_balance(client.w3, receiver)
     assert balance == 1
 
     auto_tx.run(f"Send 0.5 ETH to {receiver}", non_interactive=True)
 
-    balance = get_eth_balance(client.w3, receiver)
+    balance = get_native_balance(client.w3, receiver)
     assert balance == 1.5
       
 def test_auto_tx_send_erc20_parallel(configuration, auto_tx, usdc, test_accounts):
