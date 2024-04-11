@@ -5,7 +5,7 @@
 
 AutoTx is a personal assistant that generates on-chain transactions for you. These transactions are submitted to a smart account so users can easily approve & execute them.
 
-<img src="./docs/img/AutoTxDemo.gif" alt="Demo GIF of AutoTx">
+<img src="./docs/img/demo.gif" alt="Demo GIF of AutoTx">
 
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
@@ -15,6 +15,8 @@ AutoTx is a personal assistant that generates on-chain transactions for you. The
 AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user prompt, AutoTx will create a new shared context amongst all agents in the form of an [Autogen Group Chat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat). Individual agents will contribute their unique expert opinions to the shared conversation. Agent tools will be selected and run to progressively solve for the goal(s) defined within the user's original prompt.
 
 Agent tools can add transactions to a batch, which will later be proposed to the user's smart account for final approval before being executed on-chain. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account.
+
+![](./docs/img/diagram.png)
 
 ## Agents
 
