@@ -69,17 +69,26 @@ AutoTx can be connected to your existing smart account by doing the following:
 
 
 ## Prompts
-AutoTx currently supports prompts such as:
-* `Send 1 ETH to vitalik.eth`  
-* `Buy 100 USDC with ETH`  
-* `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...`  
+AutoTx currently supports prompts such as:  
+
+| Category | Prompt |
+|---|---|
+| Token Research | `Research the top AI coins by trading volume on CoinGecko` |
+| Token Research | `Conduct a thorough analysis of WLD, including whether to hold or sell` |
+| Token Research | `Find leveraged tokens I can buy directly on Ethereum mainnet`  |
+| Send Tokens | `Send tokens 10 DAI and 0.01 ETH to 0x...` |
+| Send Tokens, ENS | `Send tokens 1 ETH and 1000 USDC to vitalik.eth` |
+| Swap Tokens | `Buy 100 USDC with ETH` |
+| Swap Tokens | `Swap tokens directly through Uniswap` |
+| Multi Task | `Identify the top AI coins by trading volume on the Ethereum mainnet using CoinGecko. Buy 1 ETH of the top 2.` |
+| Multi Task| `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...` |
+| Multi Task, Airdrop | `Buy 10 WLD with ETH, then 50% of the purchased amount of WLD should be sent in equal amounts to each of these addresses: vitalik.eth, 0x...` |
 
 Future possibilities:
-* `Buy me 5 small cap AI tokens`
-* `Send the most popular meme coin to vitalik.eth`
 * `Purchase mainnet ETH with my USDC on optimism`
 * `What proposals are being voted on right now?`
-* `Donate $100 to environmental impact projects.`
+* `Donate $100 to environmental impact projects`
+* ...
 
 ## Use AutoTx With Open-Source Models
 
@@ -92,16 +101,21 @@ To run AutoTx with your favorite OS model, you can use any provider that simulat
 Now simply run AutoTx as normally do. For more tips on choosing the best model, you can follow [this guide](https://microsoft.github.io/autogen/docs/topics/non-openai-models/best-tips-for-nonopenai-models/).
 
 ## How To Contribute
-Interested in contributing to AutoTx? There's no shortage of [agents](#agents) to build! Additionally, checkout the [repository's issues](https://github.com/polywrap/AutoTx/issues) that will remain updated with the project's latest developments. Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
+Interested in contributing to AutoTx? Here are some ideas:
+* Contribute prompt ideas above
+* Build an [agent](#agents)
+* Discuss AutoTx's future in [issues](https://github.com/polywrap/AutoTx/issues)
 
-### Adding Agents
+Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
+
+## Building Agents
 
 To add agents to AutoTx, we recommend starting with the [`ExampleAgent.py`](./autotx/agents/ExampleAgent.py) starter template. From there you'll want to:
 1. Implement the tools (functions) you want the agent to be able to call.
 2. Add all tools to the agent's `tools=[...]` array.
 3. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
 
-### Testing Agents
+### Testing
 
 Tests are located in the [`./autotx/tests`](./autotx/tests/) directory.
 
