@@ -17,14 +17,10 @@ from autotx.utils.io_silent import IOSilent
 class Config:
     verbose: bool
 
-class PastRun():
+@dataclass
+class PastRun:
     feedback: str
     transactions_info: str
-
-    def __init__(self, feedback: str, transactions_info: str):
-        self.feedback = feedback
-        self.transactions_info = transactions_info
-
 class AutoTx:
     manager: SafeManager
     config: Config = Config(verbose=False)
