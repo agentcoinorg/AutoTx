@@ -16,7 +16,7 @@ from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.api.base_api import SafeAPIException
 from eth_account.signers.local import LocalAccount
 
-from autotx.utils.ethereum.get_eth_balance import get_eth_balance
+from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -327,7 +327,7 @@ class SafeManager:
 
     def balance_of(self, token_address: ETHAddress | None = None) -> float:
         if token_address is None:
-            return get_eth_balance(self.web3, self.address)
+            return get_native_balance(self.web3, self.address)
         else:
             return get_erc20_balance(self.web3, token_address, self.address) 
         
