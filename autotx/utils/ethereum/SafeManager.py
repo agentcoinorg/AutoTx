@@ -262,8 +262,14 @@ class SafeManager:
 
                 if response.lower() == "n" or response.lower() == "no":
                     print("Transactions not sent to your smart account (declined).")
+                  
+                    self.reset_nonce(start_nonce)
+                  
                     return False
                 elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    self.reset_nonce(start_nonce)
+                    
                     return response
             else:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
@@ -282,8 +288,14 @@ class SafeManager:
 
                 if response.lower() == "n" or response.lower() == "no":
                     print("Transactions not executed (declined).")
+                    
+                    self.reset_nonce(start_nonce)
+                    
                     return False
                 elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    self.reset_nonce(start_nonce)
+                    
                     return response
             else:
                 print("Non-interactive mode enabled. Transactions will be executed without approval.")
@@ -321,7 +333,7 @@ class SafeManager:
         
     def nonce(self) -> int:
         return self.safe.retrieve_nonce()
-    
+
     def gas_price(self) -> int:
         return self.web3.eth.gas_price if self.gas_multiplier is None else int(self.web3.eth.gas_price * self.gas_multiplier)
 
@@ -335,6 +347,12 @@ class SafeManager:
         else:
             return safe_nonce
     
+    def reset_nonce(self, starting_safe_nonce: Optional[int] = None) -> int:
+        if starting_safe_nonce is None:
+            self.safe_nonce = None
+        else:
+            self.safe_nonce = starting_safe_nonce - 1 # -1 because it will be incremented in track_nonce
+
     @staticmethod
     def is_valid_safe(client: EthereumClient, address: ETHAddress) -> bool:
         return is_valid_safe(client, address)
