@@ -10,8 +10,14 @@ from .load_w3 import load_w3
 from .build_approve_erc20 import build_approve_erc20
 from .get_erc20_info import get_erc20_info
 from .is_valid_safe import is_valid_safe
+from .send_native import send_native
+from .get_native_balance import get_native_balance
+from .build_transfer_native import build_transfer_native
 
 __all__ = [
+    "send_native",
+    "get_native_balance",
+    "build_transfer_native",
     "deploy_safe_with_create2",
     "deploy_multicall",
     "send_tx",
