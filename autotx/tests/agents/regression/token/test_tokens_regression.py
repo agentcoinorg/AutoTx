@@ -1,10 +1,8 @@
 import pytest
-from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance, load_w3
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-patch_langchain()
 
 @pytest.mark.skip()
 def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):

@@ -1,5 +1,7 @@
 from textwrap import dedent
 from typing import Annotated, Callable
+
+from web3 import Web3
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
@@ -32,7 +34,7 @@ class TransferETHTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[float, str], str]:
         def run(
             amount: Annotated[float, "Amount given by the user to transfer. The function will take care of converting the amount to needed decimals."],
             receiver: Annotated[str, "The receiver's address or ENS domain"]
@@ -62,13 +64,13 @@ class TransferERC20Tool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[float, str, str], str]:
         def run(
             amount: Annotated[float, "Amount given by the user to transfer. The function will take care of converting the amount to needed decimals."],
             receiver: Annotated[str, "The receiver's address or ENS domain"],
             token: Annotated[str, "Symbol of token to transfer"]
         ) -> str:
-            token_address = autotx.network.tokens[token.lower()]
+            token_address = Web3.to_checksum_address(autotx.network.tokens[token.lower()])
             web3 = load_w3()
       
             receiver_addr = ETHAddress(receiver, web3)
@@ -93,7 +95,7 @@ class GetETHBalanceTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str], float]:
         def run(
             owner: Annotated[str, "The owner's address or ENS domain"]
         ) -> float:
@@ -117,7 +119,7 @@ class GetERC20BalanceTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str, str], float]:
         def run(
             token: Annotated[str, "Token symbol of erc20"],
             owner: Annotated[str, "The token owner's address or ENS domain"]
