@@ -93,9 +93,11 @@ class AutoTx:
                         Verifier analyzes chat and responds with TERMINATE if the goal is met.
                         Verifier can consider the goal met if the other agents have prepared the necessary transactions.
                         
-                        If some information needs to be returned to the user, add it in your answer and then say the word TERMINATE.
-                        Make sure to only add information if the user explicitly ask for a question that needs to be answered
-                        """
+                        If some information needs to be returned to the user or if there are any errors encountered during the process, add this in your answer.
+                        Start any error messages with "ERROR:" to clearly indicate the issue. Then say the word TERMINATE.
+                        Make sure to only add information if the user explicitly asks for a question that needs to be answered
+                        or error details if user's request can not be completed.
+                    """
                     ),
                 llm_config=self.get_llm_config(),
                 human_input_mode="NEVER",
@@ -128,7 +130,10 @@ class AutoTx:
                 """
             ))
 
-            if chat.summary:
+            if "ERROR:" in chat.summary:
+                error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
+                cprint(error_message, "red")
+            else:
                 cprint(chat.summary.replace("\n", ""), "green")
 
             try:
