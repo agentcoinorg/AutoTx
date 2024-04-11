@@ -20,7 +20,7 @@ COINGECKO_TOKENS_LISTS = [
 TOKENS_LIST = [KLEROS_TOKENS_LIST, *COINGECKO_TOKENS_LISTS]
 
 
-def fetch_tokens_list():
+def fetch_tokens_list() -> None:
     loaded_tokens: list[dict[str, Union[str, int]]] = []
 
     for token_list_url in TOKENS_LIST:
@@ -42,5 +42,5 @@ token_list = {loaded_tokens_as_string}
         f.write(content)
 
 
-def run():
+def run() -> None:
     fetch_tokens_list()

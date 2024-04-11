@@ -1,12 +1,13 @@
+from eth_typing import ChecksumAddress
 from web3 import Web3
-
+from web3._utils.empty import Empty
 class ETHAddress:
-    hex: str
+    hex: ChecksumAddress
     ens_domain: str | None
 
     def __init__(self, hex_or_ens: str, web3: Web3):
         if hex_or_ens.endswith(".eth"):
-            self.hex = web3.ens.address(hex_or_ens)
+            self.hex = web3.ens.address(hex_or_ens) # type: ignore
             self.ens_domain = hex_or_ens
         elif Web3.is_address(hex_or_ens):
             self.hex = Web3.to_checksum_address(hex_or_ens)

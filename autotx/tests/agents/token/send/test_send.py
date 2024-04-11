@@ -1,8 +1,6 @@
-from autotx.patch import patch_langchain
 from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.get_eth_balance import get_eth_balance
 
-patch_langchain()
 
 def test_auto_tx_send_eth(configuration, auto_tx, test_accounts):
     (_, _, client, _) = configuration
