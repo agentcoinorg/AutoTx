@@ -50,12 +50,10 @@ class TransferTokenTool(AutoTxTool):
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
                 tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
-
-                prepared_tx = PreparedTx(f"Transfer {amount} ETH to {str(receiver_addr)}", tx)
             else:
                 tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
-            
-                prepared_tx = PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx)
+
+            prepared_tx = PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx)
 
             autotx.transactions.append(prepared_tx)
             
