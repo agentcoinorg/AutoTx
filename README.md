@@ -9,7 +9,7 @@ AutoTx is a personal assistant that plans and proposes on-chain transactions for
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
 
-<img src="https://github.com/polywrap/AutoTx/assets/12145726/99ead143-bf9a-4225-9caa-e8014347de31" alt="gifautotx" width="400">
+<img src="./docs/img/AutoTxDemo.gif" alt="gifautotx" width="400">
 
 ## How It Works
 
