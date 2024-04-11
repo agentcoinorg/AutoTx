@@ -9,7 +9,7 @@ AutoTx is a personal assistant that plans and proposes on-chain transactions for
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
 
-<img src="./docs/img/AutoTxDemo.gif" alt="gifautotx" width="400">
+<img src="./docs/img/AutoTxDemo.gif" alt="This is a demo GIF of AutoTx, the AI Agent is being asked to perform various complex transactions that involve swapping and transferring tokens to multiple ENS addresses, all through a Gnosis Safe Multisig." width="400">
 
 ## How It Works
 
