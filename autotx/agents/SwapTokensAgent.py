@@ -16,22 +16,29 @@ system_message = lambda autotx: dedent(f"""
     Perform token swaps, manage liquidity, and query pool statistics on the Uniswap protocol
     An autonomous agent skilled in Ethereum blockchain interactions, specifically tailored for the Uniswap V3 protocol.
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
+    IMPORTANT: Only one token amount should be provided. The other token amount will be calculated automatically.
     Examples:
+    Sell 5 ETH and buy USDC
     {{
         "token_to_sell": "5 ETH",
         "token_to_buy": "USDC"
-    }} // Prepares a swap transaction to sell 5 ETH and buy USDC
+    }}
 
+    Sell ETH and buy 5 USDC
     {{
         "token_to_sell": "ETH",
         "token_to_buy": "5 USDC"
-    }} // Prepares a swap transaction to sell ETH and buy 5 USDC
+    }}
 
-    Invalid Example:
+    Swap 5 ETH for USDC then swap USDC for 5 UNI
     {{
         "token_to_sell": "5 ETH",
-        "token_to_buy": "5 USDC"
-    }} // Invalid input. Only one token amount should be provided, not both.
+        "token_to_buy": "USDC"
+    }}
+    {{
+        "token_to_sell": "USDC",
+        "token_to_buy": "5 UNI"
+    }}
     """
 )
 
