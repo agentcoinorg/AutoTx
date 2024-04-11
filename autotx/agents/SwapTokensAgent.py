@@ -18,26 +18,50 @@ system_message = lambda autotx: dedent(f"""
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
     IMPORTANT: Only one token amount should be provided. The other token amount will be calculated automatically.
     Examples:
-    Sell 5 ETH and buy USDC
+    
+    User: Sell 5 ETH and buy USDC
+    Advisor reworded: Sell 5 ETH and buy USDC with address {autotx.manager.address}
     {{
         "token_to_sell": "5 ETH",
         "token_to_buy": "USDC"
     }}
 
-    Sell ETH and buy 5 USDC
+    User: Sell ETH and buy 5 USDC
+    Advisor reworded: Sell ETH and buy 5 USDC with address {autotx.manager.address}
     {{
         "token_to_sell": "ETH",
         "token_to_buy": "5 USDC"
     }}
 
-    Swap 5 ETH for USDC then swap USDC for 5 UNI
+    User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
+    Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
     {{
-        "token_to_sell": "5 ETH",
-        "token_to_buy": "USDC"
+        "token_to_sell": "ETH",
+        "token_to_buy": "5 USDC"
     }}
+    and then
     {{
         "token_to_sell": "USDC",
-        "token_to_buy": "5 UNI"
+        "token_to_buy": "6 UNI"
+    }}
+
+    Failed example:
+    User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
+    Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
+    {{
+        "token_to_sell": "ETH",
+        "token_to_buy": "5 USDC"
+    }}
+    and then
+    {{
+        "token_to_sell": "5 USDC",
+        "token_to_buy": "6 UNI"
+    }}
+    Invalid input. Only one token amount should be provided. IMPORTANT: Take another look at the user's goal, and try again.
+    Fix error:
+    {{
+        "token_to_sell": "USDC",
+        "token_to_buy": "6 UNI"
     }}
     """
 )
