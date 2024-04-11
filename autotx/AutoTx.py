@@ -1,7 +1,7 @@
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
-from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
+from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager, runtime_logging
 from termcolor import cprint
 from typing import Optional
 from autogen.io import IOStream, IOConsole
@@ -67,6 +67,9 @@ class AutoTx:
 
             print("Running AutoTx with the following prompt: ", prompt)
 
+            # TODO: only do this if logging is enabled
+            runtime_logging.start(config={"dbname": "logs.db"})
+
             user_proxy = UserProxyAgent(
                 name="user_proxy",
                 is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
@@ -126,6 +129,9 @@ class AutoTx:
                     Advisor reworded: {goal}
                 """
             ))
+
+            # TODO: only do this if logging is enabled
+            runtime_logging.stop()
 
             if "ERROR:" in chat.summary:
                 error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
