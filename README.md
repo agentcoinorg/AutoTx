@@ -3,8 +3,7 @@
 
 ![](./docs/img/banner.png)
 
-
-AutoTx is a personal assistant that plans and proposes on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
+AutoTx is a personal assistant that generates on-chain transactions for you. These transactions are submitted to a smart account so users can easily approve & execute them.
 
 <img src="./docs/img/AutoTxDemo.gif" alt="Demo GIF of AutoTx">
 
