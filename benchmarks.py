@@ -79,13 +79,16 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
     any_prev_rate = any(True if total_benchmarks["benchmarks"].get(result["name"]) else False for result in tests_results)
     prev_total_success_percentage = (prev_rates / len(tests_results)) if len(tests_results) > 0 else 0
     total_success_color = "lightgreen" if total_success_percentage > prev_total_success_percentage and any_prev_rate else "none" if total_success_percentage == prev_total_success_percentage or prev_total_success_percentage == 0.0 else "red"
+    
+    total_sign = "+" if total_success_percentage >= prev_total_success_percentage else ""
+    total_diff = f"({total_sign}{total_success_percentage - prev_total_success_percentage:.0f})" if any_prev_rate and total_success_percentage != prev_total_success_percentage else ""
 
     # Constructing the markdown content
     md_content = []
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
     md_content.append(f"- **Iterations:** {iterations}")
-    md_content.append(f"- **Total Success Rate (%):** ${{\\color{{{total_success_color}}} \\LARGE \\texttt {{{total_success_percentage:.2f}}}}}$\n")
+    md_content.append(f"- **Total Success Rate (%):** ${{\\color{{{total_success_color}}} \\LARGE \\texttt {{{total_success_percentage:.2f}}} \\large \\texttt {{{total_diff}}} }}$\n")
     md_content.append(f"### Detailed Results\n")
     md_content.append(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time |")
     md_content.append(f"| --- | --- | --- | --- | --- |")
@@ -95,8 +98,11 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
         color = "lightgreen" if success_rate > prev_success_rate and prev_success_rate != 0.0 else "none" if success_rate == prev_success_rate or prev_success_rate == 0.0 else "red"
         
+        sign = "+" if success_rate >= prev_success_rate else ""
+        diff = f"({sign}{success_rate - prev_success_rate:.0f})" if prev_success_rate != 0.0 and success_rate != prev_success_rate else ""
+
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}} \\large \\texttt {{{success_rate:.0f}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['passes']}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['fails']}}}}}$ | {avg_time} |")
+        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}} \\large \\texttt {{{success_rate:.0f}}} \\normalsize \\texttt {{{diff}}} }}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['passes']}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['fails']}}}}}$ | {avg_time} |")
 
     md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
