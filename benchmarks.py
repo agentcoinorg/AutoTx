@@ -85,9 +85,9 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
     md_content.append(f"- **Iterations:** {iterations}")
-    md_content.append(f"- **Total Success Rate:** ${{\\color{{{total_success_color}}}{total_success_percentage:.2f}\\%}}$\n")
+    md_content.append(f"- **Total Success Rate (%):** ${{\\color{{{total_success_color}}} \\LARGE \\texttt {{{total_success_percentage:.2f}}}}}$\n")
     md_content.append(f"### Detailed Results\n")
-    md_content.append(f"| Test Name | Success Rate | Passes | Fails | Avg Time |")
+    md_content.append(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time |")
     md_content.append(f"| --- | --- | --- | --- | --- |")
 
     for test_result in tests_results:
@@ -96,7 +96,7 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
         color = "lightgreen" if success_rate > prev_success_rate and prev_success_rate != 0.0 else "none" if success_rate == prev_success_rate or prev_success_rate == 0.0 else "red"
         
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}}{success_rate:.0f}\\%}}$ | ${{\\color{{{color}}}{test_result['passes']}}}$ | ${{\\color{{{color}}}{test_result['fails']}}}$ | {avg_time} |")
+        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}} \\large \\texttt {{{success_rate:.0f}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['passes']}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['fails']}}}}}$ | {avg_time} |")
 
     md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
