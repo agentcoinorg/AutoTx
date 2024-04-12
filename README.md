@@ -55,23 +55,24 @@ Please install the following:
 6. Start a new poetry shell `poetry shell`
 7. Install python dependencies `poetry install`
 
-## Run The Agent
+## Using AutoTx
 
-1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-offline).  
-2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
+### Test Locally
 
-### Test Offline
-By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. 
-You can start this test environment by running `poetry run start-devnet`, and stop it with `poetry run stop-devnet`. This command requires Docker to be running on your computer and the CHAIN_RPC_URL to be set to the RPC url of the network you want fork.
-This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
+Run `poetry run start-devnet` to create a local fork of the network set by the `CHAIN_RPC_URL` env variable. This step required Docker to be running in the background. The devnet includes a new smart account, as well as a development address with test ETH for tx execution. Running `poetry run stop-devnet` will shutdown the local fork.
+
+### Run AutoTx
+
+Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
 
 ### Connect a Smart Account
+
 AutoTx can be connected to your existing smart account by doing the following:
 
 1. Set the `SMART_ACCOUNT_ADDRESS` to the address of your smart account in your `.env`. This tells AutoTx which account it should interact with.
 2. AutoTx's agent address, which it generates locally, must be set as a signer in your Safe's configuration to allow it to create transactions on behalf of the smart account. To get this address, run `poetry run agent address`.
 3. Update the `CHAIN_RPC_URL` value in your `.env` with the correct RPC URL of the network where your smart account is deployed.
-
+4. Run AutoTx as you would normally.
 
 ## Prompts
 AutoTx currently supports prompts such as:  
