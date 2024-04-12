@@ -64,7 +64,7 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
 
     return pass_count, fail_count, run_times
 
-def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks):
+def print_summary_table(test_path: str, iterations: int, tests_results: dict, total_run_time: float, output_dir: str, total_benchmarks: dict):
     """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
     # Calculate total passes and fails
