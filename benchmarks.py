@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 import os
@@ -69,7 +70,7 @@ def clear_lines(n=1):
         sys.stdout.write('\x1b[1A')  # Move the cursor up by one line
         sys.stdout.write('\x1b[2K')  # Clear the current line
 
-def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir):
+def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks):
     """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
     # Calculate total passes and fails
@@ -80,25 +81,38 @@ def print_summary_table(test_path, iterations, tests_results, total_run_time, ou
     # Calculate total success percentage
     total_success_percentage = (total_passes / total_attempts * 100) if total_attempts > 0 else 0
 
+    prev_rates = sum(float(total_benchmarks["benchmarks"][result["name"]] if total_benchmarks["benchmarks"].get(result["name"]) else 0.0) for result in tests_results)
+    any_prev_rate = any(True if total_benchmarks["benchmarks"].get(result["name"]) else False for result in tests_results)
+    prev_total_success_percentage = (prev_rates / len(tests_results)) if len(tests_results) > 0 else 0
+    total_success_color = "#5cb85c" if total_success_percentage > prev_total_success_percentage and any_prev_rate else "" if total_success_percentage == prev_total_success_percentage or prev_total_success_percentage == 0.0 else "red"
+
     # Constructing the markdown content
     md_content = []
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
     md_content.append(f"- **Iterations:** {iterations}")
-    md_content.append(f"- **Total Success Rate:** {total_success_percentage:.2f}%\n")
+    md_content.append(f"- **Total Success Rate:**  <font color='{total_success_color}'>{total_success_percentage:.2f}%</font>\n")
     md_content.append(f"### Detailed Results\n")
     md_content.append(f"| Test Name | Success Rate | Passes | Fails | Avg Time |")
     md_content.append(f"| --- | --- | --- | --- | --- |")
 
     for test_result in tests_results:
+        prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
+        color = "#5cb85c" if success_rate > prev_success_rate and prev_success_rate != 0.0 else "" if success_rate == prev_success_rate or prev_success_rate == 0.0 else "red"
+        
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        md_content.append(f"| `{test_result['name']}` | {success_rate:.0f}% | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
+        md_content.append(f"| `{test_result['name']}` | <font color='{color}'>{success_rate:.0f}%</font> | <font color='{color}'>{test_result['passes']}</font> | <font color='{color}'>{test_result['fails']}</font> | {avg_time} |")
 
     md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
-    # Printing the markdown content to console
-    print("\n".join(md_content))
+    for test_result in tests_results:
+        success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
+        
+        avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
+        print(f"| `{test_result['name']}` | {success_rate:.0f} | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
+
+    print(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
     # Write the markdown content to a file
     with open(f"{output_dir}/summary.md", 'w') as summary_file:
@@ -106,11 +120,13 @@ def print_summary_table(test_path, iterations, tests_results, total_run_time, ou
 
 if __name__ == "__main__":
     if len(sys.argv) != 3 and len(sys.argv) != 4:
-        print("Usage: python benchmarks.py <path_to_test_file> <iterations> <benchmark_name>")
+        print("Usage: python benchmarks.py <save_results=-s> <path_to_test_file> <iterations> <benchmark_name>")
         sys.exit(1)
 
-    test_path, iterations = sys.argv[1], int(sys.argv[2])
-    benchmark_name = sys.argv[3] if len(sys.argv) == 4 else None
+    should_save_results = sys.argv[1] == "-s"
+    offset = 1 if should_save_results else 0
+    test_path, iterations = sys.argv[1 + offset], int(sys.argv[2 + offset])
+    benchmark_name = sys.argv[3 + offset] if len(sys.argv) == (4 + offset) else None
 
     path_parts = test_path.split(',')
     tests = []
@@ -139,6 +155,16 @@ if __name__ == "__main__":
     output_dir = f"benchmarks/{benchmark_label}"
 
     os.makedirs(output_dir, exist_ok=True)
+
+    # Load existing benchmarks
+    if os.path.exists("benchmarks.json"):
+        with open("benchmarks.json", 'r') as f:
+            total_benchmarks = json.load(f)
+    else:
+        total_benchmarks = {
+            "benchmarks": {},
+            "iterations": iterations
+        }
 
     total_tests = len(tests)
     completed_tests = 0
@@ -176,6 +202,24 @@ if __name__ == "__main__":
     print("\n" + "=" * 50)
     print("All tests completed.")
     print("=" * 50 + "\n")
-    print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir)
+    print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks)
+
+    if should_save_results:
+        run_benchmarks = {
+            "benchmarks": {},
+            "iterations": iterations
+        }
+
+        for result in tests_results:
+            rate = result["passes"] / iterations * 100
+            total_benchmarks["benchmarks"][result["name"]] = f"{rate:.2f}"
+            run_benchmarks["benchmarks"][result["name"]] = f"{rate:.2f}"
+
+        with open("benchmarks.json", 'w') as f:
+            json.dump(total_benchmarks, f, indent=4)
+
+        with open(f"{output_dir}/benchmarks.json", 'w') as f:
+            json.dump(run_benchmarks, f, indent=4)
+
     print(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Summary written to: {output_dir}/summary.md")
