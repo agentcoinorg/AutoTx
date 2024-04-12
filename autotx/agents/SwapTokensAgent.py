@@ -15,7 +15,7 @@ system_message = lambda autotx: dedent(f"""
     ONLY focus on the buy and sell (swap) aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
-    IMPORTANT: Only one token amount should be provided. The other token amount will be calculated automatically.
+    Below are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction function with the correct arguments.
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then sell 5 ETH and buy USDC
     Advisor reworded: Sell 5 ETH and buy USDC with address {autotx.manager.address}
@@ -29,15 +29,6 @@ system_message = lambda autotx: dedent(f"""
     }}
 
     Example 2:
-    User: Sell ETH and buy 5 USDC
-    Advisor reworded: Sell ETH and buy 5 USDC with address {autotx.manager.address}
-    Call prepare_swap_transaction with args:
-    {{
-        "token_to_sell": "ETH",
-        "token_to_buy": "5 USDC"
-    }}
-
-    Example 3:
     User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
     Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
     Call prepare_swap_transaction with args:
@@ -52,7 +43,7 @@ system_message = lambda autotx: dedent(f"""
         "token_to_buy": "6 UNI"
     }}
 
-    Failed example 1:
+    Example 4 (Mistake):
     User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
     Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
     Call prepare_swap_transaction with args:
@@ -74,6 +65,7 @@ system_message = lambda autotx: dedent(f"""
         "token_to_buy": "6 UNI"
     }}
     Above are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction function with the correct arguments.
+    Only call functions, do not respond with JSON.
     """
 )
 
