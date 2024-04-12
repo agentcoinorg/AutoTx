@@ -64,12 +64,6 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
 
     return pass_count, fail_count, run_times
 
-def clear_lines(n=1):
-    """Clears a specified number of lines in the terminal."""
-    for _ in range(n):
-        sys.stdout.write('\x1b[1A')  # Move the cursor up by one line
-        sys.stdout.write('\x1b[2K')  # Clear the current line
-
 def print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks):
     """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
@@ -84,14 +78,14 @@ def print_summary_table(test_path, iterations, tests_results, total_run_time, ou
     prev_rates = sum(float(total_benchmarks["benchmarks"][result["name"]] if total_benchmarks["benchmarks"].get(result["name"]) else 0.0) for result in tests_results)
     any_prev_rate = any(True if total_benchmarks["benchmarks"].get(result["name"]) else False for result in tests_results)
     prev_total_success_percentage = (prev_rates / len(tests_results)) if len(tests_results) > 0 else 0
-    total_success_color = "#5cb85c" if total_success_percentage > prev_total_success_percentage and any_prev_rate else "" if total_success_percentage == prev_total_success_percentage or prev_total_success_percentage == 0.0 else "red"
+    total_success_color = "lightgreen" if total_success_percentage > prev_total_success_percentage and any_prev_rate else "none" if total_success_percentage == prev_total_success_percentage or prev_total_success_percentage == 0.0 else "red"
 
     # Constructing the markdown content
     md_content = []
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
     md_content.append(f"- **Iterations:** {iterations}")
-    md_content.append(f"- **Total Success Rate:**  <font color='{total_success_color}'>{total_success_percentage:.2f}%</font>\n")
+    md_content.append(f"- **Total Success Rate:** ${{\\color{{{total_success_color}}}{total_success_percentage:.2f}\\%}}$\n")
     md_content.append(f"### Detailed Results\n")
     md_content.append(f"| Test Name | Success Rate | Passes | Fails | Avg Time |")
     md_content.append(f"| --- | --- | --- | --- | --- |")
@@ -99,10 +93,10 @@ def print_summary_table(test_path, iterations, tests_results, total_run_time, ou
     for test_result in tests_results:
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
-        color = "#5cb85c" if success_rate > prev_success_rate and prev_success_rate != 0.0 else "" if success_rate == prev_success_rate or prev_success_rate == 0.0 else "red"
+        color = "lightgreen" if success_rate > prev_success_rate and prev_success_rate != 0.0 else "none" if success_rate == prev_success_rate or prev_success_rate == 0.0 else "red"
         
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        md_content.append(f"| `{test_result['name']}` | <font color='{color}'>{success_rate:.0f}%</font> | <font color='{color}'>{test_result['passes']}</font> | <font color='{color}'>{test_result['fails']}</font> | {avg_time} |")
+        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}}{success_rate:.0f}\\%}}$ | ${{\\color{{{color}}}{test_result['passes']}}}$ | ${{\\color{{{color}}}{test_result['fails']}}}$ | {avg_time} |")
 
     md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
