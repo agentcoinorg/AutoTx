@@ -3,17 +3,20 @@
 
 ![](./docs/img/banner.png)
 
+AutoTx is a personal assistant that generates on-chain transactions for you. These transactions are submitted to a smart account so users can easily approve & execute them.
 
-AutoTx is a personal assistant that plans and proposes on-chain transactions for you. These tx bundles are submitted to a smart account so users can easily execute them.
+<img src="./docs/img/demo.gif" alt="Demo GIF of AutoTx">
 
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
 
 ## How It Works
 
-AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user's prompt, it will first create a plan for how it will satisfy the user's intents. During the plan's execution, individual agents are used to complete tasks described within the plan.
+AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user prompt, AutoTx will create a new shared context amongst all agents in the form of an [Autogen Group Chat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat). Individual agents will contribute their unique expert opinions to the shared conversation. Agent tools will be selected and run to progressively solve for the goal(s) defined within the user's original prompt.
 
-Agents can add transactions to the bundle, which will later be proposed to the user's smart account for final approval before on-chain execution. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account. AutoTx can create a new smart account for the user, or connect to an existing account (instructions below).
+Agent tools can add transactions to a batch, which will later be proposed to the user's smart account for final approval before being executed on-chain. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account.
+
+![](./docs/img/diagram.png)
 
 ## Agents
 
@@ -26,6 +29,7 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | [Token Research](./autotx/agents/ResearchTokensAgent.py) | Research tokens, liquidity, prices, graphs, etc. | :rocket: |
 | Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
+| Social Search | Research accounts, posts, and sentiment across social networks (ex: Twitter, Farcaster) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/204) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
 | LP | Provide liquidity to AMMs. | :thought_balloon: |
@@ -33,7 +37,6 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | Predict | Generate future predictions based on research. | :thought_balloon: |
 | Donate | Donate to public goods projects. | :thought_balloon: |
 | Invest | Participate in LBPs, IDOs, etc. | :thought_balloon: |
-| Social | Use social networks (ex: Farcaster). | :thought_balloon: |
 
 # Getting Started
 ## Pre-Requisites
@@ -54,11 +57,13 @@ Please install the following:
 
 ## Run The Agent
 
-1. AutoTx requires a fork of the blockchain network you want to transact with. You can start the fork by running `poetry run start-fork`, and stop it with `poetry run stop-fork`. This command requires Docker to be running on your computer.
-2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you (example: `Send 1 ETH to vitalik.eth`). You can also provide the prompt as an argument for non-interactive startup. The `--non-interactive` (or `-n`) flag will disable all requests for user input, including the final approval of the transaction plan. The `--verbose` (or `-v`) flag will enable verbose logging.
+1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-offline).  
+2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
 
 ### Test Offline
-By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
+By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. 
+You can start this test environment by running `poetry run start-devnet`, and stop it with `poetry run stop-devnet`. This command requires Docker to be running on your computer and the CHAIN_RPC_URL to be set to the RPC url of the network you want fork.
+This test environment includes a new smart account, as well as a development address with test ETH for tx execution.
 
 ### Connect a Smart Account
 AutoTx can be connected to your existing smart account by doing the following:
@@ -111,9 +116,10 @@ Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any ques
 ## Building Agents
 
 To add agents to AutoTx, we recommend starting with the [`ExampleAgent.py`](./autotx/agents/ExampleAgent.py) starter template. From there you'll want to:
+1. Define the agent's `name` and `system_message`.
 1. Implement the tools (functions) you want the agent to be able to call.
-2. Add all tools to the agent's `tools=[...]` array.
-3. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
+1. Add all tools to the agent's `tools=[...]` array.
+1. Add your new agent to `AutoTx`'s constructor in [`cli.py`](./autotx/cli.py).
 
 ### Testing
 

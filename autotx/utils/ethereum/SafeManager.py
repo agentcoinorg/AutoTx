@@ -238,7 +238,7 @@ class SafeManager:
             hash = self.execute_tx(tx, safe_nonce)
             return hash.hex()
 
-    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool: # Returns true if successful
+    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:
@@ -254,15 +254,23 @@ class SafeManager:
             ]
         )
 
-        print(f"Batched transactions:\n{transactions_info}")
+        print(f"Prepared transactions:\n{transactions_info}")
 
         if self.use_tx_service:
             if require_approval:
-                response = input("Do you want the above transactions to be sent to your smart account? (y/n): ")
+                response = input("Do you want the above transactions to be sent to your smart account?\nRespond (y/n) or write feedback: ")
 
-                if response.lower() != "y":
+                if response.lower() == "n" or response.lower() == "no":
                     print("Transactions not sent to your smart account (declined).")
+                  
+                    self.reset_nonce(start_nonce)
+                  
                     return False
+                elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    self.reset_nonce(start_nonce)
+                    
+                    return response
             else:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
@@ -276,11 +284,19 @@ class SafeManager:
             return True
         else:
             if require_approval:
-                response = input("Do you want to execute the above transactions? (y/n): ")
+                response = input("Do you want to execute the above transactions?\nRespond (y/n) or write feedback: ")
 
-                if response.lower() != "y":
+                if response.lower() == "n" or response.lower() == "no":
                     print("Transactions not executed (declined).")
+                    
+                    self.reset_nonce(start_nonce)
+                    
                     return False
+                elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    self.reset_nonce(start_nonce)
+                    
+                    return response
             else:
                 print("Non-interactive mode enabled. Transactions will be executed without approval.")
 
@@ -317,7 +333,7 @@ class SafeManager:
         
     def nonce(self) -> int:
         return self.safe.retrieve_nonce()
-    
+
     def gas_price(self) -> int:
         return self.web3.eth.gas_price if self.gas_multiplier is None else int(self.web3.eth.gas_price * self.gas_multiplier)
 
@@ -331,6 +347,12 @@ class SafeManager:
         else:
             return safe_nonce
     
+    def reset_nonce(self, starting_safe_nonce: Optional[int] = None) -> None:
+        if starting_safe_nonce is None:
+            self.safe_nonce = None
+        else:
+            self.safe_nonce = starting_safe_nonce - 1 # -1 because it will be incremented in track_nonce
+
     @staticmethod
     def is_valid_safe(client: EthereumClient, address: ETHAddress) -> bool:
         return is_valid_safe(client, address)
