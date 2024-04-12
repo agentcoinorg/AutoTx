@@ -7,7 +7,6 @@ import requests
 KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
 COINGECKO_TOKENS_LISTS = [
     "https://tokens.coingecko.com/uniswap/all.json",
-    "https://tokens.coingecko.com/ethereum/all.json",
     "https://tokens.coingecko.com/optimistic-ethereum/all.json",
     "https://tokens.coingecko.com/polygon-pos/all.json",
     "https://tokens.coingecko.com/base/all.json",
