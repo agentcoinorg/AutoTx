@@ -29,6 +29,7 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | [Token Research](./autotx/agents/ResearchTokensAgent.py) | Research tokens, liquidity, prices, graphs, etc. | :rocket: |
 | Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
+| Social Search | Research accounts, posts, and sentiment across social networks (ex: Twitter, Farcaster) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/204) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
 | LP | Provide liquidity to AMMs. | :thought_balloon: |
@@ -36,7 +37,6 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | Predict | Generate future predictions based on research. | :thought_balloon: |
 | Donate | Donate to public goods projects. | :thought_balloon: |
 | Invest | Participate in LBPs, IDOs, etc. | :thought_balloon: |
-| Social | Use social networks (ex: Farcaster). | :thought_balloon: |
 
 # Getting Started
 ## Pre-Requisites
@@ -58,12 +58,7 @@ Please install the following:
 ## Run The Agent
 
 1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-offline).  
-2. Run `poetry run ask` and provide a prompt for AutoTx to work on solving for you when asked (example: `Send 1 ETH to vitalik.eth`). Additionally you can pass the prompt you want to run in as an argument `poetry run ask "..."`.
-
-| Run Options |  |
-|-|-|  
-| `--verbose, -v` | enable verbose logging. |  
-| `--non-interactive, -n` | Disable all requests for user input. |  
+2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
 
 ### Test Offline
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. 
