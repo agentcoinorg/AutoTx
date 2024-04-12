@@ -30,21 +30,23 @@ class InvalidPromptResponse:
 
 DefineGoalResponse = typing.Union[GoalResponse, MissingInfoResponse, InvalidPromptResponse]
 
-def get_persona(smart_account_address: ETHAddress) -> str:
+def get_persona(smart_account_address: ETHAddress, current_network: str) -> str:
     return dedent(
         f"""
         You are an AI assistant that helps the user define goals and tasks for your agents. 
         You can analyze prompts and provide the user with a goal to be executed by the agents.
-        When dealing with Ethereum transactions, assume the following is the user's address: {smart_account_address}
+        When dealing with Ethereum transactions, assume the following:
+            - The user's address: {smart_account_address}
+            - The network to interact with: {current_network} 
         """
     )
 
-def build_goal(prompt: str, agents_information: str, smart_account_address: ETHAddress, non_interactive: bool) -> str:
+def build_goal(prompt: str, agents_information: str, smart_account_address: ETHAddress, current_network: str, non_interactive: bool) -> str:
     response: DefineGoalResponse | None = None
     chat_history = f"User: {prompt}"
 
     while True:
-        response = analyze_user_prompt(chat_history, agents_information, smart_account_address)
+        response = analyze_user_prompt(chat_history, agents_information, smart_account_address, current_network)
         if response.type == "missing_info":
             autotx_message = f"Missing information: {response.message}"
 
@@ -64,7 +66,7 @@ def build_goal(prompt: str, agents_information: str, smart_account_address: ETHA
         elif response.type == "goal":
             return response.goal
 
-def analyze_user_prompt(chat_history: str, agents_information: str, smart_account_address: ETHAddress) -> DefineGoalResponse:
+def analyze_user_prompt(chat_history: str, agents_information: str, smart_account_address: ETHAddress, current_network: str) -> DefineGoalResponse:
     template = dedent(
         """
         Based on the following chat history between you and the user: 
@@ -108,7 +110,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
         model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo-preview"),
         response_format={"type": "json_object"},
         messages=[
-            { "role": "system", "content": get_persona(smart_account_address) },
+            { "role": "system", "content": get_persona(smart_account_address, current_network) },
             { "role": "user", "content": formatted_template }
         ],
     )

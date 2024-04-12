@@ -79,7 +79,7 @@ class AutoTx:
 
             agents_information = self.get_agents_information(self.agents)
 
-            goal = build_goal(prompt, agents_information, self.manager.address, non_interactive)
+            goal = build_goal(prompt, agents_information, self.manager.address, self.network.chain_id.name, non_interactive)
 
             verifier_agent = AssistantAgent(
                 name="verifier",
