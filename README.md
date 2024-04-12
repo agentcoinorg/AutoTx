@@ -58,7 +58,12 @@ Please install the following:
 ## Run The Agent
 
 1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-offline).  
-2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
+2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`).
+
+Additional `run` Options:
+* `-v, --verbose` Enable verbose logging.
+* `-n, --non-interactive` Disable all requests for user input.
+* `-l, --logs DIRECTORY`  Path to the directory where logs will be stored.
 
 ### Test Offline
 By default, if the `SMART_ACCOUNT_ADDRESS` environment variable is not defined, AutoTx will create and execute transactions within an offline test environment. 
