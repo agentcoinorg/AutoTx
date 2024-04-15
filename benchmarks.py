@@ -75,13 +75,20 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
     # Calculate total success percentage
     total_success_percentage = (total_passes / total_attempts * 100) if total_attempts > 0 else 0
 
-    prev_rates = sum(float(total_benchmarks["benchmarks"][result["name"]] if total_benchmarks["benchmarks"].get(result["name"]) else 0.0) for result in tests_results)
-    any_prev_rate = any(True if total_benchmarks["benchmarks"].get(result["name"]) else False for result in tests_results)
-    prev_total_success_percentage = (prev_rates / len(tests_results)) if len(tests_results) > 0 else 0
-    total_success_color = "lightgreen" if total_success_percentage > prev_total_success_percentage and any_prev_rate else "none" if total_success_percentage == prev_total_success_percentage or not any_prev_rate else "red"
+    prev_rates = list(map(lambda x: float(total_benchmarks["benchmarks"][x["name"]]), filter(lambda result: total_benchmarks["benchmarks"].get(result["name"]), tests_results)))
+    any_prev_rate = any(prev_rates)
+    prev_total_success_percentage = sum(prev_rates) / len(prev_rates) if len(prev_rates) > 0 else 0
+
+    current_rates = list(filter(lambda x: total_benchmarks["benchmarks"].get(x["name"]), tests_results))
+    current_total_success_percentage = sum(map(lambda x: x["passes"] / (x["passes"] + x["fails"]) * 100, current_rates)) / len(current_rates) if len(current_rates) > 0 else 0
+
+    total_success_color = "lightgreen" if current_total_success_percentage > prev_total_success_percentage and any_prev_rate \
+        else "yellow" if not any_prev_rate \
+        else "none" if current_total_success_percentage == prev_total_success_percentage \
+        else "red"
     
-    total_sign = "+" if total_success_percentage >= prev_total_success_percentage else ""
-    total_diff = f"({total_sign}{total_success_percentage - prev_total_success_percentage:.0f})" if any_prev_rate and total_success_percentage != prev_total_success_percentage else ""
+    total_sign = "+" if current_total_success_percentage >= prev_total_success_percentage else ""
+    total_diff = f" ({current_total_success_percentage:.0f}/{total_sign}{current_total_success_percentage - prev_total_success_percentage:.0f})" if any_prev_rate and current_total_success_percentage != prev_total_success_percentage else ""
 
     # Constructing the markdown content
     md_content = []
@@ -97,7 +104,10 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
-        color = "lightgreen" if success_rate > prev_success_rate and has_prev_rate else "none" if success_rate == prev_success_rate or not has_prev_rate else "red"
+        color = "lightgreen" if success_rate > prev_success_rate and has_prev_rate \
+            else "yellow" if not has_prev_rate \
+            else "none" if success_rate == prev_success_rate \
+            else "red"
         
         sign = "+" if success_rate >= prev_success_rate else ""
         diff = f"({sign}{success_rate - prev_success_rate:.0f})" if has_prev_rate and success_rate != prev_success_rate else ""
@@ -110,16 +120,21 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
     print(f"### Test Run Summary\n")
     print(f"- **Run from:** `{test_path}`")
     print(f"- **Iterations:** {iterations}")
-    print(f"- **Total Success Rate (%):** {total_success_percentage:.2f}\n")
+    print(f"- **Total Success Rate (%):** {total_success_percentage:.2f}{total_diff}\n")
     print(f"### Detailed Results\n")
     print(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time |")
     print(f"| --- | --- | --- | --- | --- |")
 
     for test_result in tests_results:
+        prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
+        has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
         
+        sign = "+" if success_rate >= prev_success_rate else ""
+        diff = f"({sign}{success_rate - prev_success_rate:.0f})" if has_prev_rate and success_rate != prev_success_rate else ""
+
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        print(f"| `{test_result['name']}` | {success_rate:.0f} | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
+        print(f"| `{test_result['name']}` | {success_rate:.0f}{diff} | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
 
     print(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
