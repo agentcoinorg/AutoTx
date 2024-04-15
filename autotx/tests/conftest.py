@@ -1,4 +1,7 @@
 from dotenv import load_dotenv
+
+from autotx.utils.ethereum.helpers.swap_from_eoa import swap
+from autotx.utils.logging.Logger import Logger
 load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
@@ -15,7 +18,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
 import pytest
-from autotx.AutoTx import AutoTx
+from autotx.AutoTx import AutoTx, Config
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
@@ -62,7 +65,8 @@ def auto_tx(configuration):
             SwapTokensAgent(),
             ResearchTokensAgent()
         ], 
-        None, get_llm_config=get_llm_config
+        Config(verbose=False, logs_dir=None), 
+        get_llm_config
     )
 
 @pytest.fixture()
@@ -91,25 +95,3 @@ def test_accounts(configuration) -> list[ETHAddress]:
     accounts = [ETHAddress(Account.create().address, client.w3) for _ in range(10)]
 
     return accounts
-
-def swap(client: EthereumClient, user: Account, amount: float, from_token: ETHAddress, to_token: ETHAddress):
-    txs = build_swap_transaction(
-        client, amount, from_token.hex, to_token.hex, user.address, False
-    )
-
-    for i, tx in enumerate(txs):
-        transaction = user.sign_transaction(
-            {
-                **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": 200000,
-            }
-        )
-
-        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-        if receipt["status"] == 0:
-            print(f"Transaction #{i} failed ")
-            break

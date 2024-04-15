@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 import os
 
+from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
+from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import fill_dev_account_with_erc20
 from autotx.utils.is_dev_env import is_dev_env
 
 load_dotenv()
@@ -84,12 +86,14 @@ Support: https://discord.polywrap.io
         print("No smart account connected, deploying a new one...")
         dev_account = get_dev_account()
 
+        is_safe_deployed = get_cached_safe_address()
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        if get_native_balance(web3, manager.address) < 10:
+        if not is_safe_deployed:
             send_native(dev_account, manager.address, 10, web3)
-            print(f"Sent 10 ETH to smart account for testing purposes")
+            fill_dev_account_with_erc20(client, dev_account, manager.address, network_info)
+            print(f"Funds sent to smart account for testing purposes")
 
         print("=" * 50)
         print("Starting smart account balances:")
