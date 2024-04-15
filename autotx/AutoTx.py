@@ -1,7 +1,7 @@
 from textwrap import dedent
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Union, Optional, Callable
 from dataclasses import dataclass
-from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
+from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager, Agent as AutogenAgent
 from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
@@ -106,6 +106,23 @@ class AutoTx:
                 llm_config=self.get_llm_config(),
                 human_input_mode="NEVER",
                 code_execution_config=False,
+            )
+
+            # Print all messages sent form the verifier to the group chat manager,
+            # as they tend to contain valuable information
+            def verifier_send_message_hook(
+                sender: AssistantAgent,
+                message: Union[Dict[str, Any], str],
+                recipient: AutogenAgent,
+                silent: bool
+            ) -> Union[Dict[str, Any], str]:
+                if recipient.name == "chat_manager" and message != "TERMINATE":
+                    cprint(message if isinstance(message, str) else message["content"])
+                return message
+
+            verifier_agent.register_hook(
+                "process_message_before_send",
+                verifier_send_message_hook
             )
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy, self.get_llm_config()) for agent in self.agents]
