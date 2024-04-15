@@ -20,11 +20,13 @@ from autotx.utils.ethereum.get_native_balance import get_native_balance
 name = "send-tokens"
 
 system_message = lambda autotx: dedent(f"""
-    You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their tasks by fetching balances and preparing transactions to send tokens.
-    You are an expert in Ethereum tokens (native and erc20) and can help users send tokens and check their balances.
+    You are an expert in Ethereum tokens (native and erc20) and can assist the user (address: {autotx.manager.address}) in their tasks by fetching balances and preparing transactions to send tokens.
+    ONLY focus on the sending and balance aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks. 
-    Your job is to only prepare the transactions and the user will take care of executing them.
-    NOTE: There is no reason to call get_balance after calling transfer as the transfers are only prepared and not executed. 
+    Your job is to only prepare the transactions by calling the prepare_transfer_transaction tool and the user will take care of executing them.
+    NOTE: There is no reason to call get_token_balance after calling prepare_transfer_transaction as the transfers are only prepared and not executed. 
+    Do not just respond with JSON, instead call the tools with the correct arguments.
+    Take extra care in the order of transactions to prepare.
     """
 )
 
@@ -42,6 +44,8 @@ class TransferTokenTool(AutoTxTool):
             receiver: Annotated[str, "The receiver's address or ENS domain"],
             token: Annotated[str, "Symbol of token to transfer"]
         ) -> str:
+            amount = float(amount)
+
             web3 = load_w3()
             receiver_addr = ETHAddress(receiver, web3)
             token_address = ETHAddress(autotx.network.tokens[token.lower()], web3)

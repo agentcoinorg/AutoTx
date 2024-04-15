@@ -108,12 +108,19 @@ jobs:
               count = args[2];
             }
           }
-          core.setOutput('path', path);
+
+          core.setOutput(
+            'path', 
+            path
+              .split(',')
+              .map(x => `./autotx/tests/${x}`)
+              .join(',')
+          );
           core.setOutput('count', count);
     
     - name: Run Benchmarks
       run: |
-        python benchmarks.py ./autotx/tests/${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
+        python benchmarks.py ${{ steps.parse_args.outputs.path }} ${{ steps.parse_args.outputs.count }} benchmark-results
 
     - name: Comment on PR with benchmark results
       uses: actions/github-script@v6
@@ -131,7 +138,39 @@ jobs:
           })
       
     - name: Upload artifact
+      id: upload-artifact
       uses: actions/upload-artifact@v2
       with:
         name: benchmarks-debug
         path: ./benchmarks/benchmark-results
+
+    - name: Fetch Artifact ID
+      id: fetch-artifact-id
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const run_id = ${{ github.run_id }};
+          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: run_id,
+          });
+          const artifact = artifacts.data.artifacts.find(artifact => artifact.name === 'benchmarks-debug');
+          return artifact.id;
+
+    - name: Comment on PR with benchmark results and download link
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summaryPath = './benchmarks/benchmark-results/summary.md';
+          const contents = fs.readFileSync(summaryPath, 'utf8');
+          const artifactID = ${{ steps.fetch-artifact-id.outputs.result }};
+          const downloadURL = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${artifactID}`;
+          
+          github.rest.issues.updateComment({
+            comment_id: ${{ env.BENCHMARKS_COMMENT_ID }},
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '[Finished benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents + '\n\n[Download Artifacts](' + downloadURL + ')'
+          })

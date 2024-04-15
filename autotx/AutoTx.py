@@ -96,6 +96,7 @@ class AutoTx:
                         Verifier is an expert in verifiying if user goals are met.
                         Verifier analyzes chat and responds with TERMINATE if the goal is met.
                         Verifier can consider the goal met if the other agents have prepared the necessary transactions.
+                    Let the other agents complete all the necessary parts of the goal before calling TERMINATE.
                         
                         If some information needs to be returned to the user or if there are any errors encountered during the process, add this in your answer.
                         Start any error messages with "ERROR:" to clearly indicate the issue. Then say the word TERMINATE.

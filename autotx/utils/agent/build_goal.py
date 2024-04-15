@@ -78,6 +78,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
         If the prompt is not clear or missing information, you MUST ask for more information.
         If the prompt is invalid, unsupported or outside the scope of the agents, you MUST ask for a new prompt.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
+        DO NOT make any assumptions about the user's intent or context and ALWAYS take into account the available tools and their descriptions.
         
         The available agents and tools:
         {agents_information}
