@@ -106,7 +106,7 @@ def analyze_user_prompt(chat_history: str, agents_information: str, smart_accoun
     )
 
     response = openai.chat.completions.create(
-        model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo-preview"),
+        model=os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo"),
         response_format={"type": "json_object"},
         messages=[
             { "role": "system", "content": get_persona(smart_account_address, current_network) },
