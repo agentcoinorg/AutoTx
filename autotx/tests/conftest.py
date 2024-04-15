@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+
+from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import swap
 load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
@@ -91,25 +93,3 @@ def test_accounts(configuration) -> list[ETHAddress]:
     accounts = [ETHAddress(Account.create().address, client.w3) for _ in range(10)]
 
     return accounts
-
-def swap(client: EthereumClient, user: Account, amount: float, from_token: ETHAddress, to_token: ETHAddress):
-    txs = build_swap_transaction(
-        client, amount, from_token.hex, to_token.hex, user.address, False
-    )
-
-    for i, tx in enumerate(txs):
-        transaction = user.sign_transaction(
-            {
-                **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": 200000,
-            }
-        )
-
-        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-        if receipt["status"] == 0:
-            print(f"Transaction #{i} failed ")
-            break

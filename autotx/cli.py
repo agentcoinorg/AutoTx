@@ -4,6 +4,7 @@ from datetime import datetime
 import click
 import os
 
+from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import fill_dev_account_with_erc20
 from autotx.utils.is_dev_env import is_dev_env
 
 load_dotenv()
@@ -75,6 +76,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
         
         if get_native_balance(web3, manager.address) < 10:
             send_native(dev_account, manager.address, 10, web3)
+            fill_dev_account_with_erc20(client, dev_account, manager.address, network_info)
             print(f"Sent 10 ETH to smart account for testing purposes")
 
         print("=" * 50)
