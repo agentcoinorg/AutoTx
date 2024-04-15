@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import swap
+from autotx.utils.logging.Logger import Logger
 load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
@@ -17,7 +18,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
 import pytest
-from autotx.AutoTx import AutoTx
+from autotx.AutoTx import AutoTx, Config
 from autotx.chain_fork import stop, start
 from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
@@ -64,7 +65,8 @@ def auto_tx(configuration):
             SwapTokensAgent(),
             ResearchTokensAgent()
         ], 
-        None, get_llm_config=get_llm_config
+        Config(verbose=False, logs_dir=None), 
+        get_llm_config
     )
 
 @pytest.fixture()
