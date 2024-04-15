@@ -39,6 +39,20 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
     logs_dir = os.path.join(logs, now_str) if logs is not None else None
 
+    print("""
+  /$$$$$$              /$$            /$$$$$$$$       
+ /$$__  $$            | $$           |__  $$__/       
+| $$  \ $$ /$$   /$$ /$$$$$$    /$$$$$$ | $$ /$$   /$$
+| $$$$$$$$| $$  | $$|_  $$_/   /$$__  $$| $$|  $$ /$$/
+| $$__  $$| $$  | $$  | $$    | $$  \ $$| $$ \  $$$$/ 
+| $$  | $$| $$  | $$  | $$ /$$| $$  | $$| $$  >$$  $$ 
+| $$  | $$|  $$$$$$/  |  $$$$/|  $$$$$$/| $$ /$$/\  $$
+|__/  |__/ \______/    \___/   \______/ |__/|__/  \__/
+
+Source: https://github.com/polywrap/AutoTx
+Support: https://discord.polywrap.io
+""")
+
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
