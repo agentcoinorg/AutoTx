@@ -18,7 +18,7 @@ system_message = lambda autotx: dedent(f"""
     Below are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction tool with the correct arguments.
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then sell 5 ETH and buy USDC
-    Advisor reworded: Sell 5 ETH and buy USDC with address {autotx.manager.address}
+    Advisor reworded: Send 0.1 ETH to vitalik.eth and then buy USDC with 5 ETH from address {autotx.manager.address}
     ...
     Other agent messages
     ...
@@ -29,8 +29,8 @@ system_message = lambda autotx: dedent(f"""
     }}
 
     Example 2:
-    User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
-    Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
+    User: Swap ETH to 5 USDC, then swap that USDC for 6 UNI
+    Advisor reworded: Swap ETH to 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
     Call prepare_swap_transaction with args:
     {{
         "token_to_sell": "ETH",
@@ -44,7 +44,7 @@ system_message = lambda autotx: dedent(f"""
     }}
 
     Example 4 (Mistake):
-    User: Swap ETH for 5 USDC, then swap that USDC for 5 UNI
+    User: Swap ETH for 5 USDC, then swap that USDC for 6 UNI
     Advisor reworded: Swap ETH for 5 USDC, then swap 5 USDC for 6 UNI for user address {autotx.manager.address}
     Call prepare_swap_transaction with args:
     {{
