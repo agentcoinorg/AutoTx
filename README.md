@@ -87,16 +87,15 @@ AutoTx currently supports prompts such as:
 
 | Category | Prompt |
 |---|---|
-| Token Research | `Research the top AI coins by trading volume on CoinGecko` |
-| Token Research | `Conduct a thorough analysis of WLD, including whether to hold or sell` |
+| Token Research | `Research the top AI coins by trading volume.` |
+| Token Research | `Conduct a thorough analysis of Worldcoin, including whether to hold or sell` |
 | Token Research | `Find leveraged tokens I can buy directly on Ethereum mainnet`  |
-| Send Tokens | `Send tokens 10 DAI and 0.01 ETH to 0x...` |
-| Send Tokens, ENS | `Send tokens 1 ETH and 1000 USDC to vitalik.eth` |
+| Send Tokens | `Send tokens 1 ETH and 1000 USDC to vitalik.eth` |
 | Swap Tokens | `Buy 100 USDC with ETH` |
-| Swap Tokens | `Swap tokens directly through Uniswap` |
-| Multi Task | `Identify the top AI coins by trading volume on the Ethereum mainnet using CoinGecko. Buy 1 ETH of the top 2.` |
-| Multi Task| `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to 0x...` |
-| Multi Task, Airdrop | `Buy 10 WLD with ETH, then 50% of the purchased amount of WLD should be sent in equal amounts to each of these addresses: vitalik.eth, 0x...` |
+| Multi Task | `Identify the top AI coins by trading volume on Ethereum mainnet. Buy 1 ETH of the top 2.` |
+| Multi Task| `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to vitalik.eth` |
+| Multi Task, Airdrop | `Buy 10 WLD with ETH, then send the WLD in equal amounts to each of these addresses: vitalik.eth, abc.eth, and maxi.eth` |
+| Multi Task, Airdrop | `Buy 1 ETH of the highest mcap meme coin on ethereum mainnet, then airdrop it in equal parts to: vitalik.eth, abc.eth, and maxi.eth` |
 
 Future possibilities:
 * `Purchase mainnet ETH with my USDC on optimism`
