@@ -1,3 +1,4 @@
+from decimal import Decimal
 from autotx.utils.ethereum import transfer_erc20
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -11,7 +12,7 @@ def fill_dev_account_with_erc20(
     dev_account: LocalAccount,
     safe_address: ETHAddress,
     network_info: NetworkInfo,
-):
+) -> None:
     tokens_to_transfer = {"usdc": 3500, "dai": 3500, "wbtc": 0.1}
     eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
     for token in network_info.tokens:
@@ -34,13 +35,13 @@ def swap(
     amount: float,
     from_token: ETHAddress,
     to_token: ETHAddress,
-):
+) -> None:
     txs = build_swap_transaction(
-        client, amount, from_token.hex, to_token.hex, user.address, False
+        client, Decimal(amount), from_token.hex, to_token.hex, user.address, False
     )
 
     for i, tx in enumerate(txs):
-        transaction = user.sign_transaction(
+        transaction = user.sign_transaction( # type: ignore
             {
                 **tx.tx,
                 "nonce": client.w3.eth.get_transaction_count(user.address),
