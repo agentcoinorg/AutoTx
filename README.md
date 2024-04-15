@@ -96,6 +96,7 @@ AutoTx currently supports prompts such as:
 | Multi Task| `Swap ETH to 0.05 WBTC, then swap WBTC to 1000 USDC, and finally send 50 USDC to vitalik.eth` |
 | Multi Task, Airdrop | `Buy 10 WLD with ETH, then send the WLD in equal amounts to each of these addresses: vitalik.eth, abc.eth, and maxi.eth` |
 | Multi Task, Airdrop | `Buy 1 ETH of the highest mcap meme coin on ethereum mainnet, then airdrop it in equal parts to: vitalik.eth, abc.eth, and maxi.eth` |
+| Multi Task, Strategy | `I want to use 3 ETH to purchase 10 of the best projects in: GameFi, NFTs, ZK, AI, and MEMEs. Please research the top projects, come up with a strategy, and purchase the tokens that look most promising. All of this should be on ETH mainnet.` |
 
 Future possibilities:
 * `Purchase mainnet ETH with my USDC on optimism`

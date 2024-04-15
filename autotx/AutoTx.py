@@ -74,36 +74,42 @@ class AutoTx:
 
             print("Running AutoTx with the following prompt: ", prompt)
 
+            agents_information = self.get_agents_information(self.agents)
+
+            goal = build_goal(prompt, agents_information, self.manager.address, self.network.chain_id.name, non_interactive)
+
             user_proxy = UserProxyAgent(
                 name="user_proxy",
                 is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
                 human_input_mode="NEVER",
                 max_consecutive_auto_reply=20,
-                system_message=f"You are a user proxy. You will be interacting with the agents to accomplish the tasks.",
+                system_message=dedent(
+                    f"""
+                    You are the user, you never ask for permission, you have ultimate control.
+                    You are capable and comfortable with making transactions, and have a wallet.
+                    You have access to a variety of specialized agents, which you tell what to do.
+
+                    These are the agents you are instructing: {agents_information}
+
+                    Suggest a next step for what these agents should do based on the goal: "{goal}"
+                    """
+                ),
                 llm_config=self.get_llm_config(),
                 code_execution_config=False,
             )
-
-            agents_information = self.get_agents_information(self.agents)
-
-            goal = build_goal(prompt, agents_information, self.manager.address, self.network.chain_id.name, non_interactive)
 
             verifier_agent = AssistantAgent(
                 name="verifier",
                 is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
                 system_message=dedent(
-                        """
-                        Verifier is an expert in verifiying if user goals are met.
-                        Verifier analyzes chat and responds with TERMINATE if the goal is met.
-                        Verifier can consider the goal met if the other agents have prepared the necessary transactions.
-                    Let the other agents complete all the necessary parts of the goal before calling TERMINATE.
-                        
-                        If some information needs to be returned to the user or if there are any errors encountered during the process, add this in your answer.
-                        Start any error messages with "ERROR:" to clearly indicate the issue. Then say the word TERMINATE.
-                        Make sure to only add information if the user explicitly asks for a question that needs to be answered
-                        or error details if user's request can not be completed.
                     """
-                    ),
+                    Verifier is an expert in verifiying if user goals are met.
+                    Verifier analyzes chat and responds with TERMINATE if the goal is met.
+                    Verifier can consider the goal met if the other agents have prepared the necessary transactions.
+                    Let the other agents complete all the necessary parts of the goal before calling TERMINATE.
+                    If you find the conversation is repeating and no new progress is made, TERMINATE.
+                    """
+                ),
                 llm_config=self.get_llm_config(),
                 human_input_mode="NEVER",
                 code_execution_config=False,
@@ -138,6 +144,7 @@ class AutoTx:
                 select_speaker_prompt_template = (
                     """
                     Read the above conversation. Then select the next role from {agentlist} to play. Only return the role and NOTHING else.
+                    If agents are trying to communicate with the user, or requesting approval, return the 'user_proxy' role.
                     """
                 )
             )
