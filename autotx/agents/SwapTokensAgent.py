@@ -15,12 +15,12 @@ system_message = lambda autotx: dedent(f"""
     ONLY focus on the buy and sell (swap) aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
-    Below are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction function with the correct arguments.
+    Below are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction tool with the correct arguments.
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then sell 5 ETH and buy USDC
     Advisor reworded: Sell 5 ETH and buy USDC with address {autotx.manager.address}
     ...
-    other agent messages
+    Other agent messages
     ...
     Call prepare_swap_transaction with args:
     {{
@@ -64,8 +64,8 @@ system_message = lambda autotx: dedent(f"""
         "token_to_sell": "USDC",
         "token_to_buy": "6 UNI"
     }}
-    Above are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction function with the correct arguments.
-    Only call functions, do not respond with JSON.
+    Above are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction tool with the correct arguments.
+    Only call tools, do not respond with JSON.
     """
 )
 
