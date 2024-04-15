@@ -117,7 +117,10 @@ class AutoTx:
                 silent: bool
             ) -> Union[Dict[str, Any], str]:
                 if recipient.name == "chat_manager" and message != "TERMINATE":
-                    cprint(message if isinstance(message, str) else message["content"])
+                    if isinstance(message, str):
+                        cprint(message, "light_yellow")
+                    elif message["content"] != None:
+                        cprint(message["content"], "light_yellow")
                 return message
 
             verifier_agent.register_hook(

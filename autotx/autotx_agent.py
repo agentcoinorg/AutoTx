@@ -1,5 +1,6 @@
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Union
 import autogen
+from termcolor import cprint
 if TYPE_CHECKING:
     from autotx.autotx_tool import AutoTxTool
     from autotx.AutoTx import AutoTx
@@ -29,6 +30,26 @@ class AutoTxAgent():
             llm_config=llm_config,
             human_input_mode="NEVER",
             code_execution_config=False,
+        )
+
+        # Print all messages sent form the verifier to the group chat manager,
+        # as they tend to contain valuable information
+        def send_message_hook(
+            sender: autogen.AssistantAgent,
+            message: Union[Dict[str, Any], str],
+            recipient: autogen.Agent,
+            silent: bool,
+        ) -> Union[Dict[str, Any], str]:
+            if recipient.name == "chat_manager" and message != "TERMINATE":
+                if isinstance(message, str):
+                    cprint(message, "light_yellow")
+                elif message["content"] != None:
+                    cprint(message["content"], "light_yellow")
+            return message
+
+        agent.register_hook(
+            "process_message_before_send",
+            send_message_hook
         )
 
         for tool in self.tools:
