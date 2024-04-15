@@ -109,7 +109,7 @@ class AutoTx:
                     Let the other agents complete all the necessary parts of the goal before calling TERMINATE.
                     If you find the conversation is repeating and no new progress is made, TERMINATE.
                     """
-                    ),
+                ),
                 llm_config=self.get_llm_config(),
                 human_input_mode="NEVER",
                 code_execution_config=False,
