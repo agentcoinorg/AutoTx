@@ -67,6 +67,9 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
 def print_summary_table(test_path: str, iterations: int, tests_results: dict, total_run_time: float, output_dir: str, total_benchmarks: dict):
     """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
   
+    # Sort test results
+    tests_results = sorted(tests_results, key=lambda x: x['name'])
+
     # Calculate total passes and fails
     total_passes = sum(result['passes'] for result in tests_results)
     total_fails = sum(result['fails'] for result in tests_results)
