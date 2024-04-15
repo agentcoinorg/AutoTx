@@ -17,15 +17,15 @@ system_message = lambda autotx: dedent(f"""
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
     Below are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction tool with the correct arguments.
     Example 1:
-    User: Send 0.1 ETH to vitalik.eth and then sell 5 ETH and buy USDC
-    Advisor reworded: Send 0.1 ETH to vitalik.eth and then buy USDC with 5 ETH from address {autotx.manager.address}
+    User: Send 0.1 ETH to vitalik.eth and then swap ETH to 5 USDC
+    Advisor reworded: Send 0.1 ETH to vitalik.eth and then buy USDC with 0.1 ETH from address {autotx.manager.address}
     ...
     Other agent messages
     ...
     Call prepare_swap_transaction with args:
     {{
-        "token_to_sell": "5 ETH",
-        "token_to_buy": "USDC"
+        "token_to_sell": "ETH",
+        "token_to_buy": "5 USDC"
     }}
 
     Example 2:
@@ -65,6 +65,8 @@ system_message = lambda autotx: dedent(f"""
         "token_to_buy": "6 UNI"
     }}
     Above are examples, NOTE these are only examples and in practice you need to call the prepare_swap_transaction tool with the correct arguments.
+    Take extra care in ensuring you have to right amount next to the token symbol.
+    Listen to the user more than the advisor!
     Only call tools, do not respond with JSON.
     """
 )

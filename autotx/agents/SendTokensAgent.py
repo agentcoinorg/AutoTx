@@ -26,6 +26,7 @@ system_message = lambda autotx: dedent(f"""
     Your job is to only prepare the transactions by calling the prepare_transfer_transaction tool and the user will take care of executing them.
     NOTE: There is no reason to call get_token_balance after calling prepare_transfer_transaction as the transfers are only prepared and not executed. 
     Do not just respond with JSON, instead call the tools with the correct arguments.
+    Take extra care in the order of transactions to prepare.
     """
 )
 
