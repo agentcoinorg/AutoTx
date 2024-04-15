@@ -1,6 +1,8 @@
 from typing import cast
 from dotenv import load_dotenv
+from datetime import datetime
 import click
+import os
 
 from autotx.utils.is_dev_env import is_dev_env
 
@@ -14,7 +16,7 @@ from autotx.utils.ethereum import get_native_balance
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
-from autotx.AutoTx import AutoTx
+from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.send_native import send_native
@@ -30,7 +32,13 @@ def main() -> None:
 @click.argument('prompt', required=False)
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
-def run(prompt: str | None, non_interactive: bool, verbose: bool) -> None:
+@click.option("-l", "--logs", type=click.Path(exists=False, file_okay=False, dir_okay=True), help="Path to the directory where logs will be stored.")
+def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None) -> None:
+
+    now = datetime.now()
+    now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
+    logs_dir = os.path.join(logs, now_str) if logs is not None else None
+
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
@@ -84,13 +92,14 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool) -> None:
         agents.append(ResearchTokensAgent())
 
     autotx = AutoTx(
-        manager, 
-        network_info, 
-        agents, 
-        None, get_llm_config=get_llm_config
+        manager,
+        network_info,
+        agents,
+        Config(verbose=verbose, logs_dir=logs_dir),
+        get_llm_config=get_llm_config
     )
 
-    autotx.run(cast(str, prompt), non_interactive, silent=not verbose)
+    autotx.run(cast(str, prompt), non_interactive)
 
     if not smart_account_addr:
         print("=" * 50)

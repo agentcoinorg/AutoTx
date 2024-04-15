@@ -57,6 +57,14 @@ Please install the following:
 
 ## Using AutoTx
 
+1. Run `poetry run start-devnet` if you want to test locally. More information [below](#test-locally).  
+2. Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`).
+
+Additional `run` Options:
+* `-v, --verbose` Enable verbose logging.
+* `-n, --non-interactive` Disable all requests for user input.
+* `-l, --logs DIRECTORY`  Path to the directory where logs will be stored.
+
 ### Test Locally
 
 Run `poetry run start-devnet` to create a local fork of the network set by the `CHAIN_RPC_URL` env variable. This step required Docker to be running in the background. The devnet includes a new smart account, as well as a development address with test ETH for tx execution. Running `poetry run stop-devnet` will shutdown the local fork.

@@ -4,18 +4,18 @@ from dataclasses import dataclass
 from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
 from termcolor import cprint
 from typing import Optional
-from autogen.io import IOStream, IOConsole
 from autotx.autotx_agent import AutoTxAgent
+from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.agent.build_goal import build_goal
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.io_silent import IOSilent
 
 
 @dataclass(kw_only=True)
 class Config:
     verbose: bool
+    logs_dir: Optional[str]
 
 @dataclass
 class PastRun:
@@ -24,26 +24,33 @@ class PastRun:
 
 class AutoTx:
     manager: SafeManager
-    config: Config = Config(verbose=False)
+    logger: Logger
     transactions: list[PreparedTx] = []
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     agents: list[AutoTxAgent]
 
     def __init__(
-        self, manager: SafeManager, network: NetworkInfo, agents: list[AutoTxAgent], config: Optional[Config],
+        self,
+        manager: SafeManager,
+        network: NetworkInfo,
+        agents: list[AutoTxAgent],
+        config: Config,
         get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     ):
         self.manager = manager
         self.network = network
         self.get_llm_config = get_llm_config
-        if config:
-            self.config = config
+        self.logger = Logger(
+            dir=config.logs_dir,
+            silent=not config.verbose
+        )
         self.agents = agents
 
-    def run(self, prompt: str, non_interactive: bool, silent: bool = False) -> None:
+    def run(self, prompt: str, non_interactive: bool) -> None:
         original_prompt = prompt
         past_runs: list[PastRun] = []
+        self.logger.start()
 
         while True:
             if past_runs:
@@ -115,11 +122,6 @@ class AutoTx:
             )
             manager = GroupChatManager(groupchat=groupchat, llm_config=self.get_llm_config())
 
-            if silent:
-                IOStream.set_global_default(IOSilent())
-            else:
-                IOStream.set_global_default(IOConsole())
-
             chat = user_proxy.initiate_chat(manager, message=dedent(
                 f"""
                     My goal is: {prompt}
@@ -143,7 +145,7 @@ class AutoTx:
                             for i, tx in enumerate(self.transactions)
                         ]
                     )
-                                        
+                    
                     past_runs.append(PastRun(result, transactions_info))
                 else:
                     break
@@ -152,6 +154,7 @@ class AutoTx:
                 cprint(e, "red")
                 break
 
+        self.logger.stop()
         self.transactions.clear()
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
