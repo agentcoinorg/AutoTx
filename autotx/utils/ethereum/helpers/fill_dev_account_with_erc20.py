@@ -1,10 +1,9 @@
-from decimal import Decimal
-from autotx.utils.ethereum import transfer_erc20
+from autotx.utils.ethereum import get_erc20_balance, transfer_erc20
 from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.networks import NetworkInfo
 from eth_account.signers.local import LocalAccount
 from gnosis.eth import EthereumClient
-from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
 
 def fill_dev_account_with_erc20(
@@ -19,40 +18,15 @@ def fill_dev_account_with_erc20(
         if token in tokens_to_transfer:
             token_address = ETHAddress(network_info.tokens[token], client.w3)
             amount = tokens_to_transfer[token]
-            swap(
-                client,
-                dev_account,
-                tokens_to_transfer[token],
-                eth_address,
-                ETHAddress(network_info.tokens[token], client.w3),
-            )
-            transfer_erc20(client.w3, token_address, dev_account, safe_address, amount)
-
-
-def swap(
-    client: EthereumClient,
-    user: LocalAccount,
-    amount: float,
-    from_token: ETHAddress,
-    to_token: ETHAddress,
-) -> None:
-    txs = build_swap_transaction(
-        client, Decimal(amount), from_token.hex, to_token.hex, user.address, False
-    )
-
-    for i, tx in enumerate(txs):
-        transaction = user.sign_transaction( # type: ignore
-            {
-                **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": 200000,
-            }
-        )
-
-        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-        if receipt["status"] == 0:
-            print(f"Transaction #{i} failed ")
-            break
+            current_balance = get_erc20_balance(client.w3, token_address, safe_address)
+            if current_balance < amount:
+                swap(
+                    client,
+                    dev_account,
+                    tokens_to_transfer[token],
+                    eth_address,
+                    ETHAddress(network_info.tokens[token], client.w3),
+                )
+                transfer_erc20(
+                    client.w3, token_address, dev_account, safe_address, amount
+                )

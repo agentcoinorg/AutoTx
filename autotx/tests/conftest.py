@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import swap
+from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.logging.Logger import Logger
 load_dotenv()
 
