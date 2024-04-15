@@ -98,15 +98,16 @@ class SwapTool(AutoTxTool):
             )
             autotx.transactions.extend(swap_transactions)
 
-            token_in_amount = f"{exact_amount} " if is_exact_input else ""
-            token_out_amount = f"{exact_amount} " if not is_exact_input else ""
+            summary = "".join(
+                f"Prepared transaction: {swap_transaction.summary}\n"
+                for swap_transaction in swap_transactions
+            )
 
-            print(f"Prepared transaction: Buy {token_out_amount}{token_out} with {token_in_amount}{token_in}")
-
-            return f"Transaction to buy {token_out_amount}{token_out} with {token_in_amount}{token_in} has been prepared"
+            print(summary)
+            return summary
 
         return run
-    
+
 class SwapTokensAgent(AutoTxAgent):
     name = name
     system_message = system_message
