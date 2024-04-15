@@ -50,7 +50,7 @@ Please install the following:
 1. Clone the repository via `git clone https://github.com/polywrap/AutoTx` and `cd AutoTx` into the directory.
 2. Create a new .env file via `cp .env.example .env`
 3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
-4. (Optional) If you have an Infura/Alchemy API Key, find the line that says CHAIN_RPC_URL=, and update the the key, for example: `CHAIN_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY` (see https://www.infura.io/ or https://alchemy.com to get yours). 
+4. (Optional) If you have an Infura/Alchemy API Key, find the line that says CHAIN_RPC_URL=, and update it, for example: `CHAIN_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY` (see https://www.infura.io/ or https://alchemy.com to get your own API key). 
 5. (Optional) If you have a Coingecko API Key, find the line that says `COINGECKO_API_KEY=`, and add it `COINGECKO_API_KEY=CG-...` (see [Coingecko API Documentation](https://docs.coingecko.com/reference/setting-up-your-api-key)). Note: Without the Coingecko API Key, the Token Research Agent will not be added to the agent's execution loop.
 6. Start a new poetry shell `poetry shell`
 7. Install python dependencies `poetry install`
