@@ -1,4 +1,4 @@
-from autotx.utils.ethereum import get_erc20_balance, transfer_erc20
+from autotx.utils.ethereum import transfer_erc20
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -18,15 +18,13 @@ def fill_dev_account_with_erc20(
         if token in tokens_to_transfer:
             token_address = ETHAddress(network_info.tokens[token], client.w3)
             amount = tokens_to_transfer[token]
-            current_balance = get_erc20_balance(client.w3, token_address, safe_address)
-            if current_balance < amount:
-                swap(
-                    client,
-                    dev_account,
-                    tokens_to_transfer[token],
-                    eth_address,
-                    ETHAddress(network_info.tokens[token], client.w3),
-                )
-                transfer_erc20(
-                    client.w3, token_address, dev_account, safe_address, amount
-                )
+            swap(
+                client,
+                dev_account,
+                tokens_to_transfer[token],
+                eth_address,
+                ETHAddress(network_info.tokens[token], client.w3),
+            )
+            transfer_erc20(
+                client.w3, token_address, dev_account, safe_address, amount
+            )
