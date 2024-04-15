@@ -112,10 +112,10 @@ class AutoTx:
             # as they tend to contain valuable information
             def verifier_send_message_hook(
                 sender: AssistantAgent,
-                message: Union[Dict, str],
+                message: Union[Dict[str, Any], str],
                 recipient: AutogenAgent,
                 silent: bool
-            ) -> Union[Dict, str]:
+            ) -> Union[Dict[str, Any], str]:
                 if recipient.name == "chat_manager" and message != "TERMINATE":
                     cprint(message if isinstance(message, str) else message["content"])
                 return message
