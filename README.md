@@ -69,10 +69,6 @@ Additional `run` Options:
 
 Run `poetry run start-devnet` to create a local fork of the network set by the `CHAIN_RPC_URL` env variable. This step required Docker to be running in the background. The devnet includes a new smart account, as well as a development address with test ETH for tx execution. Running `poetry run stop-devnet` will shutdown the local fork.
 
-### Run AutoTx
-
-Run `poetry run ask` and AutoTx will ask you for a prompt to start solving for (ex: `Send 1 ETH to vitalik.eth`). Prompts can also be passed as an argument (ex: `poetry run ask "..."`). The `ask` CLI has options: `--verbose, -v` to enable verbose logging, and `--non-interactive, -n` to disable all requests for user input.
-
 ### Connect a Smart Account
 
 AutoTx can be connected to your existing smart account by doing the following:
