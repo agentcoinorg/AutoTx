@@ -76,8 +76,8 @@ def usdc(configuration) -> ETHAddress:
     chain_id = client.w3.eth.chain_id
     network_info = NetworkInfo(chain_id)
     
-    eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
+    eth_address = ETHAddress(network_info.tokens["eth"])
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
 
     amount = 100
 
@@ -92,6 +92,6 @@ def test_accounts(configuration) -> list[ETHAddress]:
     (_, _, client, _) = configuration
 
     # Create 10 random test accounts
-    accounts = [ETHAddress(Account.create().address, client.w3) for _ in range(10)]
+    accounts = [ETHAddress(Account.create().address) for _ in range(10)]
 
     return accounts
