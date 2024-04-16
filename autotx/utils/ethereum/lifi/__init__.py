@@ -1,4 +1,5 @@
 import json
+from typing import Any
 import requests
 
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -16,7 +17,7 @@ class Lifi:
         amount: int,
         _from: ETHAddress,
         chain: ChainId,
-    ):
+    ) -> dict[str, Any]:
         params = {
             "fromToken": from_token.hex,
             "toToken": to_token.hex,
@@ -32,5 +33,18 @@ class Lifi:
         raise Exception("Error fetching quote")
 
     @classmethod
-    def get_token_price(cls, address: ETHAddress, chain: ChainId):
-        pass
+    def get_token_price(cls, address: ETHAddress, chain: ChainId) -> float:
+        params = {"chain": chain.value, "token": address.hex}
+        print(params)
+        response = requests.get(cls.BASE_URL + "/token", params=params)
+        if response.status_code == 200:
+            token_information = json.loads(response.text)
+            price = token_information.get("priceUSD")
+            if price == None:
+                raise Exception(
+                    f"Couldn't fetch price for token with address: {address.hex}"
+                )
+
+            return float(price)
+
+        raise Exception("Error fetching price")
