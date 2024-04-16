@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from typing import Union, cast
+from typing import cast
 from gnosis.eth import EthereumNetwork
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.helpers.token_list import token_list
 
 ChainId = EthereumNetwork
+
+MAINNET_DEFAULT_RPC = HTTPProvider("https://mainnet.infura.io/v3/f1f688077be642c190ac9b28769daecf")
 
 class NetworkInfo:
     chain_id: ChainId

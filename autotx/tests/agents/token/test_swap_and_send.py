@@ -6,7 +6,7 @@ def test_auto_tx_swap_and_send_simple(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     receiver = test_accounts[0]
 
@@ -27,8 +27,8 @@ def test_auto_tx_swap_and_send_complex(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     receiver = test_accounts[0]
 
@@ -52,7 +52,7 @@ def test_auto_tx_send_and_swap_simple(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     receiver = test_accounts[0]
 
@@ -77,8 +77,8 @@ def test_auto_tx_send_and_swap_complex(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     receiver_1 = test_accounts[0]
     receiver_2 = test_accounts[1]

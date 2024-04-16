@@ -47,13 +47,13 @@ class TransferTokenTool(AutoTxTool):
             amount = float(amount)
 
             web3 = load_w3()
-            receiver_addr = ETHAddress(receiver, web3)
-            token_address = ETHAddress(autotx.network.tokens[token.lower()], web3)
+            receiver_addr = ETHAddress(receiver)
+            token_address = ETHAddress(autotx.network.tokens[token.lower()])
 
             prepared_tx: PreparedTx | None = None
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
-                tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO, web3), receiver_addr, amount)
+                tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO), receiver_addr, amount)
             else:
                 tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
 
@@ -81,8 +81,8 @@ class GetTokenBalanceTool(AutoTxTool):
             owner: Annotated[str, "The token owner's address or ENS domain"]
         ) -> float:
             web3 = load_w3()
-            owner_addr = ETHAddress(owner, web3)
-            token_address = ETHAddress(autotx.network.tokens[token.lower()], web3)
+            owner_addr = ETHAddress(owner)
+            token_address = ETHAddress(autotx.network.tokens[token.lower()])
             
             balance: float = 0
 
