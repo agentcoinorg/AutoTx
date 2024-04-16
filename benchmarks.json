@@ -8,6 +8,7 @@
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_complex_1": "100.00",
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_complex_2": "90.00",
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_multiple_1": "90.00",
+        "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_multiple_2": "100.00",
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_native": "100.00",
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_triple": "100.00",
         "autotx/tests/agents/token/test_swap.py::test_auto_tx_swap_with_non_default_token": "100.00",
