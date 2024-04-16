@@ -65,7 +65,7 @@ def auto_tx(configuration):
             SwapTokensAgent(),
             ResearchTokensAgent()
         ], 
-        Config(verbose=False, logs_dir=None), 
+        Config(verbose=True, logs_dir=None), 
         get_llm_config
     )
 
