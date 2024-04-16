@@ -26,5 +26,5 @@
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_most_traded_tokens_from_l1": "70.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_token_exchanges": "90.00"
     },
-    "iterations": 1
+    "iterations": 10
 }
