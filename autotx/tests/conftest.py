@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
-from autotx.utils.logging.Logger import Logger
 load_dotenv()
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
@@ -15,7 +14,6 @@ from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
-from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
 
 import pytest
 from autotx.AutoTx import AutoTx, Config
@@ -26,7 +24,6 @@ from autotx.utils.ethereum import (
     send_native,
     transfer_erc20,
 )
-from gnosis.eth import EthereumClient
 
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
@@ -76,8 +73,8 @@ def usdc(configuration) -> ETHAddress:
     chain_id = client.w3.eth.chain_id
     network_info = NetworkInfo(chain_id)
     
-    eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
+    eth_address = ETHAddress(network_info.tokens["eth"])
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
 
     amount = 100
 
@@ -92,6 +89,6 @@ def test_accounts(configuration) -> list[ETHAddress]:
     (_, _, client, _) = configuration
 
     # Create 10 random test accounts
-    accounts = [ETHAddress(Account.create().address, client.w3) for _ in range(10)]
+    accounts = [ETHAddress(Account.create().address) for _ in range(10)]
 
     return accounts

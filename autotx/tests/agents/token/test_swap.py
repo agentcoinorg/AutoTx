@@ -52,8 +52,8 @@ def test_auto_tx_swap_multiple_2(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     prompt = "Sell ETH for 1000 USDC and then sell 500 USDC for WBTC"
     usdc_balance = manager.balance_of(usdc_address)
