@@ -32,7 +32,7 @@ def test_auto_tx_swap_native(configuration, auto_tx):
 
     assert balance + 100 == new_balance
 
-def test_auto_tx_swap_multiple(configuration, auto_tx):
+def test_auto_tx_swap_multiple_1(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -40,6 +40,22 @@ def test_auto_tx_swap_multiple(configuration, auto_tx):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
 
     prompt = "Buy 1000 USDC with ETH and then buy WBTC with 500 USDC"
+    usdc_balance = manager.balance_of(usdc_address)
+    wbtc_balance = manager.balance_of(wbtc_address)
+
+    auto_tx.run(prompt, non_interactive=True)
+
+    assert usdc_balance + 500 == manager.balance_of(usdc_address)
+    assert wbtc_balance < manager.balance_of(wbtc_address)
+
+def test_auto_tx_swap_multiple_2(configuration, auto_tx):
+    (_, _, _, manager) = configuration
+    web3 = load_w3()
+    network_info = NetworkInfo(web3.eth.chain_id)
+    usdc_address = ETHAddress(network_info.tokens["usdc"], web3)
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"], web3)
+
+    prompt = "Sell ETH for 1000 USDC and then sell 500 USDC for WBTC"
     usdc_balance = manager.balance_of(usdc_address)
     wbtc_balance = manager.balance_of(wbtc_address)
 
