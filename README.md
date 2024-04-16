@@ -5,7 +5,7 @@
 
 AutoTx is a personal assistant that generates on-chain transactions for you. These transactions are submitted to a smart account so users can easily approve & execute them.
 
-<img src="./docs/img/demo-long.gif" alt="Demo GIF of AutoTx">
+<img src="./docs/img/demo-multi-step.gif" alt="Demo GIF of AutoTx">
 
 > [!WARNING]  
 > This project is still early and experimental. Exercise caution when using real funds.  
