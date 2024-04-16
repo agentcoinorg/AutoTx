@@ -36,6 +36,6 @@ def get_configuration() -> tuple[ETHAddress | None, LocalAccount, EthereumClient
     client = EthereumClient(URI(rpc_url))
     agent = get_or_create_agent_account()
 
-    smart_account = ETHAddress(smart_account_addr, client.w3) if smart_account_addr else None
+    smart_account = ETHAddress(smart_account_addr) if smart_account_addr else None
 
     return (smart_account, agent, client)

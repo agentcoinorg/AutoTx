@@ -56,7 +56,7 @@ class SafeManager:
         self.safe = safe
         self.use_tx_service = False
         self.safe_nonce = None
-        self.address = ETHAddress(safe.address, self.web3)
+        self.address = ETHAddress(safe.address)
 
 
     @classmethod
