@@ -158,5 +158,5 @@ jobs:
             comment_id: ${{ env.BENCHMARKS_COMMENT_ID }},
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '[Finished benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})\n\n' + contents + '\n\n[Download artifacts](' + downloadURL + ')'
+            body: '[Finished benchmarks](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})' + '\n[Download artifacts](' + downloadURL + ')\n\n' + contents
           })
