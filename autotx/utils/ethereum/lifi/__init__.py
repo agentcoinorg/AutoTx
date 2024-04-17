@@ -23,11 +23,11 @@ class Lifi:
             "fromToken": from_token.hex,
             "toToken": to_token.hex,
             "fromAmount": amount,
-            "fromAddress": _from,
+            "fromAddress": _from.hex,
             "fromChain": chain.value,
             "toChain": chain.value,
         }
-        response = requests.get(cls.BASE_URL + "/quote", params=params)
+        response = requests.get(cls.BASE_URL + "/quote", params=params) # type: ignore
         if response.status_code == 200:
             return json.loads(response.text)
 
@@ -38,8 +38,7 @@ class Lifi:
         params = {"chain": chain.value, "token": address.hex}
         response = requests.get(cls.BASE_URL + "/token", params=params)
         if response.status_code == 200:
-            token_information = json.loads(response.text)
-            price = token_information.get("priceUSD")
+            price = json.loads(response.text).get("priceUSD")
             if price == None:
                 raise Exception(
                     f"Couldn't fetch price for token with address: {address.hex}"

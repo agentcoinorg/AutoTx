@@ -3,6 +3,7 @@ from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.helpers.get_native_token_symbol import get_native_token_symbol
 from autotx.utils.ethereum.lifi import Lifi
 from autotx.utils.ethereum.networks import ChainId
 from gnosis.eth import EthereumClient
@@ -31,14 +32,15 @@ def build_swap_transaction(
         amount_token_to_buy = (token_out_price_in_usd * amount) / token_in_price_in_usd
         amount_in_integer = int(amount_token_to_buy * (10**decimals))
         # add slippage (default is 0.5%) to ensure we get the expected amount
-        amount_in_integer = int(amount_in_integer * 0.005 + amount_in_integer) 
+        amount_in_integer = int(amount_in_integer * 0.005 + amount_in_integer)
 
     quote = Lifi.get_quote(
         token_in_address, token_out_address, amount_in_integer, _from, chain
     )
     transactions: list[PreparedTx] = []
-    # TODO: Fetch native token symbol dynamically 
-    token_in_symbol = "ETH" if token_in_is_native else token_in.functions.symbol().call()
+
+    native_token_symbol = get_native_token_symbol(chain)
+    token_in_symbol = native_token_symbol if token_in_is_native else token_in.functions.symbol().call()
     if not token_in_is_native:
         approval_address = quote["estimate"]["approvalAddress"]
         allowance = token_in.functions.allowance(_from.hex, approval_address).call()
@@ -64,15 +66,15 @@ def build_swap_transaction(
             "from": quote["transactionRequest"]["from"],
             "data": quote["transactionRequest"]["data"],
             "gasPrice": quote["transactionRequest"]["gasPrice"],
-            "gasLimit": quote["transactionRequest"]["gasLimit"],
-            "value": int(quote["transactionRequest"]["value"], 0),
+            "gas": quote["transactionRequest"]["gasLimit"],
+            "value": Wei(int(quote["transactionRequest"]["value"], 0)),
         }
     )
     token_out_is_native = token_out_address.hex == NATIVE_TOKEN_ADDRESS
     token_out = ethereum_client.w3.eth.contract(
         address=token_out_address.hex, abi=ERC20_ABI
     )
-    token_out_symbol = "ETH" if token_out_is_native else token_out.functions.symbol().call()
+    token_out_symbol = native_token_symbol if token_out_is_native else token_out.functions.symbol().call()
     token_out_decimals = 18 if token_out_is_native else token_out.functions.decimals().call()
     transactions.append(PreparedTx(f"Swap {amount_in_integer / 10 ** decimals} {token_in_symbol} for at least {int(quote['estimate']['toAmountMin']) / 10 ** token_out_decimals} {token_out_symbol}", transaction))
     return transactions
