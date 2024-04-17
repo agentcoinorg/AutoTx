@@ -1,9 +1,11 @@
 from textwrap import dedent
-from typing import Annotated, Callable
+from typing import Annotated, Any, Callable, Dict, Optional
 from autogen import UserProxyAgent, AssistantAgent, Agent as AutogenAgent
 from termcolor import cprint
 
-def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_addr: str, network_name: str, not_interactive: bool, get_llm_config: Callable[[],dict]) -> AutogenAgent:
+from autotx.utils.ethereum.eth_address import ETHAddress
+
+def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_addr: ETHAddress, network_name: str, not_interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
@@ -13,17 +15,21 @@ def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_add
         Analyze the user's initial goal if there is missing information, and ask the user for it. 
         E.g. "Buy ETH" -> "How much ETH do you want to buy and with what token?"
         """ if not not_interactive else "" )
+
+    missing_3 = dedent("""
+        - Call the request_user_input tool if more information is needed to define the goal.
+        """ if not not_interactive else "")
     
     clarifier_agent = AssistantAgent(
         name="clarifier",
         system_message=dedent(
             f"""
-            Clarifier is an assistant that helps the user define goals and tasks for your agents. 
-            You can analyze goals and provide the user with a goal to be executed by the agents.
+            Clarifier is an assistant that can analyze a user's goal at the start of the conversation and determine if it is within the domain of the agents.
             The user will provide the goal, and the agents are meant to help prepare one or more necessary transactions to accomplish the goal.
             When dealing with Ethereum transactions, assume the following:
                 - The user's address: {smart_account_addr}
                 - The network to interact with: {network_name} 
+                - When the user want to exeucute transactions he means to prepare the transactions.
 
             You must analyze the goal to be executed by the agents.
             If the goal is invalid or outside the scope of the agents, you MUST call the goal_outside_domain tool.
@@ -38,6 +44,14 @@ def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_add
             {
                 missing_2
             }
+
+            The only things the clarifier should do are:
+            {
+                missing_3
+            }
+            - Call the goal_outside_domain tool if the goal is outside the domain of the agents.
+            - Nothing
+            Perform these actions ONLY in the BEGINNING of the conversation.
             """
         ),
         llm_config=get_llm_config(),
