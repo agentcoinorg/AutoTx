@@ -90,11 +90,9 @@ class AutoTx:
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
-                verifier.build(self.get_llm_config)
+                verifier.build(self.get_llm_config),
+                clarifier.build(user_proxy_agent, agents_information, self.manager.address, self.network.chain_id.name, non_interactive, self.get_llm_config)
             ]
-
-            if not non_interactive:
-                helper_agents.append(clarifier.build(user_proxy_agent, agents_information, self.manager.address, self.network.chain_id.name, self.get_llm_config))
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
 

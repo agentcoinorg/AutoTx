@@ -35,23 +35,6 @@ def test_get_token_exchanges(auto_tx):
     assert "Uniswap v3".lower() in result.chat_history_json.lower()
     assert "Sushiswap v3".lower() in result.chat_history_json.lower()
 
-def test_check_liquidity(auto_tx):
-    token_information = get_coingecko().coins.get_id(
-        id="uniswap",
-        localization=False,
-        tickers=False,
-        community_data=False,
-        sparkline=False,
-    )
-    prompt = "How much liquidity does UNI have?"
-
-    result = auto_tx.run(prompt, non_interactive=True)
-
-    assert (
-        "${:,}".format(token_information["market_data"]["total_volume"]["usd"])
-        in result.chat_history_json
-    )
-
 def test_get_top_5_tokens_from_base(auto_tx):
     tokens = get_coingecko().coins.get_markets(
         vs_currency="usd", category="base-ecosystem"

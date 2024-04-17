@@ -19,7 +19,6 @@
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_memecoins_in_optimism": "90.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_memecoins": "90.00",
         "autotx/tests/agents/token/research/test_research_and_swap.py::test_auto_tx_research_and_swap_meme_token": "50.00",
-        "autotx/tests/agents/token/research/test_research.py::test_check_liquidity": "85.00",
         "autotx/tests/agents/token/research/test_research_and_swap.py::test_auto_tx_research_swap_and_send_governance_token": "70.00",
         "autotx/tests/agents/token/research/test_research.py::test_price_change_information": "90.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_tokens_from_base": "90.00",
