@@ -31,7 +31,8 @@ class Lifi:
         }
         response = requests.get(cls.BASE_URL + "/quote", params=params) # type: ignore
         if response.status_code == 200:
-            return json.loads(response.text)
+            quote: dict[str, Any] = json.loads(response.text)
+            return quote
 
         raise Exception("Error fetching quote")
 
