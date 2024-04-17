@@ -1,3 +1,4 @@
+from decimal import Decimal
 import json
 from typing import Any
 import requests
@@ -33,9 +34,8 @@ class Lifi:
         raise Exception("Error fetching quote")
 
     @classmethod
-    def get_token_price(cls, address: ETHAddress, chain: ChainId) -> float:
+    def get_token_price(cls, address: ETHAddress, chain: ChainId) -> Decimal:
         params = {"chain": chain.value, "token": address.hex}
-        print(params)
         response = requests.get(cls.BASE_URL + "/token", params=params)
         if response.status_code == 200:
             token_information = json.loads(response.text)
@@ -45,6 +45,6 @@ class Lifi:
                     f"Couldn't fetch price for token with address: {address.hex}"
                 )
 
-            return float(price)
+            return Decimal(price)
 
         raise Exception("Error fetching price")

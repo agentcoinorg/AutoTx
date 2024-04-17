@@ -1,6 +1,5 @@
 import json
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.lifi import Lifi
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
@@ -26,6 +25,7 @@ def test_swap_through_safe(configuration):
         True,
         network_info.chain_id,
     )
+    print(transactions[0].summary)
     hash = manager.send_tx(transactions[0].tx)
     manager.wait(hash)
     balance = manager.balance_of(usdc_address)
@@ -41,8 +41,10 @@ def test_swap_through_safe(configuration):
         False,
         network_info.chain_id,
     )
+    print(transactions[0].summary)
     hash = manager.send_tx(transactions[0].tx)
     manager.wait(hash)
+    print(transactions[1].summary)
     hash = manager.send_tx(transactions[1].tx)
     manager.wait(hash)
     balance = manager.balance_of(wbtc_address)

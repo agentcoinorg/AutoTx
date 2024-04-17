@@ -4,9 +4,11 @@ from typing import Annotated, Callable
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
+from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
-from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
+# from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
+# from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
 name = "swap-tokens"
 
@@ -75,10 +77,10 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
     token_in = token_in.lower()
     token_out = token_out.lower()
 
-    if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
-        raise ChainIdNotSupported(
-            f"Network {network_info.chain_id.name.lower()} not supported for swap"
-        )
+    # if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
+    #     raise ChainIdNotSupported(
+    #         f"Network {network_info.chain_id.name.lower()} not supported for swap"
+    #     )
 
     if token_in not in network_info.tokens:
         raise Exception(f"Token {token_in} is not supported in network {network_info.chain_id.name.lower()}")
@@ -118,7 +120,7 @@ class SwapTool(AutoTxTool):
 
             token_in = token_symbol_to_sell.lower()
             token_out = token_symbol_to_buy.lower()
-            is_exact_input = True if amount_symbol == token_symbol_to_sell else False
+            is_exact_input = amount_symbol == token_symbol_to_sell 
 
             (token_in_address, token_out_address) = get_tokens_address(
                 token_in, token_out, autotx.network
@@ -127,10 +129,11 @@ class SwapTool(AutoTxTool):
             swap_transactions = build_swap_transaction(
                 autotx.manager.client,
                 Decimal(exact_amount),
-                token_in_address,
-                token_out_address,
-                autotx.manager.address.hex,
+                ETHAddress(token_in_address),
+                ETHAddress(token_out_address),
+                autotx.manager.address,
                 is_exact_input,
+                autotx.network.chain_id
             )
             autotx.transactions.extend(swap_transactions)
 
