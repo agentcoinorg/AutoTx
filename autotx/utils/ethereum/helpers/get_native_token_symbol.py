@@ -19,4 +19,4 @@ def get_native_token_symbol(network: ChainId) -> str:
     if not native_token_symbol:
         raise Exception(f"Native token not found for network {network.name}")
 
-    return native_token_symbol
+    return native_token_symbol.upper()

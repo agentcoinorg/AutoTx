@@ -1,121 +1,70 @@
-from autotx.utils.ethereum import (
-    get_erc20_balance,
-    get_native_balance,
-)
-from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.uniswap.swap import build_swap_transaction
+from autotx.utils.ethereum.lifi.swap import build_swap_transaction
+from autotx.utils.ethereum.networks import NetworkInfo
 
-def test_swap(configuration):
-    (user, _, client, _) = configuration
-
-    network_info = NetworkInfo(client.w3.eth.chain_id)
-    weth_address = ETHAddress(network_info.tokens["weth"])
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
-
-    user_addr = ETHAddress(user.address)
-
-    balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
-    assert balance == 0
-
-    txs = build_swap_transaction(
-        client, 0.05, weth_address.hex, wbtc_address.hex, user_addr.hex, False
-    )
-
-    for i, tx in enumerate(txs):
-        transaction = user.sign_transaction(
-            {
-                **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
-                "gas": 200000,
-            }
-        )
-
-        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-        if receipt["status"] == 0:
-            print(f"Transaction #{i} failed ")
-            break
-
-    new_balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
-    assert new_balance == 0.05
-
-def test_swap_recieve_native(configuration):
-    (user, _, client, _) = configuration
-
-    network_info = NetworkInfo(client.w3.eth.chain_id)
-    eth_address = ETHAddress(network_info.tokens["eth"])
-    usdc_address = ETHAddress(network_info.tokens["usdc"])
-
-    user_addr = ETHAddress(user.address)
-
-    balance = get_native_balance(client.w3, user_addr)
-    assert int(balance) == 9989
-
-    tx = build_swap_transaction(
-        client, 5, eth_address.hex, usdc_address.hex, user_addr.hex, True
-    )
-
-    transaction = user.sign_transaction(
-        {
-            **tx[0].tx,
-            "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
-            "gas": 200000,
-        }
-    )
-
-    hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-    receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-    if receipt["status"] == 0:
-        print(f"Transaction to swap ETH -> USDC failed ")
-
-    balance = get_native_balance(client.w3, user_addr)
-    assert int(balance) == 9984
-
-    txs = build_swap_transaction(
-        client, 4, usdc_address.hex, eth_address.hex, user_addr.hex, False
-    )
-
-    for i, tx in enumerate(txs):
-        transaction = user.sign_transaction(
-            {
-                **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user_addr.hex),
-                "gas": 200000,
-            }
-        )
-
-        hash = client.w3.eth.send_raw_transaction(transaction.rawTransaction)
-
-        receipt = client.w3.eth.wait_for_transaction_receipt(hash)
-
-        if receipt["status"] == 0:
-            print(f"Transaction #{i} to swap USDC -> ETH failed ")
-            break
-
-    balance = get_native_balance(client.w3, user_addr)
-    assert int(balance) == 9988
 
 def test_swap_through_safe(configuration):
     (_, _, client, manager) = configuration
-
     network_info = NetworkInfo(client.w3.eth.chain_id)
-    weth_address = ETHAddress(network_info.tokens["weth"])
+
+    eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
+    shib_address = ETHAddress(network_info.tokens["shib"])
 
-    balance = manager.balance_of(usdc_address)
-    assert balance == 0
+    usdc_balance = manager.balance_of(usdc_address)
+    assert usdc_balance == 0
 
-    txs = build_swap_transaction(
-        client, 6000, weth_address.hex, usdc_address.hex, manager.address.hex, False
+    sell_eth_for_usdc_transaction = build_swap_transaction(
+        client,
+        1,
+        eth_address,
+        usdc_address,
+        manager.address,
+        True,
+        network_info.chain_id,
+    )
+    hash = manager.send_tx(sell_eth_for_usdc_transaction[0].tx)
+    manager.wait(hash)
+    usdc_balance = manager.balance_of(usdc_address)
+    assert usdc_balance > 2900
+
+    wbtc_balance = manager.balance_of(wbtc_address)
+    assert wbtc_balance == 0
+
+    buy_wbtc_with_usdc_transaction = build_swap_transaction(
+        client,
+        0.01,
+        usdc_address,
+        wbtc_address,
+        manager.address,
+        False,
+        network_info.chain_id,
     )
 
-    hash = manager.send_tx_batch(txs, require_approval=False)
+    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[0].tx)
     manager.wait(hash)
+    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[1].tx)
+    manager.wait(hash)
+    wbtc_balance = manager.balance_of(wbtc_address)
+    assert wbtc_balance >= 0.01
 
-    new_balance = manager.balance_of(usdc_address)
-    assert new_balance == 6000
+    shib_balance = manager.balance_of(shib_address)
+    assert shib_balance == 0
+
+    sell_wbtc_for_shib = build_swap_transaction(
+        client,
+        0.005,
+        wbtc_address,
+        shib_address,
+        manager.address,
+        True,
+        network_info.chain_id,
+    )
+    hash = manager.send_tx(sell_wbtc_for_shib[0].tx)
+    manager.wait(hash)
+    hash = manager.send_tx(sell_wbtc_for_shib[1].tx)
+    manager.wait(hash)
+    shib_balance = manager.balance_of(shib_address)
+    shib_balance = manager.balance_of(shib_address)
+    assert shib_balance > 0

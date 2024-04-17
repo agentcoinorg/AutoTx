@@ -29,7 +29,6 @@ def test_auto_tx_swap_native(configuration, auto_tx):
     auto_tx.run(prompt, non_interactive=True)
 
     new_balance = manager.balance_of(usdc_address)
-
     assert balance + 100 <= new_balance
 
 def test_auto_tx_swap_multiple_1(configuration, auto_tx):

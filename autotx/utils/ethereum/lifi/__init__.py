@@ -18,6 +18,7 @@ class Lifi:
         amount: int,
         _from: ETHAddress,
         chain: ChainId,
+        slippage: float
     ) -> dict[str, Any]:
         params = {
             "fromToken": from_token.hex,
@@ -26,6 +27,7 @@ class Lifi:
             "fromAddress": _from.hex,
             "fromChain": chain.value,
             "toChain": chain.value,
+            "slippage": slippage
         }
         response = requests.get(cls.BASE_URL + "/quote", params=params) # type: ignore
         if response.status_code == 200:

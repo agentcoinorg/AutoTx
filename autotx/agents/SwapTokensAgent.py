@@ -7,8 +7,6 @@ from autotx.autotx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
-# from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS, build_swap_transaction
-# from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
 name = "swap-tokens"
 
@@ -76,11 +74,6 @@ system_message = lambda autotx: dedent(f"""
 def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo) -> tuple[str, str]:
     token_in = token_in.lower()
     token_out = token_out.lower()
-
-    # if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
-    #     raise ChainIdNotSupported(
-    #         f"Network {network_info.chain_id.name.lower()} not supported for swap"
-    #     )
 
     if token_in not in network_info.tokens:
         raise Exception(f"Token {token_in} is not supported in network {network_info.chain_id.name.lower()}")
