@@ -18,7 +18,6 @@ def build_swap_transaction(
     is_exact_input: bool,
     chain: ChainId,
 ) -> list[PreparedTx]:
-    print(amount)
     token_in_is_native = token_in_address.hex == NATIVE_TOKEN_ADDRESS
     token_in = ethereum_client.w3.eth.contract(
         address=token_in_address.hex, abi=ERC20_ABI

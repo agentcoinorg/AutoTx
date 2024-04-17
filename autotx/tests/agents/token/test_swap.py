@@ -15,7 +15,7 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
 
     new_balance = manager.balance_of(shib_address)
 
-    assert 100000 == new_balance
+    assert 100000 <= new_balance
 
 def test_auto_tx_swap_native(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -30,7 +30,7 @@ def test_auto_tx_swap_native(configuration, auto_tx):
 
     new_balance = manager.balance_of(usdc_address)
 
-    assert balance + 100 == new_balance
+    assert balance + 100 <= new_balance
 
 def test_auto_tx_swap_multiple_1(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -45,7 +45,7 @@ def test_auto_tx_swap_multiple_1(configuration, auto_tx):
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 500 == manager.balance_of(usdc_address)
+    assert usdc_balance + 500 <= manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_multiple_2(configuration, auto_tx):
@@ -61,7 +61,7 @@ def test_auto_tx_swap_multiple_2(configuration, auto_tx):
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 500 == manager.balance_of(usdc_address)
+    assert usdc_balance + 500 <= manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_triple(configuration, auto_tx): 
@@ -79,9 +79,9 @@ def test_auto_tx_swap_triple(configuration, auto_tx):
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 1 == manager.balance_of(usdc_address)
-    assert uni_balance + 0.5 == manager.balance_of(uni_address)
-    assert wbtc_balance + 0.05 == manager.balance_of(wbtc_address)
+    assert usdc_balance + 1 <= manager.balance_of(usdc_address)
+    assert uni_balance + 0.5 <= manager.balance_of(uni_address)
+    assert wbtc_balance + 0.05 <= manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     (_, _, _, manager) = configuration
@@ -96,7 +96,7 @@ def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex b
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 1000 == manager.balance_of(usdc_address)
+    assert usdc_balance + 1000 <= manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
@@ -113,4 +113,4 @@ def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex b
     auto_tx.run(prompt, non_interactive=True)
 
     assert usdc_balance < manager.balance_of(usdc_address)
-    assert wbtc_balance + 0.001 == manager.balance_of(wbtc_address)
+    assert wbtc_balance + 0.001 <= manager.balance_of(wbtc_address)

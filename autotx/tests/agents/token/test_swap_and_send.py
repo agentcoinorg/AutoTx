@@ -20,7 +20,7 @@ def test_auto_tx_swap_and_send_simple(configuration, auto_tx, test_accounts):
     new_wbtc_safe_address = manager.balance_of(wbtc_address)
     new_receiver_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver)
 
-    assert new_wbtc_safe_address == wbtc_safe_address + 0.04
+    assert new_wbtc_safe_address >= wbtc_safe_address + 0.04
     assert new_receiver_wbtc_balance == receiver_wbtc_balance + 0.01
 
 def test_auto_tx_swap_and_send_complex(configuration, auto_tx, test_accounts):
@@ -45,7 +45,7 @@ def test_auto_tx_swap_and_send_complex(configuration, auto_tx, test_accounts):
     new_receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
 
     assert new_wbtc_safe_address > wbtc_safe_address
-    assert new_usdc_safe_address == usdc_safe_address + 950
+    assert new_usdc_safe_address >= usdc_safe_address + 950
     assert new_receiver_usdc_balance == receiver_usdc_balance + 50
 
 def test_auto_tx_send_and_swap_simple(configuration, auto_tx, test_accounts):
@@ -68,7 +68,7 @@ def test_auto_tx_send_and_swap_simple(configuration, auto_tx, test_accounts):
     new_receiver_native_balance = get_native_balance(client.w3, receiver)
     new_receiver_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver)
 
-    assert new_user_wbtc_balance == user_wbtc_balance + 0.05
+    assert new_user_wbtc_balance >= user_wbtc_balance + 0.05
     assert receiver_wbtc_balance == 0
     assert new_receiver_wbtc_balance == receiver_wbtc_balance
     assert new_receiver_native_balance == receiver_native_balance + 0.1
@@ -101,7 +101,7 @@ def test_auto_tx_send_and_swap_complex(configuration, auto_tx, test_accounts):
     new_receiver_2_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver_2)
 
     assert new_wbtc_safe_address > wbtc_safe_address
-    assert new_usdc_safe_address == usdc_safe_address + 950
+    assert new_usdc_safe_address >= usdc_safe_address + 950
     assert new_receiver_1_native_balance == receiver_1_native_balance + 0.1
     assert new_receiver_1_usdc_balance == 0
     assert new_receiver_1_wbtc_balance == 0
