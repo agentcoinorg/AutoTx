@@ -4,7 +4,6 @@ from web3 import Web3
 
 from autotx.utils.ethereum.networks import MAINNET_DEFAULT_RPC
 
-
 class ETHAddress:
     hex: ChecksumAddress
     ens_domain: str | None

@@ -10,10 +10,10 @@ def test_swap(configuration):
     (user, _, client, _) = configuration
 
     network_info = NetworkInfo(client.w3.eth.chain_id)
-    weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
-    wbtc_address = ETHAddress(network_info.tokens["wbtc"], client.w3)
+    weth_address = ETHAddress(network_info.tokens["weth"])
+    wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
-    user_addr = ETHAddress(user.address, client.w3)
+    user_addr = ETHAddress(user.address)
 
     balance = get_erc20_balance(client.w3, wbtc_address, user_addr)
     assert balance == 0
@@ -46,10 +46,10 @@ def test_swap_recieve_native(configuration):
     (user, _, client, _) = configuration
 
     network_info = NetworkInfo(client.w3.eth.chain_id)
-    eth_address = ETHAddress(network_info.tokens["eth"], client.w3)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
+    eth_address = ETHAddress(network_info.tokens["eth"])
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
 
-    user_addr = ETHAddress(user.address, client.w3)
+    user_addr = ETHAddress(user.address)
 
     balance = get_native_balance(client.w3, user_addr)
     assert int(balance) == 9989
@@ -104,8 +104,8 @@ def test_swap_through_safe(configuration):
     (_, _, client, manager) = configuration
 
     network_info = NetworkInfo(client.w3.eth.chain_id)
-    weth_address = ETHAddress(network_info.tokens["weth"], client.w3)
-    usdc_address = ETHAddress(network_info.tokens["usdc"], client.w3)
+    weth_address = ETHAddress(network_info.tokens["weth"])
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
 
     balance = manager.balance_of(usdc_address)
     assert balance == 0
