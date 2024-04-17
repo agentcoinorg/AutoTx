@@ -1,8 +1,8 @@
 from textwrap import dedent
-from typing import Any, Callable
+from typing import Any, Callable, Dict, Optional
 from autogen import GroupChat, GroupChatManager, Agent as AutogenAgent
 
-def build(agents: list[AutogenAgent], get_llm_config: Callable[[],dict]) -> AutogenAgent:
+def build(agents: list[AutogenAgent], get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
     groupchat = GroupChat(
         agents=agents, 
         messages=[], 

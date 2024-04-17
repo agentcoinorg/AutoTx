@@ -1,9 +1,9 @@
 from textwrap import dedent
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, Optional, Union
 from autogen import AssistantAgent, Agent as AutogenAgent
 from termcolor import cprint
 
-def build(get_llm_config: Callable[[],dict]) -> AutogenAgent:
+def build(get_llm_config:Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
     verifier_agent = AssistantAgent(
         name="verifier",
         is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),

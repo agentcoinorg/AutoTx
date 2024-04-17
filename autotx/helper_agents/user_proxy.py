@@ -1,9 +1,8 @@
 from textwrap import dedent
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 from autogen import UserProxyAgent
-from termcolor import cprint
 
-def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[],dict]) -> UserProxyAgent:
+def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> UserProxyAgent:
     user_proxy = UserProxyAgent(
         name="user_proxy",
         is_termination_msg=lambda x: x.get("content", "") and x.get("content", "").rstrip().endswith("TERMINATE"),
