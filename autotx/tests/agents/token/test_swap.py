@@ -124,7 +124,7 @@ def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex b
     auto_tx.run(prompt, non_interactive=True)
 
     wbtc_balance = manager.balance_of(wbtc_address)
-    expected_amount = 1000
+    expected_amount = 0.001
     expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
     assert expected_amount <= wbtc_balance and wbtc_balance <= expected_amount + expected_amount_plus_slippage
     assert usdc_balance < manager.balance_of(usdc_address)
