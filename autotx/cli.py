@@ -120,7 +120,8 @@ Support: https://discord.polywrap.io
 
     result = autotx.run(cast(str, prompt), non_interactive)
 
-    print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
+    if result.total_cost_without_cache > 0:
+        print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
         
     if not smart_account_addr:
         print("=" * 50)
