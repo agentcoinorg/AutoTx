@@ -37,7 +37,31 @@ def test_research_swap_and_send_governance_token(configuration, auto_tx, test_ac
     receiver_balance = get_erc20_balance(web3, uni_address, receiver)
     assert receiver_balance == 100
 
-def test_research_and_swap_many_tokens_subjective(configuration, auto_tx):
+def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx):
+    (_, _, _, manager) = configuration
+    uni_address = ETHAddress(auto_tx.network.tokens["uni"])
+    
+    uni_balance_in_safe = manager.balance_of(uni_address)
+    assert uni_balance_in_safe == 0
+
+    starting_balance = manager.balance_of()
+
+    prompt = f"I want to use 3 ETH to purchase 3 of the best projects in: GameFi, AI, and MEMEs. Please research the top projects, come up with a strategy, and purchase the tokens that look most promising. All of this should be on ETH mainnet."
+
+    result = auto_tx.run(prompt, non_interactive=True)
+
+    ending_balance = manager.balance_of()
+
+    # Verify the balance is lower by max 3 ETH
+    assert starting_balance - ending_balance <= 3
+    # Verify there are at least 5 transactions
+    assert len(result.transactions) == 3
+    # Verify there are only swap transactions
+    assert all([tx.summary.startswith("Swap") for tx in result.transactions])
+    # Verify the tokens are different
+    assert len(set([tx.summary.split(" ")[-1] for tx in result.transactions])) == 3
+
+def test_research_and_swap_many_tokens_subjective_complex(configuration, auto_tx):
     (_, _, _, manager) = configuration
     uni_address = ETHAddress(auto_tx.network.tokens["uni"])
     
@@ -52,8 +76,8 @@ def test_research_and_swap_many_tokens_subjective(configuration, auto_tx):
 
     ending_balance = manager.balance_of()
 
-    # Verify the balance is lower by max 3 ETH + 10% max error
-    assert starting_balance - ending_balance <= 3.3
+    # Verify the balance is lower by max 3 ETH
+    assert starting_balance - ending_balance <= 3
     # Verify there are at least 5 transactions
     assert len(result.transactions) >= 5
     # Verify there are only swap transactions
