@@ -90,13 +90,9 @@ class AutoTx:
                     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
 
                     if not os.path.exists("costs"):
-                        print("Creating costs directory")
                         os.makedirs("costs")
-                    else:
-                        print("Costs directory already exists")
                     with open(f"costs/{now_str}.txt", "w") as f:
                         f.write(str(total_cost_without_cache))
-                    print(f"Total cost without cache: {total_cost_without_cache}")
 
                 return result
             else:
@@ -191,7 +187,6 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        print("COSTS", chat.cost)
         return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost[0]["total_cost"]), float(chat.cost[1]["total_cost"]))
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
