@@ -13,7 +13,6 @@ load_dotenv()
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
-from autotx.utils.ethereum import get_native_balance
 
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -117,8 +116,10 @@ Support: https://discord.polywrap.io
         get_llm_config=get_llm_config
     )
 
-    autotx.run(cast(str, prompt), non_interactive)
+    result = autotx.run(cast(str, prompt), non_interactive)
 
+    print(f"LLM cost: ${result.total_cost:.2f}")
+        
     if not smart_account_addr:
         print("=" * 50)
         print("Final smart account balances:")

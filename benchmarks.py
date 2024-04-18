@@ -20,6 +20,7 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
     """Runs a specific test multiple times and captures the output and results."""
     pass_count, fail_count = 0, 0
     run_times = []
+    total_cost = 0
 
     for iteration in range(1, iterations + 1):
         cmd = f"poetry run pytest -s {test_name}"
@@ -55,6 +56,13 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
 
         estimated_time_left = remaining_time_current_test + (estimated_avg_time_across_tests * remaining_tests)
         total_completion_time = datetime.now() + timedelta(seconds=estimated_time_left)
+        # Get cost from last file in costs directory
+        if os.path.exists("costs"):
+            files = os.listdir("costs")
+            if files:
+                with open(f"costs/{files[-1]}", 'r') as f:
+                    cost = f.read()
+                    total_cost += float(cost)
 
         print(f"\nIteration {iteration}: {'Pass' if result.returncode == 0 else 'Fail'} in {duration:.2f} seconds")
         print("=" * 50)
@@ -62,11 +70,14 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
         print(f"Estimated completion time: {total_completion_time.strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 50)
 
-    return pass_count, fail_count, run_times
+    return pass_count, fail_count, run_times, total_cost
 
-def print_summary_table(test_path: str, iterations: int, tests_results: dict, total_run_time: float, output_dir: str, total_benchmarks: dict):
+def print_summary_table(test_path: str, iterations: int, tests_results: dict, total_run_time: float, output_dir: str, total_benchmarks: dict, total_cost: float):
     """Prints a summary table of all tests in markdown format to the console and a file, including total success percentage."""
-  
+
+    # Get the common prefix in all test names
+    common_prefix = os.path.commonprefix([result['name'] for result in tests_results])
+
     # Sort test results
     tests_results = sorted(tests_results, key=lambda x: x['name'])
 
@@ -97,13 +108,18 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
     md_content = []
     md_content.append(f"### Test Run Summary\n")
     md_content.append(f"- **Run from:** `{test_path}`")
+    if len(tests_results) > 1:
+        md_content.append(f"- **Base path:** `{common_prefix}`")
     md_content.append(f"- **Iterations:** {iterations}")
+    md_content.append(f"- **Total Cost:** ${total_cost:.2f}")
     md_content.append(f"- **Total Success Rate (%):** ${{\\color{{{total_success_color}}} \\LARGE \\texttt {{{total_success_percentage:.2f}}} \\large \\texttt {{{total_diff}}} }}$\n")
     md_content.append(f"### Detailed Results\n")
-    md_content.append(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time |")
-    md_content.append(f"| --- | --- | --- | --- | --- |")
+    md_content.append(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time | Avg Cost |")
+    md_content.append(f"| --- | --- | --- | --- | --- | --- |")
 
     for test_result in tests_results:
+        name = test_result['name'][len(common_prefix):] # Get name without common prefix at the start
+        name = name if name else test_result['name'] # if name is empty, set it to the full name
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
@@ -116,19 +132,25 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
         diff = f"({sign}{success_rate - prev_success_rate:.0f})" if has_prev_rate and success_rate != prev_success_rate else ""
 
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        md_content.append(f"| `{test_result['name']}` | ${{\\color{{{color}}} \\large \\texttt {{{success_rate:.0f}}} \\normalsize \\texttt {{{diff}}} }}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['passes']}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['fails']}}}}}$ | {avg_time} |")
+        avg_cost = f"${test_result['avg_cost']:.2f}"
+        md_content.append(f"| `{name}` | ${{\\color{{{color}}} \\large \\texttt {{{success_rate:.0f}}} \\normalsize \\texttt {{{diff}}} }}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['passes']}}}}}$ | ${{\\color{{{color}}} \\large \\texttt {{{test_result['fails']}}}}}$ | {avg_time} | {avg_cost} |")
 
     md_content.append(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
     print(f"### Test Run Summary\n")
     print(f"- **Run from:** `{test_path}`")
+    if len(tests_results) > 1:
+        print(f"- **Base path:** `{common_prefix}`")
     print(f"- **Iterations:** {iterations}")
+    print(f"- **Total Cost:** ${total_cost:.2f}")
     print(f"- **Total Success Rate (%):** {total_success_percentage:.2f}{total_diff}\n")
     print(f"### Detailed Results\n")
-    print(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time |")
-    print(f"| --- | --- | --- | --- | --- |")
+    print(f"| Test Name | Success Rate (%) | Passes | Fails | Avg Time | Avg Cost |")
+    print(f"| --- | --- | --- | --- | --- | --- |")
 
     for test_result in tests_results:
+        name = test_result['name'][len(common_prefix):] # Get name without common prefix at the start
+        name = name if name else test_result['name'] # if name is empty, set it to the full name
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
@@ -137,7 +159,8 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
         diff = f"({sign}{success_rate - prev_success_rate:.0f})" if has_prev_rate and success_rate != prev_success_rate else ""
 
         avg_time = f"{test_result['avg_time']:.0f}s" if test_result['avg_time'] < 60 else f"{test_result['avg_time']/60:.2f}m"
-        print(f"| `{test_result['name']}` | {success_rate:.0f}{diff} | {test_result['passes']} | {test_result['fails']} | {avg_time} |")
+        avg_cost = f"${test_result['avg_cost']:.2f}"
+        print(f"| `{name}` | {success_rate:.0f}{diff} | {test_result['passes']} | {test_result['fails']} | {avg_time} | {avg_cost} |")
 
     print(f"\n**Total run time:** {total_run_time/60:.2f} minutes\n")
 
@@ -176,6 +199,10 @@ if __name__ == "__main__":
 
     print("=" * 50)
 
+    # Delete costs directory if it exists (even if not empty)
+    if os.path.exists("costs"):
+        os.system("rm -rf costs")
+
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     benchmark_label = benchmark_name if benchmark_name else str(timestamp)
@@ -202,18 +229,20 @@ if __name__ == "__main__":
     for test in tests:
         print(f"\nRunning: {test}")
         avg_time_across_tests = total_run_time / completed_tests if completed_tests else 0
-        pass_count, fail_count, run_times = run_test(test, iterations, avg_time_across_tests, completed_tests, remaining_tests - 1)
+        pass_count, fail_count, run_times, total_cost = run_test(test, iterations, avg_time_across_tests, completed_tests, remaining_tests - 1)
         test_time = sum(run_times)
         total_run_time += test_time
         completed_tests += 1
         remaining_tests -= 1
         avg_time = test_time / iterations if iterations else 0
+        avg_cost = total_cost / iterations if iterations else 0
 
         tests_results.append({
             'name': test,
             'passes': pass_count,
             'fails': fail_count,
-            'avg_time': avg_time
+            'avg_time': avg_time,
+            'avg_cost': avg_cost
         })
 
         test_dir = f"{test.replace('/', '_').replace('::', '_')}"
@@ -222,14 +251,23 @@ if __name__ == "__main__":
             for i, time in enumerate(run_times, 1):
                 result_file.write(f"Iteration {i}: {'Pass' if i <= pass_count else 'Fail'} in {time:.2f} seconds\n")
             result_file.write(f"Average Time: {avg_time:.2f}s\n")
+            result_file.write(f"Average Cost: ${avg_cost:.2f}\n")
             result_file.write(f"Passes: {pass_count}, Fails: {fail_count}\n")
             
-        print(f"\nEnded: {test}\n| Passes: {pass_count}, Fails: {fail_count}, Avg Time: {avg_time:.2f}s |")
+        print(f"\nEnded: {test}\n| Passes: {pass_count}, Fails: {fail_count}, Avg Time: {avg_time:.2f}s, Avg Cost: ${avg_cost:.2f} |")
+
+    # Get total cost from all the files in the costs directory
+    total_cost = 0
+    if os.path.exists("costs"):
+        for file in os.listdir("costs"):
+            with open(f"costs/{file}", 'r') as f:
+                cost = f.read()
+                total_cost += float(cost)
 
     print("\n" + "=" * 50)
     print("All tests completed.")
     print("=" * 50 + "\n")
-    print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks)
+    print_summary_table(test_path, iterations, tests_results, total_run_time, output_dir, total_benchmarks, total_cost)
 
     if should_save_results:
         run_benchmarks = {
