@@ -1,3 +1,4 @@
+from enum import Enum
 import json
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
@@ -22,15 +23,16 @@ class PastRun:
     feedback: str
     transactions_info: str
 
+class EndReason(Enum):
+    TERMINATE = "TERMINATE"
+    GOAL_NOT_SUPPORTED = "GOAL_NOT_SUPPORTED"
+
+@dataclass
 class RunResult:
     summary: str
     chat_history_json: str
     transactions: list[PreparedTx]
-
-    def __init__(self, summary: str, chat_history_json: str, transactions: list[PreparedTx]):
-        self.summary = summary
-        self.chat_history_json = chat_history_json
-        self.transactions = transactions
+    end_reason: EndReason
 
 class AutoTx:
     manager: SafeManager
@@ -58,6 +60,15 @@ class AutoTx:
         self.agents = agents
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+        while True:
+            result = self.try_run(prompt, non_interactive, summary_method)
+            if result.end_reason == EndReason.TERMINATE or non_interactive:
+                return result
+            else:
+                cprint("Prompt not supported. Please provide a new prompt.", "yellow")
+                prompt = input("Enter a new prompt: ")
+
+    def try_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         original_prompt = prompt
         past_runs: list[PastRun] = []
         self.logger.start()
@@ -87,11 +98,12 @@ class AutoTx:
             agents_information = self.get_agents_information(self.agents)
 
             user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
+            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, self.manager.address, self.network.chain_id.name, non_interactive, self.get_llm_config)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
                 verifier.build(self.get_llm_config),
-                clarifier.build(user_proxy_agent, agents_information, self.manager.address, self.network.chain_id.name, non_interactive, self.get_llm_config)
+                clarifier_agent
             ]
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
@@ -105,6 +117,8 @@ class AutoTx:
                 cprint(error_message, "red")
             else:
                 cprint(chat.summary.replace("\n", ""), "green")
+
+            is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
             try:
                 result = self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
@@ -133,7 +147,7 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions)
+        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED)
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []

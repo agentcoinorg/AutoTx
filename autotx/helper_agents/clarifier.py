@@ -5,7 +5,7 @@ from termcolor import cprint
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_addr: ETHAddress, network_name: str, not_interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
+def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_addr: ETHAddress, network_name: str, not_interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AssistantAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
@@ -72,15 +72,9 @@ def build(user_proxy: UserProxyAgent, agents_information: str, smart_account_add
         message: Annotated[str, "The message return to the user about why the goal is outside of the supported domain"],
     ) -> str:
         cprint(f"Goal not supported: {message}", "red")
-        return "TERMINATE"
+        return "Goal not supported: TERMINATE"
     
     clarifier_agent.register_for_llm(name="goal_outside_domain", description="Notify the user about their goal not being in the domain of the agents")(goal_outside_domain)
     user_proxy.register_for_execution(name="goal_outside_domain")(goal_outside_domain)
     
-    # def goal_supported() -> None:
-    #     pass
-
-    # clarifier_agent.register_for_llm(name="goal_supported", description="Call to continue with the solution")(goal_supported)
-    # user_proxy.register_for_execution(name="goal_supported")(goal_supported)
-
     return clarifier_agent
