@@ -20,6 +20,11 @@ class Config:
     verbose: bool
     logs_dir: Optional[str] = None
     log_costs: Optional[bool] = None
+    max_rounds: Optional[int] = None
+
+    def __post_init__(self):
+        if self.max_rounds is None:
+            self.max_rounds = 100
 
 @dataclass
 class PastRun:
@@ -36,7 +41,8 @@ class RunResult:
     chat_history_json: str
     transactions: list[PreparedTx]
     end_reason: EndReason
-    total_cost: float
+    total_cost_without_cache: float
+    total_cost_with_cache: float
 
 class AutoTx:
     manager: SafeManager
@@ -46,6 +52,7 @@ class AutoTx:
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     agents: list[AutoTxAgent]
     log_costs: bool
+    max_rounds: int
 
     def __init__(
         self,
@@ -64,13 +71,16 @@ class AutoTx:
         )
         self.agents = agents
         self.log_costs = config.log_costs
+        self.max_rounds = config.max_rounds
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
-        total_cost = 0
+        total_cost_without_cache = 0
+        total_cost_with_cache = 0
 
         while True:
             result = self.try_run(prompt, non_interactive, summary_method)
-            total_cost += result.total_cost
+            total_cost_without_cache += result.total_cost_without_cache
+            total_cost_with_cache += result.total_cost_with_cache
 
             if result.end_reason == EndReason.TERMINATE or non_interactive:
                 if self.log_costs:
@@ -80,7 +90,7 @@ class AutoTx:
                     if not os.path.exists("costs"):
                         os.makedirs("costs")
                     with open(f"costs/{now_str}.txt", "w") as f:
-                        f.write(str(total_cost))
+                        f.write(str(total_cost_without_cache))
 
                 return result
             else:
@@ -127,7 +137,7 @@ class AutoTx:
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
 
-            manager_agent = manager.build(autogen_agents + helper_agents, self.get_llm_config)
+            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, self.get_llm_config)
 
             chat = user_proxy_agent.initiate_chat(
                 manager_agent, 
@@ -175,7 +185,7 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost[0]["total_cost"]))
+        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost[0]["total_cost"]), float(chat.cost[1]["total_cost"]))
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []

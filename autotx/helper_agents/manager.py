@@ -2,11 +2,11 @@ from textwrap import dedent
 from typing import Any, Callable, Dict, Optional
 from autogen import GroupChat, GroupChatManager, Agent as AutogenAgent
 
-def build(agents: list[AutogenAgent], get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
+def build(agents: list[AutogenAgent], max_rounds: int, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
     groupchat = GroupChat(
         agents=agents, 
         messages=[], 
-        max_round=50,
+        max_round=max_rounds,
         select_speaker_prompt_template = dedent(
             """
             Read the above conversation. Then select the next role from {agentlist} to play. Only return the role and NOTHING else.

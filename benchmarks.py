@@ -77,6 +77,8 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
 
     # Get the common prefix in all test names
     common_prefix = os.path.commonprefix([result['name'] for result in tests_results])
+    # If common_prefix contains "::" update it to be up to the last "::"
+    common_prefix = common_prefix if not "::" in common_prefix else common_prefix.rsplit("::", 1)[0] + "::"
 
     # Sort test results
     tests_results = sorted(tests_results, key=lambda x: x['name'])
@@ -119,7 +121,7 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
 
     for test_result in tests_results:
         name = test_result['name'][len(common_prefix):] # Get name without common prefix at the start
-        name = name if name else test_result['name'] # if name is empty, set it to the full name
+        name = name if len(tests_results) > 1 else test_result['name'].split("::")[-1] # if only one test, set it to the function name
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
@@ -150,7 +152,7 @@ def print_summary_table(test_path: str, iterations: int, tests_results: dict, to
 
     for test_result in tests_results:
         name = test_result['name'][len(common_prefix):] # Get name without common prefix at the start
-        name = name if name else test_result['name'] # if name is empty, set it to the full name
+        name = name if len(tests_results) > 1 else test_result['name'].split("::")[-1] # if only one test, set it to the function name
         prev_success_rate = float(total_benchmarks["benchmarks"][test_result["name"]] if total_benchmarks["benchmarks"].get(test_result["name"]) else 0.0)
         has_prev_rate = True if total_benchmarks["benchmarks"].get(test_result["name"]) else False
         success_rate = (test_result['passes'] / (test_result['passes'] + test_result['fails'])) * 100
