@@ -2,7 +2,7 @@ from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
+def test_swap_with_non_default_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -17,7 +17,7 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
 
     assert 100000 == new_balance
 
-def test_auto_tx_swap_native(configuration, auto_tx):
+def test_swap_native(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -32,7 +32,7 @@ def test_auto_tx_swap_native(configuration, auto_tx):
 
     assert balance + 100 == new_balance
 
-def test_auto_tx_swap_multiple_1(configuration, auto_tx):
+def test_swap_multiple_1(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -48,7 +48,7 @@ def test_auto_tx_swap_multiple_1(configuration, auto_tx):
     assert usdc_balance + 500 == manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
-def test_auto_tx_swap_multiple_2(configuration, auto_tx):
+def test_swap_multiple_2(configuration, auto_tx):
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -64,7 +64,7 @@ def test_auto_tx_swap_multiple_2(configuration, auto_tx):
     assert usdc_balance + 500 == manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
-def test_auto_tx_swap_triple(configuration, auto_tx): 
+def test_swap_triple(configuration, auto_tx): 
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -83,7 +83,7 @@ def test_auto_tx_swap_triple(configuration, auto_tx):
     assert uni_balance + 0.5 == manager.balance_of(uni_address)
     assert wbtc_balance + 0.05 == manager.balance_of(wbtc_address)
 
-def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
+def test_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -99,7 +99,7 @@ def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex b
     assert usdc_balance + 1000 == manager.balance_of(usdc_address)
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
-def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
+def test_swap_complex_2(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     (_, _, _, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
