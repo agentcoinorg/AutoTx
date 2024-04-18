@@ -28,7 +28,8 @@ def swap(
         transaction = user.sign_transaction(  # type: ignore
             {
                 **tx.tx,
-                "nonce": client.w3.eth.get_transaction_count(user.address)
+                "nonce": client.w3.eth.get_transaction_count(user.address),
+                "gas": 1500000
             }
         )
 
@@ -37,5 +38,4 @@ def swap(
         receipt = client.w3.eth.wait_for_transaction_receipt(hash)
 
         if receipt["status"] == 0:
-            print(f"Transaction #{i} failed ")
-            break
+            raise Exception(f"Transaction to swap {from_token.hex} to {amount} {to_token.hex} failed")

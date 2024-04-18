@@ -1,5 +1,6 @@
 from decimal import Decimal
 from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
@@ -134,13 +135,14 @@ def test_swap_multiple_tokens(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
 
-    eth_address = ETHAddress(network_info.tokens["eth"])
+    eth_address = ETHAddress(network_info.tokens["xdai"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
     shib_address = ETHAddress(network_info.tokens["shib"])
 
     usdc_balance = manager.balance_of(usdc_address)
     assert usdc_balance == 0
+
 
     sell_eth_for_usdc_transaction = build_swap_transaction(
         client,
@@ -195,3 +197,17 @@ def test_swap_multiple_tokens(configuration):
     shib_balance = manager.balance_of(shib_address)
     shib_balance = manager.balance_of(shib_address)
     assert shib_balance > 0
+
+
+# def test_swap_through_eoa(configuration):
+#     (user, _, client, _) = configuration
+#     network_info = NetworkInfo(client.w3.eth.chain_id)
+#     gno_address = ETHAddress(network_info.tokens["gno"])
+#     swap(
+#         client,
+#         user,
+#         3,
+#         ETHAddress(NATIVE_TOKEN_ADDRESS),
+#         gno_address,
+#         network_info.chain_id
+#     )

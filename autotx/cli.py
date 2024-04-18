@@ -15,7 +15,7 @@ from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
-from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
@@ -92,7 +92,9 @@ Support: https://discord.polywrap.io
         print(f"Smart account deployed: {manager.address}")
         
         if not is_safe_deployed:
-            send_native(dev_account, manager.address, 10, web3)
+            # XDAI or MATIC doesn't have the same value as ETH, so we need to fill more
+            amount_to_fill = 3000 if network_info.chain_id in [ChainId.POLYGON, ChainId.GNOSIS] else 10
+            send_native(dev_account, manager.address, amount_to_fill, web3)
             fill_dev_account_with_erc20(client, dev_account, manager.address, network_info)
             print(f"Funds sent to smart account for testing purposes")
 

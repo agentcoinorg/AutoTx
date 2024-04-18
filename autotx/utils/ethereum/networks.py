@@ -113,6 +113,9 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         {
             "xdai": NATIVE_TOKEN_ADDRESS,
             "wxdai": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "usdc": "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
+            "cow": "0x177127622c4A00F3d409B75571e12cB3c8973d3c",
+            "gno": "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
         },
     ),
 }
