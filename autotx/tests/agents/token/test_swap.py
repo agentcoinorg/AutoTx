@@ -1,6 +1,9 @@
 from autotx.utils.ethereum import load_w3
+from autotx.utils.ethereum.lifi.swap import SLIPPAGE
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
+
+PLUS_SLIPPAGE = SLIPPAGE + 0.005
 
 def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -15,7 +18,9 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
 
     new_balance = manager.balance_of(shib_address)
 
-    assert 100000 <= new_balance
+    expected_amount = 100000
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= new_balance and new_balance <= expected_amount + expected_amount_plus_slippage
 
 def test_auto_tx_swap_native(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -24,12 +29,12 @@ def test_auto_tx_swap_native(configuration, auto_tx):
     usdc_address = ETHAddress(network_info.tokens["usdc"])
 
     prompt = "Buy 100 USDC with ETH"
-    balance = manager.balance_of(usdc_address)
-
     auto_tx.run(prompt, non_interactive=True)
 
     new_balance = manager.balance_of(usdc_address)
-    assert balance + 100 <= new_balance
+    expected_amount = 100
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= new_balance and new_balance <= expected_amount + expected_amount_plus_slippage
 
 def test_auto_tx_swap_multiple_1(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -39,12 +44,14 @@ def test_auto_tx_swap_multiple_1(configuration, auto_tx):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     prompt = "Buy 1000 USDC with ETH and then buy WBTC with 500 USDC"
-    usdc_balance = manager.balance_of(usdc_address)
     wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 500 <= manager.balance_of(usdc_address)
+    expected_amount = 500
+    usdc_balance = manager.balance_of(usdc_address)
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_multiple_2(configuration, auto_tx):
@@ -55,12 +62,14 @@ def test_auto_tx_swap_multiple_2(configuration, auto_tx):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     prompt = "Sell ETH for 1000 USDC and then sell 500 USDC for WBTC"
-    usdc_balance = manager.balance_of(usdc_address)
     wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 500 <= manager.balance_of(usdc_address)
+    expected_amount = 500
+    usdc_balance = manager.balance_of(usdc_address)
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_triple(configuration, auto_tx): 
@@ -72,15 +81,18 @@ def test_auto_tx_swap_triple(configuration, auto_tx):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     prompt = "Buy 1 USDC, 0.5 UNI and 0.05 WBTC with ETH"
-    usdc_balance = manager.balance_of(usdc_address)
-    uni_balance = manager.balance_of(uni_address)
-    wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
 
-    assert usdc_balance + 1 <= manager.balance_of(usdc_address)
-    assert uni_balance + 0.5 <= manager.balance_of(uni_address)
-    assert wbtc_balance + 0.05 <= manager.balance_of(wbtc_address)
+    expected_usdc_amount = 1
+    expected_uni_amount = 0.5
+    expected_wbtc_amount = 0.05
+    usdc_balance = manager.balance_of(usdc_address)
+    uni_balance = manager.balance_of(uni_address)
+    wbtc_balance = manager.balance_of(wbtc_address)
+    assert expected_usdc_amount <= usdc_balance and usdc_balance <= expected_usdc_amount + (expected_usdc_amount * PLUS_SLIPPAGE)
+    assert expected_uni_amount <= uni_balance  and uni_balance <= expected_uni_amount + (expected_uni_amount * PLUS_SLIPPAGE)
+    assert expected_wbtc_amount <= wbtc_balance and wbtc_balance <= expected_wbtc_amount + (expected_wbtc_amount * PLUS_SLIPPAGE)
 
 def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     (_, _, _, manager) = configuration
@@ -90,12 +102,13 @@ def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex b
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
     prompt = "Swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC"
-    usdc_balance = manager.balance_of(usdc_address)
     wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
-
-    assert usdc_balance + 1000 <= manager.balance_of(usdc_address)
+    expected_amount = 1000
+    usdc_balance = manager.balance_of(usdc_address)
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
@@ -107,9 +120,11 @@ def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex b
 
     prompt = "Buy 1000 USDC with ETH, then sell the USDC to buy 0.001 WBTC"
     usdc_balance = manager.balance_of(usdc_address)
-    wbtc_balance = manager.balance_of(wbtc_address)
 
     auto_tx.run(prompt, non_interactive=True)
 
+    wbtc_balance = manager.balance_of(wbtc_address)
+    expected_amount = 1000
+    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    assert expected_amount <= wbtc_balance and wbtc_balance <= expected_amount + expected_amount_plus_slippage
     assert usdc_balance < manager.balance_of(usdc_address)
-    assert wbtc_balance + 0.001 <= manager.balance_of(wbtc_address)

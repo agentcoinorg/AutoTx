@@ -33,7 +33,7 @@ def build_swap_transaction(
         amount_token_to_buy = (token_out_price_in_usd * amount) / token_in_price_in_usd
         amount_in_integer = int(amount_token_to_buy * (10**decimals))
         # add slippage plus 0.05% to ensure we get the expected amount
-        amount_in_integer = int(amount_in_integer * (SLIPPAGE + 0.005) + amount_in_integer)
+        amount_in_integer = int(amount_in_integer * 0.005 + amount_in_integer)
 
     quote = Lifi.get_quote(
         token_in_address, token_out_address, amount_in_integer, _from, chain, SLIPPAGE
