@@ -90,9 +90,13 @@ class AutoTx:
                     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
 
                     if not os.path.exists("costs"):
+                        print("Creating costs directory")
                         os.makedirs("costs")
+                    else:
+                        print("Costs directory already exists")
                     with open(f"costs/{now_str}.txt", "w") as f:
                         f.write(str(total_cost_without_cache))
+                    print(f"Total cost without cache: {total_cost_without_cache}")
 
                 return result
             else:

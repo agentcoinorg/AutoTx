@@ -261,10 +261,14 @@ if __name__ == "__main__":
     # Get total cost from all the files in the costs directory
     total_cost = 0
     if os.path.exists("costs"):
+        print("Calculating total cost...")
         for file in os.listdir("costs"):
+            print(f"Reading: {file}")
             with open(f"costs/{file}", 'r') as f:
                 cost = f.read()
                 total_cost += float(cost)
+    else:
+        print("No cost files found.")
 
     print("\n" + "=" * 50)
     print("All tests completed.")
