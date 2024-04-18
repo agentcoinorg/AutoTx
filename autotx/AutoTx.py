@@ -191,6 +191,7 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
+        print("COSTS", chat.cost)
         return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost[0]["total_cost"]), float(chat.cost[1]["total_cost"]))
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
