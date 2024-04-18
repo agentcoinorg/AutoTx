@@ -6,12 +6,14 @@ def build(agents: list[AutogenAgent], get_llm_config: Callable[[], Optional[Dict
     groupchat = GroupChat(
         agents=agents, 
         messages=[], 
-        max_round=20,
+        max_round=50,
         select_speaker_prompt_template = dedent(
             """
             Read the above conversation. Then select the next role from {agentlist} to play. Only return the role and NOTHING else.
-            If agents are trying to communicate with the user, or requesting approval, return the 'user_proxy' role.
-            ALWAYS choose the 'clarifier' role first. If the 'clarifier' asks a question, choose the 'user_proxy' role.
+            If other roles are trying to communicate with the user, or requesting approval, return the 'user_proxy' role.
+            ALWAYS choose the 'clarifier' role first.
+            Once the roles are ready to execute transactions, choose the 'verifier' role.
+            If the 'user_proxy' role wants to do something, choose the appropriate role that can help the 'user_proxy' role.
             """
         )
     )

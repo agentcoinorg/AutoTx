@@ -1,7 +1,7 @@
 
 import json
 from textwrap import dedent
-from typing import Annotated, Any, Callable, Optional, Type, Union, cast
+from typing import Annotated, Callable, Optional, Union, cast
 from web3 import Web3
 from autotx.AutoTx import AutoTx
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
@@ -15,12 +15,13 @@ from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 name = "research-tokens"
 
 system_message = lambda autotx: dedent(f"""
-    You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.
+    You are an AI assistant. Assist the user in their task of researching tokens.
     You are an expert in Ethereum tokens and can help users research tokens.
     ONLY focus on the token research aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
     Retrieve token information, get token price, market cap, and price change percentage.
     Always fetch available token categories before suggesting names, do not make them up.
+    You MUST keep in mind the network the user is on and if the his request is for a specific network, all networks, or the current network (it could be implied).
     """
 )
 

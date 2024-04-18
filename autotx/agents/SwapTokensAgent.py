@@ -11,7 +11,7 @@ from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 name = "swap-tokens"
 
 system_message = lambda autotx: dedent(f"""
-    You are an expert at buying and selling tokens. Assist the user (address: {autotx.manager.address}) in their task of swapping tokens.
+    You are an expert at buying and selling tokens. Assist the user in their task of swapping tokens.
     ONLY focus on the buy and sell (swap) aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.

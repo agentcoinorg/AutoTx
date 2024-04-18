@@ -16,6 +16,7 @@ def build(get_llm_config:Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent
             If you find the conversation is repeating and no new progress is made, TERMINATE.
             """
         ),
+        description="Verifier is an expert in verifiying if user goals are met.",
         llm_config=get_llm_config(),
         human_input_mode="NEVER",
         code_execution_config=False,
