@@ -4,7 +4,6 @@ from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 
 def test_auto_tx_research_and_swap_meme_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
-    web3 = load_w3()
     shib_address = ETHAddress(auto_tx.network.tokens["shib"])
     shib_balance_in_safe = manager.balance_of(shib_address)
     assert shib_balance_in_safe == 0
