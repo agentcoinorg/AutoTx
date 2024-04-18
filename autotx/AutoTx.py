@@ -22,7 +22,7 @@ class Config:
     log_costs: Optional[bool] = None
     max_rounds: Optional[int] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.max_rounds is None:
             self.max_rounds = 100
 
@@ -70,12 +70,14 @@ class AutoTx:
             silent=not config.verbose
         )
         self.agents = agents
-        self.log_costs = config.log_costs
+        self.log_costs = config.log_costs if config.log_costs is not None else False
+        if config.max_rounds is None:
+            raise ValueError("max_rounds must be provided")
         self.max_rounds = config.max_rounds
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
-        total_cost_without_cache = 0
-        total_cost_with_cache = 0
+        total_cost_without_cache: float = 0
+        total_cost_with_cache: float = 0
 
         while True:
             result = self.try_run(prompt, non_interactive, summary_method)
