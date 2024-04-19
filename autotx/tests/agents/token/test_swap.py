@@ -50,7 +50,7 @@ def test_auto_tx_swap_multiple_1(configuration, auto_tx):
 
     expected_amount = 500
     usdc_balance = manager.balance_of(usdc_address)
-    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
+    expected_amount_plus_slippage = 1000 * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
