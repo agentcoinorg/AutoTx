@@ -51,7 +51,7 @@ def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
     tokens = get_coingecko().coins.get_markets(
         vs_currency="usd", category="layer-1", order="volume_desc"
     )
-    prompt = "What are the top 5 most traded tokens on L1"
+    prompt = "What are the top 5 most traded Layer 1 tokens on all networks?"
     
     result = auto_tx.run(prompt, non_interactive=True)
 
@@ -61,11 +61,15 @@ def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
 
 def test_get_top_5_memecoins(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
-    prompt = "What are the top 5 meme coins"
+    tokens_in_network = filter_token_list_by_network(
+        tokens, "MAINNET"
+    )
+
+    prompt = "What are the top 5 meme coins on my network?"
 
     result = auto_tx.run(prompt, non_interactive=True)
 
-    for token in tokens[:5]:
+    for token in tokens_in_network[:5]:
         symbol: str = token["symbol"]
         assert symbol.lower() in result.chat_history_json.lower()
 
