@@ -21,6 +21,10 @@ system_message = lambda autotx: dedent(f"""
     Retrieve token information, get token price, market cap, and price change percentage.
     BEFORE calling get_tokens_based_on_category always call get_available_categories to get the list of available categories.
     You MUST keep in mind the network the user is on and if the his request is for a specific network, all networks, or the current network (it could be implied).
+    If the user is interested in buying the tokens you're researching make sure you're searching them for his network.
+    If searching for tokens to buy, make sure to:
+    1. Get all the tokens you need (if fetching from multiple categories the tokens could overlap, so you might need to fetch more until you get the number you need)
+    2. Calculate how much of each token to buy
     """
 )
 
