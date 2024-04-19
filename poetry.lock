@@ -1493,13 +1493,13 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.23.1"
+version = "1.20.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.23.1-py3-none-any.whl", hash = "sha256:7941c1bc6fcdb1b6b889dfcfabff775ca52558a79d57dd1b9e15b463de1b3a4c"},
-    {file = "openai-1.23.1.tar.gz", hash = "sha256:6df937e2a1ad64494951ea3614f5516db4d67c3fcc0b751b8e5edf1bc57e2d3d"},
+    {file = "openai-1.20.0-py3-none-any.whl", hash = "sha256:9fcc75256b2425393800e358cd520b02b5ab1a8731921e45aa7ae6aec3ee8187"},
+    {file = "openai-1.20.0.tar.gz", hash = "sha256:d7c0e824b7da3c043731943965c737595cf9631c913b7a1464c502fdf492b9a9"},
 ]
 
 [package.dependencies]
@@ -1628,13 +1628,13 @@ test = ["factory-boy (>=3.0.0)", "hypothesis (>=6,<7)", "pytest (>=7.0.0)", "pyt
 
 [[package]]
 name = "pyautogen"
-version = "0.2.25"
+version = "0.2.26"
 description = "Enabling Next-Gen LLM Applications via Multi-Agent Conversation Framework"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "pyautogen-0.2.25-py3-none-any.whl", hash = "sha256:a17090f445d3af969ce7440686866333b43321067a68f9bd56c497eea0c8e750"},
-    {file = "pyautogen-0.2.25.tar.gz", hash = "sha256:3cfff3e13bcb13a1bddc322effd4715670b4c3ba3f8d0548a7329154c8ac0ab6"},
+    {file = "pyautogen-0.2.26-py3-none-any.whl", hash = "sha256:290e606ea357edc895aefd2408a3488e60cd25285e38dae12d155738f1471a4d"},
+    {file = "pyautogen-0.2.26.tar.gz", hash = "sha256:4e3079065973977161b2651ba7cc15672540e17395b510dd861df32318faa0f0"},
 ]
 
 [package.dependencies]
@@ -1642,7 +1642,7 @@ diskcache = "*"
 docker = "*"
 flaml = "*"
 numpy = ">=1.17.0,<2"
-openai = ">=1.3"
+openai = ">=1.3,<1.21"
 pydantic = ">=1.10,<2.6.0 || >2.6.0,<3"
 python-dotenv = "*"
 termcolor = "*"
@@ -1659,6 +1659,8 @@ lmm = ["pillow", "replicate"]
 mathchat = ["pydantic (==1.10.9)", "sympy", "wolframalpha"]
 redis = ["redis"]
 retrievechat = ["beautifulsoup4", "chromadb", "ipython", "markdownify", "pypdf", "sentence-transformers"]
+retrievechat-pgvector = ["beautifulsoup4", "ipython", "markdownify", "pgvector (>=0.2.5)", "psycopg (>=3.1.18)", "pypdf", "sentence-transformers"]
+retrievechat-qdrant = ["beautifulsoup4", "ipython", "markdownify", "pypdf", "qdrant-client[fastembed]", "sentence-transformers"]
 teachable = ["chromadb"]
 test = ["coverage (>=5.3)", "ipykernel", "nbconvert", "nbformat", "pandas", "pre-commit", "pytest (>=6.1.1,<8)", "pytest-asyncio"]
 types = ["ipykernel (>=6.29.0)", "jupyter-client (>=8.6.0)", "jupyter-kernel-gateway", "mypy (==1.9.0)", "pytest (>=6.1.1,<8)", "requests", "websocket-client"]
@@ -2787,4 +2789,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "a0be46092fa745fe82d8c7f3cc9f2889fda7739f4d9a8163edafc69b18f0ff23"
+content-hash = "2b6a36c31302cfb7ff73bd322576e5880af10b5430e6677195d4542d92839001"
