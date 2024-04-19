@@ -83,7 +83,7 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 
     return (network_info.tokens[token_in], network_info.tokens[token_out])
 
-def swap(autotx, token_to_sell, token_to_buy) -> list[PreparedTx]:
+def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[PreparedTx]:
     sell_parts = token_to_sell.split(" ")
     buy_parts = token_to_buy.split(" ")
 
@@ -127,7 +127,7 @@ class BulkSwapTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable[[str, str], str]:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str], str]:
         def run(
             tokens: Annotated[
                 str, 
