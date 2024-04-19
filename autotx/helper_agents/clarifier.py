@@ -9,19 +9,17 @@ def build(user_proxy: UserProxyAgent, agents_information: str, not_interactive: 
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
+        Analyze the user's initial goal if there is missing information, and ask the user for it. 
+        E.g. "Buy ETH" -> "How much ETH do you want to buy and with what token?"
         """ if not not_interactive else "")
 
     missing_2 = dedent("""
-        Analyze the user's initial goal if there is missing information, and ask the user for it. 
-        E.g. "Buy ETH" -> "How much ETH do you want to buy and with what token?"
-        """ if not not_interactive else "" )
-
-    missing_3 = dedent("""
         - Call the request_user_input tool if more information is needed to define the goal.
         """ if not not_interactive else "")
     
     clarifier_agent = AssistantAgent(
         name="clarifier",
+        is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),
         system_message=dedent(
             f"""
             Clarifier is an assistant that can analyze a user's goal at the start of the conversation and determine if it is within the scope of the agents.
@@ -47,13 +45,9 @@ def build(user_proxy: UserProxyAgent, agents_information: str, not_interactive: 
             - Develop purchase strategies
             All of that is within scope of the agents.
 
-            {
-                missing_2
-            }
-
             The only things the clarifier should do are:
             {
-                missing_3
+                missing_2
             }
             - Call the goal_outside_scope tool if the goal is outside the scope of the agents.
             - Nothing
