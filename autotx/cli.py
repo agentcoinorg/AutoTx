@@ -35,8 +35,8 @@ def main() -> None:
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
 @click.option("-l", "--logs", type=click.Path(exists=False, file_okay=False, dir_okay=True), help="Path to the directory where logs will be stored.")
 @click.option("-r", "--max-rounds", type=int, help="Maximum number of rounds to run")
-@click.option("-nc", "--no-cache", is_flag=True, help="Do not use cache for LLM")
-def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, no_cache: bool | None) -> None:
+@click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
+def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
 
     now = datetime.now()
     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
@@ -101,7 +101,7 @@ Support: https://discord.polywrap.io
         show_address_balances(web3, network_info.chain_id, manager.address)
         print("=" * 50)
 
-    get_llm_config = lambda: { "cache_seed": None if no_cache else 1, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
+    get_llm_config = lambda: { "cache_seed": 1 if cache else None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     agents = [
         SendTokensAgent(),
         SwapTokensAgent()
