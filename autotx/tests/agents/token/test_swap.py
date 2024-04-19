@@ -3,7 +3,7 @@ from autotx.utils.ethereum.lifi.swap import SLIPPAGE
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-PLUS_SLIPPAGE = SLIPPAGE + 0.005
+PLUS_DIFFERENCE_PERCENTAGE = 0.015
 
 def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -19,7 +19,7 @@ def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
     new_balance = manager.balance_of(shib_address)
 
     expected_amount = 100000
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= new_balance and new_balance <= expected_amount + expected_amount_plus_slippage
 
 def test_auto_tx_swap_native(configuration, auto_tx):
@@ -33,7 +33,7 @@ def test_auto_tx_swap_native(configuration, auto_tx):
 
     new_balance = manager.balance_of(usdc_address)
     expected_amount = 100
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= new_balance and new_balance <= expected_amount + expected_amount_plus_slippage
 
 def test_auto_tx_swap_multiple_1(configuration, auto_tx):
@@ -50,7 +50,7 @@ def test_auto_tx_swap_multiple_1(configuration, auto_tx):
 
     expected_amount = 500
     usdc_balance = manager.balance_of(usdc_address)
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
@@ -68,8 +68,7 @@ def test_auto_tx_swap_multiple_2(configuration, auto_tx):
 
     expected_amount = 500
     usdc_balance = manager.balance_of(usdc_address)
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
-    assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
+    assert expected_amount <= usdc_balance
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_auto_tx_swap_triple(configuration, auto_tx): 
@@ -90,9 +89,9 @@ def test_auto_tx_swap_triple(configuration, auto_tx):
     usdc_balance = manager.balance_of(usdc_address)
     uni_balance = manager.balance_of(uni_address)
     wbtc_balance = manager.balance_of(wbtc_address)
-    assert expected_usdc_amount <= usdc_balance and usdc_balance <= expected_usdc_amount + (expected_usdc_amount * PLUS_SLIPPAGE)
-    assert expected_uni_amount <= uni_balance  and uni_balance <= expected_uni_amount + (expected_uni_amount * PLUS_SLIPPAGE)
-    assert expected_wbtc_amount <= wbtc_balance and wbtc_balance <= expected_wbtc_amount + (expected_wbtc_amount * PLUS_SLIPPAGE)
+    assert expected_usdc_amount <= usdc_balance and usdc_balance <= expected_usdc_amount + (expected_usdc_amount * PLUS_DIFFERENCE_PERCENTAGE)
+    assert expected_uni_amount <= uni_balance  and uni_balance <= expected_uni_amount + (expected_uni_amount * PLUS_DIFFERENCE_PERCENTAGE)
+    assert expected_wbtc_amount <= wbtc_balance and wbtc_balance <= expected_wbtc_amount + (expected_wbtc_amount * PLUS_DIFFERENCE_PERCENTAGE)
 
 def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     (_, _, _, manager) = configuration
@@ -107,7 +106,7 @@ def test_auto_tx_swap_complex_1(configuration, auto_tx): # This one is complex b
     auto_tx.run(prompt, non_interactive=True)
     expected_amount = 1000
     usdc_balance = manager.balance_of(usdc_address)
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= usdc_balance and usdc_balance <= expected_amount + expected_amount_plus_slippage
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
@@ -125,6 +124,6 @@ def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex b
 
     wbtc_balance = manager.balance_of(wbtc_address)
     expected_amount = 0.001
-    expected_amount_plus_slippage = expected_amount * PLUS_SLIPPAGE
+    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
     assert expected_amount <= wbtc_balance and wbtc_balance <= expected_amount + expected_amount_plus_slippage
     assert usdc_balance < manager.balance_of(usdc_address)

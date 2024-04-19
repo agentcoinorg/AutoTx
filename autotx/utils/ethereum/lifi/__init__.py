@@ -6,6 +6,8 @@ import requests
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
 
+class LifiApiError(Exception):
+    pass
 
 class Lifi:
     BASE_URL = "https://li.quest/v1"
@@ -30,23 +32,28 @@ class Lifi:
             "slippage": slippage
         }
         response = requests.get(cls.BASE_URL + "/quote", params=params) # type: ignore
-        if response.status_code == 200:
-            quote: dict[str, Any] = json.loads(response.text)
-            return quote
+        response_json: dict[str, Any] = json.loads(response.text)
 
-        raise Exception("Error fetching quote")
+        if response.status_code == 200:
+            return response_json
+
+        if response.status_code == 429 or (response_json["message"] == "Unauthorized" and response_json["code"] == 1005):
+            raise LifiApiError("Rate limit exceeded")
+
+        raise LifiApiError(f"Fetch quote failed with error: {response_json['message']}")
 
     @classmethod
     def get_token_price(cls, address: ETHAddress, chain: ChainId) -> Decimal:
         params = {"chain": chain.value, "token": address.hex}
         response = requests.get(cls.BASE_URL + "/token", params=params)
         if response.status_code == 200:
-            price = json.loads(response.text).get("priceUSD")
+            response_json = json.loads(response.text)
+            price = response_json.get("priceUSD")
             if price == None:
-                raise Exception(
-                    f"Couldn't fetch price for token with address: {address.hex}"
+                raise LifiApiError(
+                    f"No price available from token: {response_json['symbol']}"
                 )
 
             return Decimal(price)
 
-        raise Exception("Error fetching price")
+        raise LifiApiError("Error fetching price")
