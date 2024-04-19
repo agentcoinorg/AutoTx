@@ -9,7 +9,7 @@ from autogen import Agent as AutogenAgent
 from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
-from autotx.helper_agents import clarifier, manager, user_proxy, verifier
+from autotx.helper_agents import clarifier, manager, user_proxy
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import SafeManager
@@ -133,7 +133,6 @@ class AutoTx:
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
-                verifier.build(self.get_llm_config),
                 clarifier_agent
             ]
 

@@ -19,6 +19,8 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
 
             Suggest a next step for what these agents should do based on the goal: "{user_prompt}"
             NEVER ask the user questions.
+            If the goal has been achieved, end the conversation with "TERMINATE".
+            Consider the goal met if the other agents have prepared the necessary transactions and all user queries have been answered.
             """
         ),
         description="user_proxy is an agent authorized to act on behalf of the user.",

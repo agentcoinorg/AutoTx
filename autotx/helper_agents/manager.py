@@ -11,8 +11,8 @@ def build(agents: list[AutogenAgent], max_rounds: int, get_llm_config: Callable[
             """
             Read the above conversation. Then select the next role from {agentlist} to play. Only return the role and NOTHING else.
             If other roles are trying to communicate with the user, or requesting approval, return the 'user_proxy' role.
-            ALWAYS choose the 'clarifier' role first.
-            Once the roles are ready to execute transactions, choose the 'verifier' role.
+            ALWAYS choose the 'clarifier' role first in the conversation.
+            Once the roles are ready to execute transactions, choose the 'user_proxy' role.
             If the 'user_proxy' role wants to do something, choose the appropriate role that can help the 'user_proxy' role.
             """
         )
