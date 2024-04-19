@@ -79,8 +79,8 @@ def test_research_and_swap_many_tokens_subjective_complex(configuration, auto_tx
     # Verify the balance is lower by max 3 ETH
     assert starting_balance - ending_balance <= 3
     # Verify there are at least 5 transactions
-    assert len(result.transactions) >= 5
+    assert len(result.transactions) == 10
     # Verify there are only swap transactions
     assert all([tx.summary.startswith("Swap") for tx in result.transactions])
     # Verify the tokens are different
-    assert len(set([tx.summary.split(" ")[-1] for tx in result.transactions])) >= 5
+    assert len(set([tx.summary.split(" ")[-1] for tx in result.transactions])) == 10
