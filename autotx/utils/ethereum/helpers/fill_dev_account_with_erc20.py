@@ -22,7 +22,7 @@ def fill_dev_account_with_erc20(
             swap(
                 client,
                 dev_account,
-                tokens_to_transfer[token],
+                amount + (amount * 0.015),
                 native_token_address,
                 token_address,
                 network_info.chain_id
