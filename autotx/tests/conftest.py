@@ -78,7 +78,7 @@ def usdc(configuration) -> ETHAddress:
 
     amount = 100
 
-    swap(client, user, amount, eth_address, usdc_address)
+    swap(client, user, amount, eth_address, usdc_address, network_info.chain_id)
     
     transfer_erc20(client.w3, usdc_address, user, manager.address, amount)
 
