@@ -5,8 +5,9 @@ from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.lifi.swap import build_swap_transaction
+from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
+from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
 name = "swap-tokens"
 
@@ -106,6 +107,11 @@ class SwapTool(AutoTxTool):
             token_to_sell: Annotated[str, "Token to sell. E.g. '10 USDC' or just 'USDC'"],
             token_to_buy: Annotated[str, "Token to buy. E.g. '10 USDC' or just 'USDC'"],
         ) -> str:
+            if not autotx.network.chain_id in SUPPORTED_NETWORKS_BY_LIFI:
+                raise ChainIdNotSupported(
+                    f"Network {autotx.network.chain_id.name.lower()} not supported for swap"
+                )
+
             sell_parts = token_to_sell.split(" ")
             buy_parts = token_to_buy.split(" ")
 

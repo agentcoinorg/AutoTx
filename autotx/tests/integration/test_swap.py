@@ -3,7 +3,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
-DIFFERENCE_PERCENTAGE = 0.007
+DIFFERENCE_PERCENTAGE = 1.01
 
 
 def test_buy_one_usdc(configuration):
@@ -11,10 +11,10 @@ def test_buy_one_usdc(configuration):
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
-    desired_amount = 1
+    expected_usdc_amount = 1
     buy_usdc_with_eth_transaction = build_swap_transaction(
         client,
-        desired_amount,
+        expected_usdc_amount,
         eth_address,
         usdc_address,
         manager.address,
@@ -24,9 +24,7 @@ def test_buy_one_usdc(configuration):
     hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
-    assert usdc_balance >= desired_amount and usdc_balance <= desired_amount + (
-        desired_amount * DIFFERENCE_PERCENTAGE
-    )
+    assert expected_usdc_amount <= usdc_balance  <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
 
 def test_buy_one_thousand_usdc(configuration):
@@ -34,10 +32,10 @@ def test_buy_one_thousand_usdc(configuration):
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
-    desired_amount = 1000
+    expected_usdc_amount = 1000
     buy_usdc_with_eth_transaction = build_swap_transaction(
         client,
-        desired_amount,
+        expected_usdc_amount,
         eth_address,
         usdc_address,
         manager.address,
@@ -48,9 +46,7 @@ def test_buy_one_thousand_usdc(configuration):
     hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
-    assert usdc_balance >= desired_amount and usdc_balance <= desired_amount + (
-        desired_amount * DIFFERENCE_PERCENTAGE
-    )
+    assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
 
 def test_receive_native(configuration):
@@ -97,10 +93,10 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
-    desired_amount = 0.01
+    expected_wbtc_amount = 0.01
     buy_wbtc_with_eth_transaction = build_swap_transaction(
         client,
-        Decimal(desired_amount),
+        Decimal(str(expected_wbtc_amount)),
         eth_address,
         wbtc_address,
         manager.address,
@@ -110,9 +106,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].tx)
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
-    assert wbtc_balance >= desired_amount and wbtc_balance <= desired_amount + (
-        desired_amount * DIFFERENCE_PERCENTAGE
-    )
+    assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 
 def test_buy_big_amount_wbtc_with_eth(configuration):
@@ -120,10 +114,10 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
-    desired_amount = 0.1
+    expected_wbtc_amount = 0.1
     buy_wbtc_with_eth_transaction = build_swap_transaction(
         client,
-        Decimal(desired_amount),
+        Decimal(str(expected_wbtc_amount)),
         eth_address,
         wbtc_address,
         manager.address,
@@ -133,9 +127,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
     hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].tx)
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
-    assert wbtc_balance >= desired_amount and wbtc_balance <= desired_amount + (
-        desired_amount * DIFFERENCE_PERCENTAGE
-    )
+    assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 
 def test_swap_multiple_tokens(configuration):

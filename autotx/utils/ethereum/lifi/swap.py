@@ -15,6 +15,15 @@ from web3.types import TxParams, Wei
 
 SLIPPAGE = 0.005  # 0.5%
 
+SUPPORTED_NETWORKS_BY_LIFI = [
+    ChainId.MAINNET,
+    ChainId.OPTIMISM,
+    ChainId.ARBITRUM_ONE,
+    ChainId.BASE_MAINNET,
+    ChainId.POLYGON,
+    ChainId.GNOSIS,
+    ChainId.ZKSYNC_V2
+]
 
 @dataclass
 class QuoteInformation:
@@ -158,13 +167,13 @@ def build_swap_transaction(
             )
             transactions.append(
                 PreparedTx(
-                    f"Approve {Decimal(quote.amount_in / 10 ** token_in_decimals)} {token_in_symbol} to {quote.exchange_name}",
+                    f"Approve {Decimal(str(quote.amount_in / 10 ** token_in_decimals))} {token_in_symbol} to {quote.exchange_name}",
                     tx,
                 )
             )
     transactions.append(
         PreparedTx(
-            f"Swap {Decimal(quote.amount_in / 10 ** token_in_decimals)} {token_in_symbol} for at least {Decimal(int(quote.to_amount_min) / 10 ** token_out_decimals)} {token_out_symbol}",
+            f"Swap {Decimal(str(quote.amount_in / 10 ** token_in_decimals))} {token_in_symbol} for at least {Decimal(str(int(quote.to_amount_min) / 10 ** token_out_decimals))} {token_out_symbol}",
             quote.transaction,
         )
     )
