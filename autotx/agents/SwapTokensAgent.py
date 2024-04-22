@@ -145,7 +145,7 @@ class BulkSwapTool(AutoTxTool):
         ) -> str:
             swaps = tokens.split("\n")
             all_txs = []
-            all_errors = []
+            all_errors: list[Exception] = []
 
             for swap_str in swaps:
                 (token_to_sell, token_to_buy) = swap_str.strip().split(" to ")
