@@ -158,13 +158,13 @@ def build_swap_transaction(
             )
             transactions.append(
                 PreparedTx(
-                    f"Approve {quote.amount_in / 10 ** token_in_decimals} {token_in_symbol} to {quote.exchange_name}",
+                    f"Approve {Decimal(quote.amount_in / 10 ** token_in_decimals)} {token_in_symbol} to {quote.exchange_name}",
                     tx,
                 )
             )
     transactions.append(
         PreparedTx(
-            f"Swap {quote.amount_in / 10 ** token_in_decimals} {token_in_symbol} for at least {int(quote.to_amount_min) / 10 ** token_out_decimals} {token_out_symbol}",
+            f"Swap {Decimal(quote.amount_in / 10 ** token_in_decimals)} {token_in_symbol} for at least {Decimal(int(quote.to_amount_min) / 10 ** token_out_decimals)} {token_out_symbol}",
             quote.transaction,
         )
     )

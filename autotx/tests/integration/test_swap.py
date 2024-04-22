@@ -28,6 +28,7 @@ def test_buy_one_usdc(configuration):
         desired_amount * PLUS_DIFFERENCE_PERCENTAGE
     )
 
+
 def test_buy_one_thousand_usdc(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
@@ -51,6 +52,46 @@ def test_buy_one_thousand_usdc(configuration):
         desired_amount * PLUS_DIFFERENCE_PERCENTAGE
     )
 
+
+def test_receive_native(configuration):
+    (_, _, client, manager) = configuration
+
+    network_info = NetworkInfo(client.w3.eth.chain_id)
+    eth_address = ETHAddress(network_info.tokens["eth"])
+    usdc_address = ETHAddress(network_info.tokens["usdc"])
+    safe_eth_balance = manager.balance_of()
+    assert safe_eth_balance == 10
+    buy_usdc_with_eth_transaction = build_swap_transaction(
+        client,
+        5,
+        eth_address,
+        usdc_address,
+        manager.address,
+        True,
+        network_info.chain_id,
+    )
+    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
+    manager.wait(hash)
+    safe_eth_balance = manager.balance_of()
+    assert safe_eth_balance == 5
+
+    buy_eth_with_usdc_transaction = build_swap_transaction(
+        client,
+        4,
+        usdc_address,
+        eth_address,
+        manager.address,
+        False,
+        network_info.chain_id,
+    )
+    hash = manager.send_tx(buy_eth_with_usdc_transaction[0].tx)
+    manager.wait(hash)
+    hash = manager.send_tx(buy_eth_with_usdc_transaction[1].tx)
+    manager.wait(hash)
+    safe_eth_balance = manager.balance_of()
+    assert safe_eth_balance >= 9
+
+
 def test_buy_small_amount_wbtc_with_eth(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
@@ -72,6 +113,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     assert wbtc_balance >= desired_amount and wbtc_balance <= desired_amount + (
         desired_amount * PLUS_DIFFERENCE_PERCENTAGE
     )
+
 
 def test_buy_big_amount_wbtc_with_eth(configuration):
     (_, _, client, manager) = configuration
