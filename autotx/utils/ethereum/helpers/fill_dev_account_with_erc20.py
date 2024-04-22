@@ -6,8 +6,6 @@ from autotx.utils.ethereum.networks import NetworkInfo
 from eth_account.signers.local import LocalAccount
 from gnosis.eth import EthereumClient
 
-from autotx.utils.ethereum.uniswap.swap import SUPPORTED_UNISWAP_V3_NETWORKS
-
 
 def fill_dev_account_with_erc20(
     client: EthereumClient,
@@ -15,9 +13,6 @@ def fill_dev_account_with_erc20(
     safe_address: ETHAddress,
     network_info: NetworkInfo,
 ) -> None:
-    if not network_info.chain_id in SUPPORTED_UNISWAP_V3_NETWORKS:
-        return
-
     tokens_to_transfer = {"usdc": 3500, "dai": 3500, "wbtc": 0.1}
     native_token_address = ETHAddress(NATIVE_TOKEN_ADDRESS)
     for token in network_info.tokens:
@@ -27,9 +22,10 @@ def fill_dev_account_with_erc20(
             swap(
                 client,
                 dev_account,
-                tokens_to_transfer[token],
+                amount,
                 native_token_address,
                 token_address,
+                network_info.chain_id
             )
             transfer_erc20(
                 client.w3, token_address, dev_account, safe_address, amount
