@@ -40,7 +40,7 @@ class Lifi:
     BASE_URL = "https://li.quest/v1"
 
     @classmethod
-    def get_quote_to_amount(
+    def get_quote_to_amount( # type: ignore
         cls,
         from_token: ETHAddress,
         to_token: ETHAddress,
@@ -48,7 +48,7 @@ class Lifi:
         _from: ETHAddress,
         chain: ChainId,
         slippage: float,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]: 
         params: dict[str, Any] = {
             "fromToken": from_token.hex,
             "toToken": to_token.hex,
@@ -59,8 +59,21 @@ class Lifi:
             "slippage": slippage,
             "contractCalls": [],
         }
-        response = requests.post(cls.BASE_URL + "/quote/contractCalls", json=params)
-        return handle_lifi_response(response)
+        attempt_count = 0
+        while attempt_count < 2:
+            response = requests.post(cls.BASE_URL + "/quote/contractCalls", json=params)
+            try:
+                return handle_lifi_response(response)
+            except LifiApiError as e:
+                if (
+                    str(e)
+                    == "Fetch quote failed with error: Unable to find quote to match expected output."
+                    and attempt_count < 1
+                ):
+                    attempt_count += 1
+                    continue
+                else:
+                    raise e
 
     @classmethod
     def get_quote_from_amount(
