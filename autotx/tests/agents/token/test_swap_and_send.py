@@ -3,7 +3,7 @@ from autotx.utils.ethereum.lifi.swap import SLIPPAGE
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-PLUS_DIFFERENCE_PERCENTAGE = 0.025
+PLUS_DIFFERENCE_PERCENTAGE = 0.01
 
 def test_auto_tx_swap_and_send_simple(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration

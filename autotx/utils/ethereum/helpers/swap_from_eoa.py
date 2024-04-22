@@ -21,8 +21,7 @@ def swap(
         to_token,
         ETHAddress(user.address),
         False,
-        chain,
-        False
+        chain
     )
 
     for i, tx in enumerate(txs):

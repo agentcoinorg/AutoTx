@@ -3,7 +3,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
-PLUS_DIFFERENCE_PERCENTAGE = 0.015
+PLUS_DIFFERENCE_PERCENTAGE = 0.01
 
 
 def test_buy_one_usdc(configuration):

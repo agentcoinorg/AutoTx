@@ -13,7 +13,7 @@ from autotx.utils.ethereum.networks import ChainId
 from gnosis.eth import EthereumClient
 from web3.types import TxParams, Wei
 
-SLIPPAGE = 0.01  # 1%
+SLIPPAGE = 0.005  # 0.05%
 
 
 @dataclass
@@ -33,76 +33,23 @@ def get_quote(
     chain: ChainId,
     expected_amount: Decimal,
     amount_is_output: bool,
-    from_address: ETHAddress,
-    strict_output: bool,
+    from_address: ETHAddress
 ) -> QuoteInformation:
     quote: dict[str, Any] | None = None
     if amount_is_output:
-        token_in_price_in_usd = Lifi.get_token_price(token_in_address, chain)
-        token_out_price_in_usd = Lifi.get_token_price(token_out_address, chain)
-        amount_token_to_buy = (
-            token_out_price_in_usd * expected_amount
-        ) / token_in_price_in_usd
-        amount_in_integer = int(amount_token_to_buy * (10**token_in_decimals))
-        quote = Lifi.get_quote(
+        quote = Lifi.get_quote_to_amount(
             token_in_address,
             token_out_address,
-            amount_in_integer,
+            int(expected_amount * (10**token_out_decimals)),
             from_address,
             chain,
             SLIPPAGE,
         )
-        expected_amount_in_integer = int(expected_amount * (10**token_out_decimals))
-        to_amount_min = int(quote["estimate"]["toAmountMin"])
+        amount_in_integer = int(quote["estimate"]["fromAmount"])
 
-        if strict_output:
-            # The accepted max amount is expected amount + the 1% of the expected amount
-            accepted_max_amount_in_integer = expected_amount_in_integer + (
-                expected_amount_in_integer * 0.01
-            )
-            retries = 0
-            while True:
-                if retries == 4:
-                    break
-                """
-                if to_amount_min is in an accepted range, we're good to do the swap
-                the accepted range is:
-                   - to_amount_min is equal or greater than the expected amount
-                   - to_amount_min is equal or less than the accepted max amount
-                """
-                if (
-                    to_amount_min >= expected_amount_in_integer
-                    and to_amount_min <= accepted_max_amount_in_integer
-                ):
-                    break
-
-                if to_amount_min < accepted_max_amount_in_integer:
-                    surplus = (expected_amount_in_integer / to_amount_min) - 1
-                    amount_in_integer = int(
-                        amount_in_integer + (surplus * amount_in_integer)
-                    )
-                else:
-                    shortage_percentage = 1 - (
-                        to_amount_min / expected_amount_in_integer
-                    )
-                    amount_in_integer = int(
-                        amount_in_integer + (shortage_percentage * amount_in_integer)
-                    )
-
-                quote = Lifi.get_quote(
-                    token_in_address,
-                    token_out_address,
-                    amount_in_integer,
-                    from_address,
-                    chain,
-                    SLIPPAGE,
-                )
-
-                to_amount_min = int(quote["estimate"]["toAmountMin"])
-                retries += 1
     else:
         amount_in_integer = int(expected_amount * (10**token_in_decimals))
-        quote = Lifi.get_quote(
+        quote = Lifi.get_quote_from_amount(
             token_in_address,
             token_out_address,
             amount_in_integer,
@@ -140,8 +87,7 @@ def build_swap_transaction(
     token_out_address: ETHAddress,
     _from: ETHAddress,
     is_exact_input: bool,
-    chain: ChainId,
-    strict_output: bool = True,
+    chain: ChainId
 ) -> list[PreparedTx]:
     token_in_is_native = token_in_address.hex == NATIVE_TOKEN_ADDRESS
     token_in = ethereum_client.w3.eth.contract(
@@ -167,8 +113,7 @@ def build_swap_transaction(
         chain,
         amount,
         not is_exact_input,
-        _from,
-        strict_output,
+        _from
     )
 
     native_token_symbol = get_native_token_symbol(chain)
