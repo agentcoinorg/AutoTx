@@ -1,7 +1,7 @@
 
 import json
 from textwrap import dedent
-from typing import Annotated, Any, Callable, Optional, Type, Union, cast
+from typing import Annotated, Callable, Optional, Union, cast
 from web3 import Web3
 from autotx.AutoTx import AutoTx
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
@@ -15,12 +15,19 @@ from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_AS_STRING, ChainId
 name = "research-tokens"
 
 system_message = lambda autotx: dedent(f"""
-    You are an AI assistant. Assist the user (address: {autotx.manager.address}) in their task of researching tokens.
-    You are an expert in Ethereum tokens and can help users research tokens.
+    You are an AI assistant that's an expert in Ethereum tokens. Assist the user in their task of researching tokens.
     ONLY focus on the token research aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
     Retrieve token information, get token price, market cap, and price change percentage.
-    Always fetch available token categories before suggesting names, do not make them up.
+    BEFORE calling get_tokens_based_on_category always call get_available_categories to get the list of available categories.
+    You MUST keep in mind the network the user is on and if the request is for a specific network, all networks, or the current network (it could be implied).
+    If the user is interested in buying the tokens you're researching make sure you're searching them for his network.
+    If searching for tokens to buy, make sure to:
+    1. Get all the tokens you need (if fetching from multiple categories the tokens could overlap, so you might need to fetch more until you get the number you need)
+    2. Calculate how much of each token to buy
+    If a token does not have enough liquidity on the network, either:
+    - Search for another token (if it is within the user's goal)
+    - Or inform the user that the token is not available on the network (E.g. if the user's goal is to buy that specific token)
     """
 )
 

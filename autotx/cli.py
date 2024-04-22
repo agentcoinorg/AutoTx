@@ -13,7 +13,6 @@ load_dotenv()
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
-from autotx.utils.ethereum import get_native_balance
 
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -35,7 +34,9 @@ def main() -> None:
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose mode")
 @click.option("-l", "--logs", type=click.Path(exists=False, file_okay=False, dir_okay=True), help="Path to the directory where logs will be stored.")
-def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None) -> None:
+@click.option("-r", "--max-rounds", type=int, help="Maximum number of rounds to run")
+@click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
+def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
 
     now = datetime.now()
     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
@@ -100,7 +101,7 @@ Support: https://discord.polywrap.io
         show_address_balances(web3, network_info.chain_id, manager.address)
         print("=" * 50)
 
-    get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
+    get_llm_config = lambda: { "cache_seed": 1 if cache else None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
     agents = [
         SendTokensAgent(),
         SwapTokensAgent()
@@ -113,12 +114,15 @@ Support: https://discord.polywrap.io
         manager,
         network_info,
         agents,
-        Config(verbose=verbose, logs_dir=logs_dir),
-        get_llm_config=get_llm_config
+        Config(verbose=verbose, logs_dir=logs_dir, max_rounds=max_rounds),
+        get_llm_config=get_llm_config,
     )
 
-    autotx.run(cast(str, prompt), non_interactive)
+    result = autotx.run(cast(str, prompt), non_interactive)
 
+    if result.total_cost_without_cache > 0:
+        print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
+        
     if not smart_account_addr:
         print("=" * 50)
         print("Final smart account balances:")
