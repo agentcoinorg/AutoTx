@@ -4,7 +4,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 
 DIFFERENCE_PERCENTAGE = 1.01
 
-def test_auto_tx_swap_and_send_simple(configuration, auto_tx, test_accounts):
+def test_swap_and_send_simple(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -22,7 +22,7 @@ def test_auto_tx_swap_and_send_simple(configuration, auto_tx, test_accounts):
     assert excepted_safe_wbtc_balance <= new_wbtc_safe_address <= new_wbtc_safe_address * DIFFERENCE_PERCENTAGE
     assert new_receiver_wbtc_balance == 0.01
 
-def test_auto_tx_swap_and_send_complex(configuration, auto_tx, test_accounts):
+def test_swap_and_send_complex(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -45,7 +45,7 @@ def test_auto_tx_swap_and_send_complex(configuration, auto_tx, test_accounts):
     assert expected_usdc_safe_balance <= new_usdc_safe_address <= expected_usdc_safe_balance * DIFFERENCE_PERCENTAGE
     assert new_receiver_usdc_balance == 50
 
-def test_auto_tx_send_and_swap_simple(configuration, auto_tx, test_accounts):
+def test_send_and_swap_simple(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)
@@ -70,7 +70,7 @@ def test_auto_tx_send_and_swap_simple(configuration, auto_tx, test_accounts):
     assert new_receiver_wbtc_balance == receiver_wbtc_balance
     assert new_receiver_native_balance == receiver_native_balance + 0.1
 
-def test_auto_tx_send_and_swap_complex(configuration, auto_tx, test_accounts):
+def test_send_and_swap_complex(configuration, auto_tx, test_accounts):
     (_, _, client, manager) = configuration
     web3 = load_w3()
     network_info = NetworkInfo(web3.eth.chain_id)

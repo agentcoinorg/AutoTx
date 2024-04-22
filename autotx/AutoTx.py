@@ -1,5 +1,7 @@
 from enum import Enum
+from datetime import datetime
 import json
+import os
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
 from dataclasses import dataclass
@@ -7,7 +9,7 @@ from autogen import Agent as AutogenAgent
 from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
-from autotx.helper_agents import clarifier, manager, user_proxy, verifier
+from autotx.helper_agents import clarifier, manager, user_proxy
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import SafeManager
@@ -16,7 +18,15 @@ from autotx.utils.ethereum.networks import NetworkInfo
 @dataclass(kw_only=True)
 class Config:
     verbose: bool
-    logs_dir: Optional[str]
+    logs_dir: Optional[str] = None
+    log_costs: bool
+    max_rounds: int
+
+    def __init__(self, verbose: bool, logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
+        self.verbose = verbose
+        self.logs_dir = logs_dir
+        self.log_costs = log_costs if log_costs is not None else False
+        self.max_rounds = max_rounds if max_rounds is not None else 100
 
 @dataclass
 class PastRun:
@@ -33,6 +43,8 @@ class RunResult:
     chat_history_json: str
     transactions: list[PreparedTx]
     end_reason: EndReason
+    total_cost_without_cache: float
+    total_cost_with_cache: float
 
 class AutoTx:
     manager: SafeManager
@@ -41,6 +53,8 @@ class AutoTx:
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     agents: list[AutoTxAgent]
+    log_costs: bool
+    max_rounds: int
 
     def __init__(
         self,
@@ -58,11 +72,28 @@ class AutoTx:
             silent=not config.verbose
         )
         self.agents = agents
+        self.log_costs = config.log_costs
+        self.max_rounds = config.max_rounds
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+        total_cost_without_cache: float = 0
+        total_cost_with_cache: float = 0
+
         while True:
             result = self.try_run(prompt, non_interactive, summary_method)
+            total_cost_without_cache += result.total_cost_without_cache
+            total_cost_with_cache += result.total_cost_with_cache
+
             if result.end_reason == EndReason.TERMINATE or non_interactive:
+                if self.log_costs:
+                    now = datetime.now()
+                    now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
+
+                    if not os.path.exists("costs"):
+                        os.makedirs("costs")
+                    with open(f"costs/{now_str}.txt", "w") as f:
+                        f.write(str(total_cost_without_cache))
+
                 return result
             else:
                 cprint("Prompt not supported. Please provide a new prompt.", "yellow")
@@ -98,19 +129,27 @@ class AutoTx:
             agents_information = self.get_agents_information(self.agents)
 
             user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, self.manager.address, self.network.chain_id.name, non_interactive, self.get_llm_config)
+            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, non_interactive, self.get_llm_config)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
-                verifier.build(self.get_llm_config),
                 clarifier_agent
             ]
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
 
-            manager_agent = manager.build(autogen_agents + helper_agents, self.get_llm_config)
+            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, self.get_llm_config)
 
-            chat = user_proxy_agent.initiate_chat(manager_agent, message=prompt, summary_method=summary_method)
+            chat = user_proxy_agent.initiate_chat(
+                manager_agent, 
+                message=dedent(
+                    f"""
+                    I am currently connected with the following wallet: {self.manager.address}, on network: {self.network.chain_id.name}
+                    My goal is: {prompt} 
+                    """
+                ), 
+                summary_method=summary_method
+            )
 
             if "ERROR:" in chat.summary:
                 error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
@@ -147,7 +186,7 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED)
+        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]))
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []
