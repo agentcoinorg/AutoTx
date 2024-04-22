@@ -16,6 +16,8 @@ def fill_dev_account_with_erc20(
     tokens_to_transfer = {"usdc": 3500, "dai": 3500, "wbtc": 0.1}
     if network_info.chain_id is ChainId.GNOSIS:
         tokens_to_transfer = {"usdc": 2000, "gno": 5, "cow": 4000 }
+    if network_info.chain_id is ChainId.POLYGON:
+        tokens_to_transfer = {"usdc": 2000, "wbtc": 0.01, "dai": 2000 }
 
     native_token_address = ETHAddress(NATIVE_TOKEN_ADDRESS)
     for token in network_info.tokens:

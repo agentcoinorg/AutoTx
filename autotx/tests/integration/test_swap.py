@@ -197,17 +197,3 @@ def test_swap_multiple_tokens(configuration):
     shib_balance = manager.balance_of(shib_address)
     shib_balance = manager.balance_of(shib_address)
     assert shib_balance > 0
-
-
-# def test_swap_through_eoa(configuration):
-#     (user, _, client, _) = configuration
-#     network_info = NetworkInfo(client.w3.eth.chain_id)
-#     gno_address = ETHAddress(network_info.tokens["gno"])
-#     swap(
-#         client,
-#         user,
-#         3,
-#         ETHAddress(NATIVE_TOKEN_ADDRESS),
-#         gno_address,
-#         network_info.chain_id
-#     )

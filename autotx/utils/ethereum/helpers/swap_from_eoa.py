@@ -16,7 +16,7 @@ def swap(
 ) -> None:
     txs = build_swap_transaction(
         client,
-        Decimal(amount),
+        Decimal(str(amount)),
         from_token,
         to_token,
         ETHAddress(user.address),
@@ -24,12 +24,13 @@ def swap(
         chain
     )
 
-    for i, tx in enumerate(txs):
+    for tx in txs:
+        gas = 1500000 if chain is ChainId.GNOSIS else int(tx.tx["gas"], 0)
         transaction = user.sign_transaction(  # type: ignore
             {
                 **tx.tx,
                 "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": 1500000
+                "gas": gas
             }
         )
 

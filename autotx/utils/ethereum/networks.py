@@ -80,6 +80,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
             "usdc": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
             "dai": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
             "usdt": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+            "wbtc": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6"
         },
     ),
     ChainId.BASE_MAINNET: NetworkConfiguration(
