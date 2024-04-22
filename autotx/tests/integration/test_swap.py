@@ -3,7 +3,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
-PLUS_DIFFERENCE_PERCENTAGE = 0.01
+PLUS_DIFFERENCE_PERCENTAGE = 0.007
 
 
 def test_buy_one_usdc(configuration):
@@ -51,7 +51,7 @@ def test_buy_one_thousand_usdc(configuration):
         desired_amount * PLUS_DIFFERENCE_PERCENTAGE
     )
 
-def test_buy_small_potion_wbtc_with_eth(configuration):
+def test_buy_small_amount_wbtc_with_eth(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
@@ -73,7 +73,7 @@ def test_buy_small_potion_wbtc_with_eth(configuration):
         desired_amount * PLUS_DIFFERENCE_PERCENTAGE
     )
 
-def test_buy_big_potion_wbtc_with_eth(configuration):
+def test_buy_big_amount_wbtc_with_eth(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])

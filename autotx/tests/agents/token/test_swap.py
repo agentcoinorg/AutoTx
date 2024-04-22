@@ -3,7 +3,7 @@ from autotx.utils.ethereum.lifi.swap import SLIPPAGE
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-PLUS_DIFFERENCE_PERCENTAGE = 0.011
+PLUS_DIFFERENCE_PERCENTAGE = 0.007
 
 def test_auto_tx_swap_with_non_default_token(configuration, auto_tx):
     (_, _, _, manager) = configuration
@@ -123,7 +123,9 @@ def test_auto_tx_swap_complex_2(configuration, auto_tx): # This one is complex b
     auto_tx.run(prompt, non_interactive=True)
 
     wbtc_balance = manager.balance_of(wbtc_address)
-    expected_amount = 0.001
-    expected_amount_plus_slippage = expected_amount * PLUS_DIFFERENCE_PERCENTAGE
-    assert expected_amount <= wbtc_balance and wbtc_balance <= expected_amount + expected_amount_plus_slippage
+    expected_wbtc_amount = 0.001
+    expected_wbtc_amount_plus_slippage = (
+        expected_wbtc_amount + expected_wbtc_amount * PLUS_DIFFERENCE_PERCENTAGE
+    )
+    assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount_plus_slippage
     assert usdc_balance < manager.balance_of(usdc_address)

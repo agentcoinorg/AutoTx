@@ -13,7 +13,7 @@ from autotx.utils.ethereum.networks import ChainId
 from gnosis.eth import EthereumClient
 from web3.types import TxParams, Wei
 
-SLIPPAGE = 0.005  # 0.05%
+SLIPPAGE = 0.005  # 0.5%
 
 
 @dataclass
