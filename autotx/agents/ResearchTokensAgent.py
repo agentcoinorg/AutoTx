@@ -25,6 +25,9 @@ system_message = lambda autotx: dedent(f"""
     If searching for tokens to buy, make sure to:
     1. Get all the tokens you need (if fetching from multiple categories the tokens could overlap, so you might need to fetch more until you get the number you need)
     2. Calculate how much of each token to buy
+    If a token does not have enough liquidity on the network, either:
+    - Search for another token (if it is within the user's goal)
+    - Or inform the user that the token is not available on the network (E.g. if the user's goal is to buy that specific token)
     """
 )
 

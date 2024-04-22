@@ -83,15 +83,18 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 
     return (network_info.tokens[token_in], network_info.tokens[token_out])
 
+class InvalidInput(Exception):
+    pass
+
 def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[PreparedTx]:
     sell_parts = token_to_sell.split(" ")
     buy_parts = token_to_buy.split(" ")
 
     if len(sell_parts) == 2 and len(buy_parts) == 2:
-        raise Exception("Invalid input. Only one token amount should be provided. IMPORTANT: Take another look at the user's goal, and try again.")
+        raise InvalidInput(f"Invalid input: \"{token_to_sell} to {token_to_buy}\". Only one token amount should be provided. IMPORTANT: Take another look at the user's goal, and try again.")
     
     if len(sell_parts) < 2 and len(buy_parts) < 2:
-        raise Exception("Invalid input. Token amount is missing.")
+        raise InvalidInput("Invalid input: \"{token_to_sell} to {token_to_buy}\". Token amount is missing.")
 
     token_symbol_to_sell = sell_parts[1] if len(sell_parts) == 2 else sell_parts[0]
     token_symbol_to_buy = buy_parts[1] if len(buy_parts) == 2 else buy_parts[0]
@@ -142,16 +145,26 @@ class BulkSwapTool(AutoTxTool):
         ) -> str:
             swaps = tokens.split("\n")
             all_txs = []
+            all_errors = []
 
             for swap_str in swaps:
                 (token_to_sell, token_to_buy) = swap_str.strip().split(" to ")
-                txs = swap(autotx, token_to_sell, token_to_buy)
-                all_txs.extend(txs)
+                try:
+                    txs = swap(autotx, token_to_sell, token_to_buy)
+                    all_txs.extend(txs)
+                except InvalidInput as e:
+                    all_errors.append(e)
+                except Exception as e:
+                    all_errors.append(Exception(f"Error: {e} for swap \"{token_to_sell} to {token_to_buy}\""))
+
 
             summary = "".join(
                 f"Prepared transaction: {swap_transaction.summary}\n"
                 for swap_transaction in all_txs
             )
+
+            if all_errors:
+                summary += "\n".join(str(e) for e in all_errors)
 
             return summary
 
