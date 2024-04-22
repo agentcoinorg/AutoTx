@@ -3,7 +3,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
-PLUS_DIFFERENCE_PERCENTAGE = 0.007
+DIFFERENCE_PERCENTAGE = 0.007
 
 
 def test_buy_one_usdc(configuration):
@@ -25,7 +25,7 @@ def test_buy_one_usdc(configuration):
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
     assert usdc_balance >= desired_amount and usdc_balance <= desired_amount + (
-        desired_amount * PLUS_DIFFERENCE_PERCENTAGE
+        desired_amount * DIFFERENCE_PERCENTAGE
     )
 
 
@@ -49,7 +49,7 @@ def test_buy_one_thousand_usdc(configuration):
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
     assert usdc_balance >= desired_amount and usdc_balance <= desired_amount + (
-        desired_amount * PLUS_DIFFERENCE_PERCENTAGE
+        desired_amount * DIFFERENCE_PERCENTAGE
     )
 
 
@@ -111,7 +111,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
     assert wbtc_balance >= desired_amount and wbtc_balance <= desired_amount + (
-        desired_amount * PLUS_DIFFERENCE_PERCENTAGE
+        desired_amount * DIFFERENCE_PERCENTAGE
     )
 
 
@@ -134,7 +134,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
     assert wbtc_balance >= desired_amount and wbtc_balance <= desired_amount + (
-        desired_amount * PLUS_DIFFERENCE_PERCENTAGE
+        desired_amount * DIFFERENCE_PERCENTAGE
     )
 
 
