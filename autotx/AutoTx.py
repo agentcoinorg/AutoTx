@@ -19,12 +19,14 @@ from autotx.utils.ethereum.networks import NetworkInfo
 class Config:
     verbose: bool
     logs_dir: Optional[str] = None
-    log_costs: Optional[bool] = None
-    max_rounds: Optional[int] = None
+    log_costs: bool
+    max_rounds: int
 
-    def __post_init__(self) -> None:
-        if self.max_rounds is None:
-            self.max_rounds = 100
+    def __init__(self, verbose: bool, logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
+        self.verbose = verbose
+        self.logs_dir = logs_dir
+        self.log_costs = log_costs if log_costs is not None else False
+        self.max_rounds = max_rounds if max_rounds is not None else 100
 
 @dataclass
 class PastRun:
@@ -70,9 +72,7 @@ class AutoTx:
             silent=not config.verbose
         )
         self.agents = agents
-        self.log_costs = config.log_costs if config.log_costs is not None else False
-        if config.max_rounds is None:
-            raise ValueError("max_rounds must be provided")
+        self.log_costs = config.log_costs
         self.max_rounds = config.max_rounds
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
