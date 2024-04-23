@@ -87,9 +87,8 @@ def get_quote(
             "to": quote["transactionRequest"]["to"],
             "from": quote["transactionRequest"]["from"],
             "data": quote["transactionRequest"]["data"],
-            "data": quote["transactionRequest"]["gasPrice"],
-            "gas": quote["transactionRequest"]["gasLimit"],
             "gasPrice": quote["transactionRequest"]["gasPrice"],
+            "gas": quote["transactionRequest"]["gasLimit"],
             "value": Wei(int(quote["transactionRequest"]["value"], 0)),
             "chainId": quote["transactionRequest"]["chainId"]
         }

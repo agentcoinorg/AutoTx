@@ -32,7 +32,7 @@ class NetworkInfo:
         return {
             cast(str, token["symbol"]).lower(): Web3.to_checksum_address(cast(str, token["address"]))
             for token in token_list
-            if token["chainId"] == chain_id
+            if token["chainId"] == chain_id and Web3.is_checksum_address(cast(str, token["address"]))
         }
 
 
