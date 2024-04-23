@@ -26,6 +26,7 @@ system_message = lambda autotx: dedent(f"""
     You use the tools available to assist the user in their tasks. 
     Your job is to only prepare the transactions by calling the prepare_transfer_transaction tool and the user will take care of executing them.
     NOTE: There is no reason to call get_token_balance after calling prepare_transfer_transaction as the transfers are only prepared and not executed. 
+    NOTE: A balance of a token is not required to perform a send, if there is an earlier prepared transaction that will provide the token.
     
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then swap ETH to 5 USDC
