@@ -25,7 +25,7 @@ def swap(
     )
 
     for tx in txs:
-        gas = 1500000 if chain is ChainId.GNOSIS else int(tx.tx["gas"], 0)
+        gas = 1500000 if chain is ChainId.GNOSIS else tx.tx["gas"]
         transaction = user.sign_transaction(  # type: ignore
             {
                 **tx.tx,
