@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any
 import requests
 import re
@@ -36,11 +37,20 @@ def handle_lifi_response(response: requests.Response) -> dict[str, Any]:
     raise LifiApiError(f"Fetch quote failed with error: {response_json['message']}")
 
 
+def add_authorization_info_if_provided(params: dict[str, Any]) -> dict[str, Any] | None:
+    headers: dict[str, Any] | None = None
+    lifi_api_key = os.getenv("LIFI_API_KEY")
+    if lifi_api_key:
+        headers = {"x-lifi-api-key": lifi_api_key}
+        params["integrator"] = "polywrap"
+    return headers
+
+
 class Lifi:
     BASE_URL = "https://li.quest/v1"
 
     @classmethod
-    def get_quote_to_amount( # type: ignore
+    def get_quote_to_amount(  # type: ignore
         cls,
         from_token: ETHAddress,
         to_token: ETHAddress,
@@ -48,7 +58,7 @@ class Lifi:
         _from: ETHAddress,
         chain: ChainId,
         slippage: float,
-    ) -> dict[str, Any]: 
+    ) -> dict[str, Any]:
         params: dict[str, Any] = {
             "fromToken": from_token.hex,
             "toToken": to_token.hex,
@@ -59,9 +69,10 @@ class Lifi:
             "slippage": slippage,
             "contractCalls": [],
         }
+        headers = add_authorization_info_if_provided(params)
         attempt_count = 0
         while attempt_count < 2:
-            response = requests.post(cls.BASE_URL + "/quote/contractCalls", json=params)
+            response = requests.post(cls.BASE_URL + "/quote/contractCalls", json=params, headers=headers)
             try:
                 return handle_lifi_response(response)
             except LifiApiError as e:
@@ -94,5 +105,6 @@ class Lifi:
             "toChain": chain.value,
             "slippage": slippage,
         }
-        response = requests.get(cls.BASE_URL + "/quote", params=params)  # type: ignore
+        headers = add_authorization_info_if_provided(params)
+        response = requests.get(cls.BASE_URL + "/quote", params=params, headers=headers)  # type: ignore
         return handle_lifi_response(response)
