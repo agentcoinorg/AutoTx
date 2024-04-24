@@ -1,4 +1,5 @@
 from decimal import Decimal
+import json
 from autotx.utils.ethereum.eth_address import ETHAddress
 from eth_account.signers.local import LocalAccount
 from gnosis.eth import EthereumClient
@@ -25,12 +26,15 @@ def swap(
     )
 
     for tx in txs:
-        gas = 1500000 if chain is ChainId.GNOSIS else tx.tx["gas"]
+        if chain in [ChainId.GNOSIS, ChainId.BASE_MAINNET]:
+            del tx.tx["gas"]
+            gas = client.w3.eth.estimate_gas(tx.tx)
+            tx.tx.update({"gas": gas})
+
         transaction = user.sign_transaction(  # type: ignore
             {
                 **tx.tx,
                 "nonce": client.w3.eth.get_transaction_count(user.address),
-                "gas": gas
             }
         )
 
@@ -39,4 +43,4 @@ def swap(
         receipt = client.w3.eth.wait_for_transaction_receipt(hash)
 
         if receipt["status"] == 0:
-            raise Exception(f"Transaction to swap {from_token.hex} to {amount} {to_token.hex} failed")
+            print(f"Transaction to swap {from_token.hex} to {amount} {to_token.hex} failed")
