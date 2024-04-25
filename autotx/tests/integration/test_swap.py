@@ -1,6 +1,5 @@
 from decimal import Decimal
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
@@ -135,14 +134,13 @@ def test_swap_multiple_tokens(configuration):
     (_, _, client, manager) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
 
-    eth_address = ETHAddress(network_info.tokens["xdai"])
+    eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
     shib_address = ETHAddress(network_info.tokens["shib"])
 
     usdc_balance = manager.balance_of(usdc_address)
     assert usdc_balance == 0
-
 
     sell_eth_for_usdc_transaction = build_swap_transaction(
         client,
