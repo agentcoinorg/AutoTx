@@ -4,6 +4,7 @@ from typing import Any
 import requests
 import re
 
+from autotx.utils.constants import LIFI_API_KEY
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
 
@@ -39,9 +40,8 @@ def handle_lifi_response(response: requests.Response) -> dict[str, Any]:
 
 def add_authorization_info_if_provided(params: dict[str, Any]) -> dict[str, Any] | None:
     headers: dict[str, Any] | None = None
-    lifi_api_key = os.getenv("LIFI_API_KEY")
-    if lifi_api_key:
-        headers = {"x-lifi-api-key": lifi_api_key}
+    if LIFI_API_KEY:
+        headers = {"x-lifi-api-key": LIFI_API_KEY}
         params["integrator"] = "polywrap"
     return headers
 
