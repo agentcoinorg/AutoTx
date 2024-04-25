@@ -26,10 +26,9 @@ def swap(
     )
 
     for tx in txs:
-        if chain in [ChainId.GNOSIS, ChainId.BASE_MAINNET]:
-            del tx.tx["gas"]
-            gas = client.w3.eth.estimate_gas(tx.tx)
-            tx.tx.update({"gas": gas})
+        del tx.tx["gas"]
+        gas = client.w3.eth.estimate_gas(tx.tx)
+        tx.tx.update({"gas": gas})
 
         transaction = user.sign_transaction(  # type: ignore
             {
