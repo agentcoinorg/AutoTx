@@ -48,7 +48,7 @@ class Lifi:
         _from: ETHAddress,
         chain: ChainId,
         slippage: float,
-    ) -> dict[str, Any]: 
+    ) -> dict[str, Any]:
         params: dict[str, Any] = {
             "fromToken": from_token.hex,
             "toToken": to_token.hex,

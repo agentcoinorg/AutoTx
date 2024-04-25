@@ -5,7 +5,7 @@ import click
 import os
 
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
-from autotx.utils.ethereum.helpers.fill_dev_account_with_erc20 import fill_dev_account_with_erc20
+from autotx.utils.ethereum.helpers.fill_dev_account_with_tokens import fill_dev_account_with_tokens
 from autotx.utils.is_dev_env import is_dev_env
 
 load_dotenv()
@@ -15,7 +15,7 @@ from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
-from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
@@ -92,8 +92,7 @@ Support: https://discord.polywrap.io
         print(f"Smart account deployed: {manager.address}")
         
         if not is_safe_deployed:
-            send_native(dev_account, manager.address, 10, web3)
-            fill_dev_account_with_erc20(client, dev_account, manager.address, network_info)
+            fill_dev_account_with_tokens(client, dev_account, manager.address, network_info)
             print(f"Funds sent to smart account for testing purposes")
 
         print("=" * 50)
