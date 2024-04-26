@@ -30,6 +30,7 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
 | Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
 | Social Search | Research accounts, posts, and sentiment across social networks (ex: Twitter, Farcaster) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/204) |
+| Web3 Domains | Purchase and manage domains (ex: ENS) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/245) |
 | NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
 | LP | Provide liquidity to AMMs. | :thought_balloon: |
