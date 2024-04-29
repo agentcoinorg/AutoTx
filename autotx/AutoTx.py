@@ -129,16 +129,18 @@ class AutoTx:
             agents_information = self.get_agents_information(self.agents)
 
             user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, non_interactive, self.get_llm_config)
+            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
-                clarifier_agent
             ]
+
+            if not non_interactive:
+                helper_agents.append(clarifier_agent)
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
 
-            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, self.get_llm_config)
+            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
 
             chat = user_proxy_agent.initiate_chat(
                 manager_agent, 
