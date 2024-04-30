@@ -5,17 +5,17 @@ from termcolor import cprint
 
 from autotx.utils.ethereum.eth_address import ETHAddress
 
-def build(user_proxy: UserProxyAgent, agents_information: str, not_interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AssistantAgent:
+def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AssistantAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
         Analyze the user's initial goal if there is missing information, and ask the user for it. 
         E.g. "Buy ETH" -> "How much ETH do you want to buy and with what token?"
-        """ if not not_interactive else "")
+        """ if interactive else "")
 
     missing_2 = dedent("""
         - Call the request_user_input tool if more information is needed to define the goal.
-        """ if not not_interactive else "")
+        """ if interactive else "")
     
     clarifier_agent = AssistantAgent(
         name="clarifier",
@@ -60,7 +60,7 @@ def build(user_proxy: UserProxyAgent, agents_information: str, not_interactive: 
         code_execution_config=False,
     )
 
-    if not not_interactive:
+    if interactive:
         def request_user_input(
             message: Annotated[str, "The message to ask the user for input"],
         ) -> str:

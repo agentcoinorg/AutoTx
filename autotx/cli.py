@@ -1,5 +1,7 @@
-from typing import cast
 from dotenv import load_dotenv
+load_dotenv()
+
+from typing import cast
 from datetime import datetime
 import click
 import os
@@ -8,13 +10,11 @@ from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 from autotx.utils.ethereum.helpers.fill_dev_account_with_tokens import fill_dev_account_with_tokens
 from autotx.utils.is_dev_env import is_dev_env
 
-load_dotenv()
-
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 
-from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_MODEL_NAME
+from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.AutoTx import AutoTx, Config
@@ -66,6 +66,10 @@ Support: https://discord.polywrap.io
 
     network_info = NetworkInfo(chain_id)
     
+    if verbose:
+        print(f"LLM model: {OPENAI_MODEL_NAME}")
+        print(f"LLM API URL: {OPENAI_BASE_URL}")
+
     if is_dev_env():
         print(f"Connected to fork of {network_info.chain_id.name} network.")
     else:
@@ -100,7 +104,16 @@ Support: https://discord.polywrap.io
         show_address_balances(web3, network_info.chain_id, manager.address)
         print("=" * 50)
 
-    get_llm_config = lambda: { "cache_seed": 1 if cache else None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
+    get_llm_config = lambda: { 
+        "cache_seed": 1 if cache else None, 
+        "config_list": [
+            {
+                "model": OPENAI_MODEL_NAME, 
+                "api_key": OPENAI_API_KEY,
+                "base_url": OPENAI_BASE_URL
+            }
+        ]
+    }
     agents = [
         SendTokensAgent(),
         SwapTokensAgent()
