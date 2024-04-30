@@ -17,15 +17,18 @@
         "autotx/tests/agents/token/test_swap_and_send.py::test_send_and_swap_simple": "100.00",
         "autotx/tests/agents/token/test_swap_and_send.py::test_send_and_swap_complex": "100.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_memecoins_in_optimism": "100.00",
-        "autotx/tests/agents/token/research/test_research.py::test_get_top_5_memecoins": "100.00",
-        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_and_swap_meme_token": "100.00",
-        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_swap_and_send_governance_token": "100.00",
+        "autotx/tests/agents/token/research/test_research.py::test_get_top_5_memecoins": "90.00",
         "autotx/tests/agents/token/research/test_research.py::test_price_change_information": "100.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_tokens_from_base": "100.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_top_5_most_traded_tokens_from_l1": "100.00",
         "autotx/tests/agents/token/research/test_research.py::test_get_token_exchanges": "100.00",
-        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_and_swap_many_tokens_subjective_complex": "33.33",
-        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_and_swap_many_tokens_subjective_simple": "100.00"
+        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_and_buy_one": "100.00",
+        "autotx/tests/agents/token/research/test_research_swap_and_send.py::test_research_buy_one_send_one": "100.00",
+        "autotx/tests/agents/token/research/test_advanced.py::test_research_and_swap_many_tokens_subjective_complex": "10.00",
+        "autotx/tests/agents/token/research/test_research_swap_and_send.py::test_research_buy_multiple_send_multiple": "100.00",
+        "autotx/tests/agents/token/research/test_research_and_swap.py::test_research_and_buy_multiple": "100.00",
+        "autotx/tests/agents/token/research/test_advanced.py::test_research_and_swap_many_tokens_subjective_simple": "90.00",
+        "autotx/tests/agents/token/research/test_research_swap_and_send.py::test_research_buy_one_send_multiple": "100.00"
     },
     "iterations": 10
 }
