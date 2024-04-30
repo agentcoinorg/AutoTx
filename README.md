@@ -63,7 +63,7 @@ Please install the following:
 
 Additional `run` Options:
 * `-v, --verbose` Enable verbose logging.
-* `-n, --non-interactive` Disable all requests for user input.
+* `-n, --non-interactive` Disable all requests for user input, as well as the clarifier agent.
 * `-l, --logs DIRECTORY`  Path to the directory where logs will be stored.
 
 ### Test Locally
@@ -106,10 +106,11 @@ Future possibilities:
 To run AutoTx with your favorite OS model, you can use any provider that simulates the OpenAI API. One of the easiest way to do this is using [together.ai](https://docs.together.ai/docs/quickstart) and following these steps:  
 1. Make a together.ai account.
 1. Set `OPENAI_API_KEY` in the `.env` file to your together.ai account's API key ([found here](https://api.together.xyz/settings/api-keys))
-1. Set `OPENAI_BASE_URL` and `OPENAI_API_BASE` to point to `https://api.together.xyz/v1`
+1. Set `OPENAI_BASE_URL` to point to `https://api.together.xyz/v1`
 1. Set `OPENAI_MODEL_NAME` to one of these recommended JSON-enabled models: `mistralai/Mixtral-8x7B-Instruct-v0.1`, `mistralai/Mistral-7B-Instruct-v0.1`
 
 Now simply run AutoTx as normally do. For more tips on choosing the best model, you can follow [this guide](https://microsoft.github.io/autogen/docs/topics/non-openai-models/best-tips-for-nonopenai-models/).
+NOTE: Non-interactive mode is recommended when using less powerful models (like Open Source models) to avoid hallucinations.
 
 ## How To Contribute
 Interested in contributing to AutoTx? Here are some ideas:
