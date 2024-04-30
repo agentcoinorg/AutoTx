@@ -66,8 +66,9 @@ Support: https://discord.polywrap.io
 
     network_info = NetworkInfo(chain_id)
     
-    print(f"LLM model: {OPENAI_MODEL_NAME}")
-    print(f"LLM API URL: {OPENAI_BASE_URL}")
+    if verbose:
+        print(f"LLM model: {OPENAI_MODEL_NAME}")
+        print(f"LLM API URL: {OPENAI_BASE_URL}")
 
     if is_dev_env():
         print(f"Connected to fork of {network_info.chain_id.name} network.")
