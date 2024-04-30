@@ -46,7 +46,7 @@ system_message = lambda autotx: dedent(f"""
     Call prepare_bulk_swap_transactions: "UNI to 4 USDC"
                                        
     Above are examples, NOTE these are only examples and in practice you need to call the prepare_bulk_swap_transactions tool with the correct arguments.
-    Take extra care in ensuring you have to right amount next to the token symbol. NEVER user more than one amount per swap, the other amount will be calculated for you.
+    Take extra care in ensuring you have to right amount next to the token symbol. NEVER use more than one amount per swap, the other amount will be calculated for you.
     The swaps are NOT NECESSARILY correlated, focus on the exact amounts the user wants to buy or sell (leave the other amounts to be calculated for you).
     Only call tools, do not respond with JSON.
     """
