@@ -62,7 +62,7 @@ def auto_tx(configuration):
             SwapTokensAgent(),
             ResearchTokensAgent()
         ], 
-        Config(verbose=True, logs_dir=None, log_costs=True, max_rounds=50), 
+        Config(verbose=True, logs_dir=None, log_costs=True, max_rounds=100), 
         get_llm_config
     )
 

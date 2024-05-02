@@ -18,6 +18,7 @@ system_message = lambda autotx: dedent(f"""
     You use the tools available to assist the user in their tasks.
     Note a balance of a token is not required to perform a swap, if there is an earlier prepared transaction that will provide the token.
     Below are examples, NOTE these are only examples and in practice you need to call the prepare_bulk_swap_transactions tool with the correct arguments.
+    NEVER ask the user questions.
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then swap ETH to 5 USDC
     ...
@@ -48,7 +49,15 @@ system_message = lambda autotx: dedent(f"""
     Above are examples, NOTE these are only examples and in practice you need to call the prepare_bulk_swap_transactions tool with the correct arguments.
     Take extra care in ensuring you have to right amount next to the token symbol. NEVER use more than one amount per swap, the other amount will be calculated for you.
     The swaps are NOT NECESSARILY correlated, focus on the exact amounts the user wants to buy or sell (leave the other amounts to be calculated for you).
+    You rely on the other agents to provide the token to buy or sell. Never make up a token. Unless explicitly given the name of the token, ask the 'research-tokens' agent to first search for the token.
     Only call tools, do not respond with JSON.
+    """
+)
+
+description = dedent(
+    f"""
+    {name} is an AI assistant that's an expert at buying and selling tokens.
+    The agent can prepare transactions to swap tokens.
     """
 )
 
@@ -160,13 +169,26 @@ class BulkSwapTool(AutoTxTool):
                 else:
                     summary += f"\n{len(all_errors)} errors occurred."
 
-            return summary
+            total_summary = ("\n" + " " * 16).join(
+                [
+                    f"{i + 1}. {tx.summary}"
+                    for i, tx in enumerate(autotx.transactions)
+                ]
+            )
+            return dedent(
+                f"""
+                {summary}
+                Total prepared transactions so far:
+                {total_summary}
+                """
+            )
 
         return run
 
 class SwapTokensAgent(AutoTxAgent):
     name = name
     system_message = system_message
+    description = description
     tools = [
         BulkSwapTool()
     ]

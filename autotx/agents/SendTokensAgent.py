@@ -27,6 +27,7 @@ system_message = lambda autotx: dedent(f"""
     Your job is to only prepare the transactions by calling the prepare_transfer_transaction tool and the user will take care of executing them.
     NOTE: There is no reason to call get_token_balance after calling prepare_transfer_transaction as the transfers are only prepared and not executed. 
     NOTE: A balance of a token is not required to perform a send, if there is an earlier prepared transaction that will provide the token.
+    NEVER ask the user questions.
     
     Example 1:
     User: Send 0.1 ETH to vitalik.eth and then swap ETH to 5 USDC
@@ -48,6 +49,14 @@ system_message = lambda autotx: dedent(f"""
 
     Above are examples, NOTE these are only examples and in practice you need to call the tools with the correct arguments. NEVER respond with JSON.
     Take extra care in the order of transactions to prepare.
+    IF a prepared swap transaction will provide the token needed for a transfer, you DO NOT need to call the get_token_balance tool.
+    """
+)
+
+description = dedent(
+    f"""
+    {name} is an AI assistant that's an expert in Ethereum tokens (native and erc20).
+    The agent can fetch token balances and prepare transactions to send tokens.
     """
 )
 
@@ -121,6 +130,7 @@ class GetTokenBalanceTool(AutoTxTool):
 class SendTokensAgent(AutoTxAgent):
     name = name
     system_message = system_message
+    description = description
     tools = [
         TransferTokenTool(),
         GetTokenBalanceTool(),

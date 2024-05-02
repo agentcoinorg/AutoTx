@@ -13,7 +13,7 @@ def test_price_change_information(auto_tx):
         community_data=False,
         sparkline=False,
     )
-    prompt = "What's the 24 hours price change of Starknet (STRK)"
+    prompt = "What's the 24 hours price change of Starknet (STRK)?"
 
     result = auto_tx.run(prompt, non_interactive=True)
 
@@ -74,7 +74,7 @@ def test_get_top_5_memecoins(auto_tx):
 
 def test_get_top_5_memecoins_in_optimism(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
-    prompt = "What are the top 5 meme coins in optimism"
+    prompt = "What are the top 5 meme coins on Optimism?"
 
     result = auto_tx.run(prompt, non_interactive=True)
 
