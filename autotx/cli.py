@@ -10,7 +10,7 @@ from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 from autotx.utils.ethereum.helpers.fill_dev_account_with_tokens import fill_dev_account_with_tokens
 from autotx.utils.is_dev_env import is_dev_env
 
-from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
+from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 
@@ -120,7 +120,7 @@ Support: https://discord.polywrap.io
     ]
 
     if COINGECKO_API_KEY:
-        agents.append(ResearchTokensAgent())
+        agents.append(DelegateResearchTokensAgent())
 
     autotx = AutoTx(
         manager,

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 load_dotenv()
 
-from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
+from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
 
@@ -60,7 +60,7 @@ def auto_tx(configuration):
         [
             SendTokensAgent(),
             SwapTokensAgent(),
-            ResearchTokensAgent()
+            DelegateResearchTokensAgent()
         ], 
         Config(verbose=True, logs_dir=None, log_costs=True, max_rounds=100), 
         get_llm_config
