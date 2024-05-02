@@ -132,7 +132,7 @@ class AutoTx:
 
             agents_information = self.get_agents_information(self.agents)
 
-            user_proxy_agent = user_proxy.build(prompt, agents_information, self.manager.address, self.network.chain_id.name, self.transactions, self.get_llm_config)
+            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
             clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config)
 
             helper_agents: list[AutogenAgent] = [

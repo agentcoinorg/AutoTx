@@ -1,11 +1,8 @@
 from textwrap import dedent
-from typing import Annotated, Any, Callable, Dict, Optional
-from autogen import UserProxyAgent, AssistantAgent
+from typing import Any, Callable, Dict, Optional
+from autogen import UserProxyAgent
 
-from autotx.utils.PreparedTx import PreparedTx
-from autotx.utils.ethereum.eth_address import ETHAddress
-
-def build(user_prompt: str, agents_information: str, smart_account: ETHAddress, network_name, transactions: list[PreparedTx], get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> UserProxyAgent:
+def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> UserProxyAgent:
     user_proxy = UserProxyAgent(
         name="user_proxy",
         is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),

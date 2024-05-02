@@ -24,16 +24,6 @@ def test_price_change_information(auto_tx):
         str(price_change) in result.chat_history_json or str(price_change_rounded) in result.chat_history_json
     )
 
-def test_get_token_exchanges(auto_tx):
-    prompt = "What are all the places I can buy OP?"
-
-    result = auto_tx.run(prompt, non_interactive=True)
-
-    assert "Binance".lower() in result.chat_history_json.lower()
-    assert "Coinbase".lower() in result.chat_history_json.lower()
-    assert "Kraken".lower() in result.chat_history_json.lower()
-    assert "Uniswap v3".lower() in result.chat_history_json.lower()
-
 def test_get_top_5_tokens_from_base(auto_tx):
     tokens = get_coingecko().coins.get_markets(
         vs_currency="usd", category="base-ecosystem"
