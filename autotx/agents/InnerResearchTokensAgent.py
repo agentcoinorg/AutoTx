@@ -30,6 +30,7 @@ system_message = lambda autotx: dedent(f"""
     - Search for another token (if it is within the user's goal)
     - Or inform the user that the token is not available on the network (E.g. if the user's goal is to buy that specific token)
     If a user wants to research a specific number of tokens across categories, make sure to get the exact number of tokens without duplicates.
+    If some tokens are not available, find alternatives and inform the user.
     """
 )
 
