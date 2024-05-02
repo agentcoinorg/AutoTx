@@ -47,6 +47,16 @@ system_message = lambda autotx: dedent(f"""
         "token": "UNI"
     }}
 
+    Example 3:
+    User: Send 10 USDC to 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 then buy 5 UNI with ETH and send 40 WBTC to 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+    Call prepare_transfer_transaction with args:
+    {{
+        "amount": 10,
+        "receiver": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        "token": "USDC"
+    }}
+    NOTE: the second transfer was not prepared because it's waiting for the swap transaction to be prepared first.
+
     Above are examples, NOTE these are only examples and in practice you need to call the tools with the correct arguments. NEVER respond with JSON.
     Take extra care in the order of transactions to prepare.
     IF a prepared swap transaction will provide the token needed for a transfer, you DO NOT need to call the get_token_balance tool.
