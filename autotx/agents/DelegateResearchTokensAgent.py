@@ -25,9 +25,12 @@ system_message = lambda autotx: dedent(f"""
     User: I want to buy the top AI and top GameFI token.
     research: {{ "tasks": "Find the top AI token and top GameFI token, if they're the same find an alternative for one of them" }}
     User: I want to buy the top 3 AI and GameFI tokens.
-    research: {{ "tasks": "Find the top 3 AI and GameFI tokens. It needs to be exactly 3 tokens without duplicates" }}
-                                       
-    research: {{ "tasks": "Find the top 14 AI, GameFI and DEX tokens. It needs to be exactly 14 tokens without duplicates" }}
+    research: {{ "tasks": "Find the top 3 AI and GameFI tokens. It needs to be exactly 3 tokens total and without duplicates" }}
+    User: I want to buy the top 6 AI and GameFI tokens.
+    research: {{ "tasks": "Find the top 6 AI, GameFI and DEX tokens. It needs to be exactly 6 tokens total and without duplicates" }}
+
+    More examples:
+    research: {{ "tasks": "What's the 24 hours price change of SHIB?" }}
     research: {{ "tasks": "Retrieve detailed information on the Ethereum token DAI including current price, market cap, and price change percentages." }}
     research: {{ "tasks": "Find all tokens available in the DeFi category and filter them based on their performance on the Optimism network." }}
     research: {{ "tasks": "Compare the price change percentages over the last 24 hours, 7 days, and 30 days for tokens within the Gaming category." }}
