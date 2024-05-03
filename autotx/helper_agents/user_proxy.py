@@ -21,11 +21,11 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
             NEVER ask the user questions.
             NEVER make up a token, ALWAYS ask the 'research-tokens' agent to first search for the token.
             
-            If the goal has been achieved, FIRST reflect on the goal and make sure nothing is missing, then end the conversation with TERMINATE.
+            If the goal has been achieved, FIRST reflect on the goal and make sure nothing is missing, then end the conversation with 'TERMINATE' (it MUST be upper case and in the same message).
             Consider the goal met if the other agents have prepared the necessary transactions and all user queries have been answered.
             If the user's goal involves buying tokens, make sure the correct number of tokens are bought.
             For buying tokens, you can use the 'swap-tokens' agent.
-            If you encounter an error, try to resolve it (either yourself of with other agents) and only respond with TERMINATE if the goal is truly not achievable.
+            If you encounter an error, try to resolve it (either yourself of with other agents) and only respond with 'TERMINATE' if the goal is truly not achievable.
             Try to find an alternative solution if the goal is not achievable.
             If a token is not supported, ask the 'research-tokens' agent to find a supported token (if it fits within the user's goal).
             """

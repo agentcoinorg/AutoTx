@@ -1,9 +1,8 @@
 
-import sys
 from textwrap import dedent
-from typing import Annotated, Callable, List
+from typing import Annotated, Callable
 from autotx.AutoTx import AutoTx
-from autogen import UserProxyAgent
+from autogen import UserProxyAgent, ChatResult
 
 from autotx.agents.ResearchTokensAgent import ResearchTokensAgent
 from autotx.autotx_agent import AutoTxAgent
@@ -55,6 +54,17 @@ description = dedent(
     """
 )
 
+def aggregate_chat_responses(chat: ChatResult) -> str:
+    summary = ""
+    # Go through the chat history in reverse order while ignoring tool messages and first message
+    for i in range(len(chat.chat_history) - 1, 0, -1):
+        last_message = chat.chat_history[i]
+        
+        if last_message["content"] and last_message["role"] != "tool":
+            summary = last_message["content"] + "\n" + summary
+
+    return summary.replace("TERMINATE", "")
+
 class ResearchUserQuery(AutoTxTool):
     name: str = "research"
     description: str = "Research user task"
@@ -77,11 +87,16 @@ class ResearchUserQuery(AutoTxTool):
                     NEVER ask the user questions.
                     NEVER make up a token, ALWAYS ask the 'research-tokens' agent to first search for the token.
                     
-                    If the goal has been achieved, FIRST reflect on the goal and make sure nothing is missing, then end the conversation with "TERMINATE".
+                    If the goal has been achieved, FIRST reflect on the goal and make sure nothing is missing, then end the conversation with "TERMINATE" (it MUST be upper case and in the same message.)
                     Consider the goal met if the other agents have prepared the necessary transactions and all user tasks have been answered.
                     If the user's goal involves buying tokens, make sure the correct number of tokens are bought.
                     If you encounter an error, try to resolve it (either yourself of with other agents) and only respond with "TERMINATE" if the goal is impossible to achieve.
                     If a token is not supported, ask the researcher agent to find a supported token (if it fits within the user's goal).
+
+                    Before ending the conversation, make to summarize the answers to the user's tasks:
+                    ```
+                    {tasks}
+                    ```
                     """
                 ),
                 description="user_proxy is an agent authorized to act on behalf of the user.",
@@ -99,21 +114,15 @@ class ResearchUserQuery(AutoTxTool):
                     Tasks:
                     {tasks}
                     """
-                ), 
-                summary_method="reflection_with_llm",
-                summary_args={
-                    "summary_prompt": dedent(
-                        f"""
-                        Summarize the answers to the user's tasks.
-                        {tasks}
-                        """
-                    ), 
-                }
+                ),
             )
 
             autotx.current_run_cost_with_cache += float(chat.cost["usage_including_cached_inference"]["total_cost"])
             autotx.current_run_cost_without_cache += float(chat.cost["usage_excluding_cached_inference"]["total_cost"])
-            return str(chat.summary)
+
+            summary = aggregate_chat_responses(chat)
+
+            return summary
 
         return run
 
