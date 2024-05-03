@@ -38,6 +38,10 @@ system_message = lambda autotx: dedent(f"""
     User: Swap ETH to 5 USDC, then swap that USDC for 6 UNI
     Call prepare_bulk_swap_transactions: "ETH to 5 USDC\nUSDC to 6 UNI"
                                        
+    Example 4:
+    User: Buy 2 ETH worth of WBTC and then send 1 WBTC to 0x123..456
+    Call prepare_bulk_swap_transactions: "2 ETH to WBTC"
+                                       
     Example of a bad input:
     User: Swap ETH to 1 UNI, then swap UNI to 4 USDC
     Call prepare_bulk_swap_transactions: "ETH to 1 UNI\n1 UNI to 4 USDC"
