@@ -38,7 +38,7 @@ system_message = lambda autotx: dedent(f"""
     research: {{ "tasks": "Get the Ethereum addresses for all tokens in the Yield Farming category on the Polygon network to prepare for potential trades." }}
 
     Bad examples:
-    research: {{ "tasks": "Find best crpyto investment strategy" }}
+    research: {{ "tasks": "Find best crypto investment strategy" }}
     research: {{ "tasks": "Research the best purchasing strategy" }}
     research: {{ "tasks": "Provide financial advice on which tokens are likely to appreciate in value over the next year." }}
     research: {{ "tasks": "Retrieve the transaction history for a specific Ethereum wallet address." }}
