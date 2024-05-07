@@ -115,7 +115,7 @@ def test_swap_complex_2(configuration, auto_tx): # This one is complex because i
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
-    prompt = "Buy 1000 USDC with ETH, then sell the USDC to buy 0.001 WBTC"
+    prompt = "Buy 1000 USDC with ETH, then sell USDC to buy 0.001 WBTC"
     usdc_balance = manager.balance_of(usdc_address)
 
     auto_tx.run(prompt, non_interactive=True)
