@@ -45,6 +45,7 @@ class RunResult:
     end_reason: EndReason
     total_cost_without_cache: float
     total_cost_with_cache: float
+    info_messages: list[str]
 
 class AutoTx:
     manager: SafeManager
@@ -57,6 +58,7 @@ class AutoTx:
     max_rounds: int
     current_run_cost_without_cache: float = 0
     current_run_cost_with_cache: float = 0
+    info_messages: list[str] = []
 
     def __init__(
         self,
@@ -80,13 +82,13 @@ class AutoTx:
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         total_cost_without_cache: float = 0
         total_cost_with_cache: float = 0
+        info_messages = []
 
         while True:
-            self.current_run_costs_without_cache = 0
-            self.current_run_costs_with_cache = 0
             result = self.try_run(prompt, non_interactive, summary_method)
             total_cost_without_cache += result.total_cost_without_cache + self.current_run_cost_without_cache
             total_cost_with_cache += result.total_cost_with_cache + self.current_run_cost_with_cache
+            info_messages += result.info_messages
 
             if result.end_reason == EndReason.TERMINATE or non_interactive:
                 if self.log_costs:
@@ -98,14 +100,29 @@ class AutoTx:
                     with open(f"costs/{now_str}.txt", "w") as f:
                         f.write(str(total_cost_without_cache))
 
-                return result
+                return RunResult(
+                    result.summary, 
+                    result.chat_history_json, 
+                    result.transactions, 
+                    result.end_reason, 
+                    total_cost_without_cache, 
+                    total_cost_with_cache, 
+                    info_messages
+                )
             else:
-                cprint("Prompt not supported. Please provide a new prompt.", "yellow")
+                prompt_not_supported = "Prompt not supported. Please provide a new prompt."
+
+                cprint(prompt_not_supported, "yellow")
+                info_messages.append(prompt_not_supported)
+
                 prompt = input("Enter a new prompt: ")
 
     def try_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         original_prompt = prompt
         past_runs: list[PastRun] = []
+        self.current_run_costs_without_cache = 0
+        self.current_run_costs_with_cache = 0
+        self.info_messages = []
         self.logger.start()
 
         while True:
@@ -128,12 +145,12 @@ class AutoTx:
                     + prev_history
                     + "Pay close attention to the user's feedback and try again.\n")
 
-            print("Running AutoTx with the following prompt: ", prompt)
+            self.notify_user("Running AutoTx with the following prompt: " + prompt)
 
             agents_information = self.get_agents_information(self.agents)
 
             user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config)
+            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
@@ -142,7 +159,7 @@ class AutoTx:
             if not non_interactive:
                 helper_agents.append(clarifier_agent)
 
-            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
+            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.notify_user) for agent in self.agents]
 
             manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
 
@@ -159,9 +176,9 @@ class AutoTx:
 
             if "ERROR:" in chat.summary:
                 error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
-                cprint(error_message, "red")
+                self.notify_user(error_message, "red")
             else:
-                cprint(chat.summary.replace("\n", ""), "green")
+                self.notify_user(chat.summary.replace("\n", ""), "green")
 
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
@@ -181,7 +198,7 @@ class AutoTx:
                     break
 
             except Exception as e:
-                cprint(e, "red")
+                self.notify_user(e, "red")
                 break
 
         self.logger.stop()
@@ -192,7 +209,14 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]))
+        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
+
+    def notify_user(self, message: object, color: str | None = None):
+        if color:
+            cprint(message, color)
+        else:
+            print(message)
+        self.info_messages.append(message)
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []

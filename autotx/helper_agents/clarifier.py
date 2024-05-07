@@ -1,11 +1,8 @@
 from textwrap import dedent
 from typing import Annotated, Any, Callable, Dict, Optional
-from autogen import UserProxyAgent, AssistantAgent, Agent as AutogenAgent
-from termcolor import cprint
+from autogen import UserProxyAgent, AssistantAgent
 
-from autotx.utils.ethereum.eth_address import ETHAddress
-
-def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AssistantAgent:
+def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], notify_user: Callable[[object, str | None], None]) -> AssistantAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
@@ -73,7 +70,7 @@ def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool
     def goal_outside_scope(
         message: Annotated[str, "The message return to the user about why the goal is outside of the supported scope"],
     ) -> str:
-        cprint(f"Goal not supported: {message}", "red")
+        notify_user(f"Goal not supported: {message}", "red")
         return "Goal not supported: TERMINATE"
     
     clarifier_agent.register_for_llm(name="goal_outside_scope", description="Notify the user about their goal not being in the scope of the agents")(goal_outside_scope)

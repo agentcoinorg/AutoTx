@@ -28,6 +28,7 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
             If you encounter an error, try to resolve it (either yourself of with other agents) and only respond with 'TERMINATE' if the goal is truly not achievable.
             Try to find an alternative solution if the goal is not achievable.
             If a token is not supported, ask the 'research-tokens' agent to find a supported token (if it fits within the user's goal).
+            Before you end the conversation, make sure to summarize the results.
             """
         ),
         description="user_proxy is an agent authorized to act on behalf of the user.",

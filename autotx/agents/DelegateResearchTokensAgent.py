@@ -76,7 +76,7 @@ class ResearchUserQuery(AutoTxTool):
         def run(
             tasks: Annotated[str, "User tasks to research"]
         ) -> str:
-            print(f"Researching user task:", tasks)
+            autotx.notify_user(f"Researching user tasks: " + tasks)
 
             user_proxy_agent = UserProxyAgent(
                 name="user_proxy",
@@ -107,7 +107,7 @@ class ResearchUserQuery(AutoTxTool):
                 code_execution_config=False,
             )
             
-            research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config())
+            research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config(), autotx.notify_user)
 
             chat = user_proxy_agent.initiate_chat(
                 research_agent, 
@@ -124,6 +124,8 @@ class ResearchUserQuery(AutoTxTool):
             autotx.current_run_cost_without_cache += float(chat.cost["usage_excluding_cached_inference"]["total_cost"])
 
             summary = aggregate_chat_responses(chat)
+
+            autotx.notify_user("Finished researching user tasks")
 
             return summary
 

@@ -179,6 +179,9 @@ class BulkSwapTool(AutoTxTool):
                     for i, tx in enumerate(autotx.transactions)
                 ]
             )
+
+            autotx.notify_user(summary)
+
             return dedent(
                 f"""
                 {summary}

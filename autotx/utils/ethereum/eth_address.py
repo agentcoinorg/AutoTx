@@ -1,5 +1,4 @@
-from eth_typing import ChecksumAddress, HexStr
-from termcolor import cprint
+from eth_typing import ChecksumAddress
 from web3 import Web3
 
 from autotx.utils.ethereum.networks import MAINNET_DEFAULT_RPC

@@ -101,7 +101,7 @@ class TransferTokenTool(AutoTxTool):
 
             autotx.transactions.append(prepared_tx)
             
-            print(f"Prepared transaction: {prepared_tx.summary}")
+            autotx.notify_user(f"Prepared transaction: {prepared_tx.summary}")
             
             return prepared_tx.summary
 
@@ -131,7 +131,7 @@ class GetTokenBalanceTool(AutoTxTool):
             else:
                 balance = get_erc20_balance(web3, token_address, owner_addr)
 
-            print(f"Fetching {token} balance for {str(owner_addr)}: {balance} {token}")
+            autotx.notify_user(f"Fetching {token} balance for {str(owner_addr)}: {balance} {token}")
             
             return balance
 
