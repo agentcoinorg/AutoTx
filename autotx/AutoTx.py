@@ -10,6 +10,7 @@ from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
+from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import SafeManager
@@ -198,7 +199,7 @@ class AutoTx:
                     break
 
             except Exception as e:
-                self.notify_user(e, "red")
+                self.notify_user(str(e), "red")
                 break
 
         self.logger.stop()
@@ -211,7 +212,7 @@ class AutoTx:
 
         return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
 
-    def notify_user(self, message: object, color: str | None = None):
+    def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:
             cprint(message, color)
         else:

@@ -2,7 +2,9 @@ from textwrap import dedent
 from typing import Annotated, Any, Callable, Dict, Optional
 from autogen import UserProxyAgent, AssistantAgent
 
-def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], notify_user: Callable[[object, str | None], None]) -> AssistantAgent:
+from autotx.utils.color import Color
+
+def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], notify_user: Callable[[str, Color | None], None]) -> AssistantAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
