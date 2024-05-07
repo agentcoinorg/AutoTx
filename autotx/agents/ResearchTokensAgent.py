@@ -18,6 +18,7 @@ system_message = lambda autotx: dedent(f"""
     You are an AI assistant that's an expert in Ethereum tokens. Assist the user in their task of researching tokens.
     ONLY focus on the token research aspect of the user's goal and let other agents handle other tasks.
     You use the tools available to assist the user in their tasks.
+    NEVER ask the user questions.
     Retrieve token information, get token price, market cap, and price change percentage.
     BEFORE calling get_tokens_based_on_category always call get_available_categories to get the list of available categories.
     You MUST keep in mind the network the user is on and if the request is for a specific network, all networks, or the current network (it could be implied).
@@ -28,6 +29,15 @@ system_message = lambda autotx: dedent(f"""
     If a token does not have enough liquidity on the network, either:
     - Search for another token (if it is within the user's goal)
     - Or inform the user that the token is not available on the network (E.g. if the user's goal is to buy that specific token)
+    If a user wants to research a specific number of tokens across categories, make sure to get the exact number of tokens without duplicates.
+    If some tokens are not available, find alternatives and inform the user.
+    """
+)
+
+description = dedent(
+    f"""
+    {name} is an AI assistant that's an expert in Ethereum tokens.
+    The agent can also research, discuss, plan actions and advise the user.
     """
 )
 
@@ -245,29 +255,13 @@ class GetTokensBasedOnCategoryTool(AutoTxTool):
 
         return run
 
-class GetExchangesWhereTokenCanBeTradedTool(AutoTxTool):
-    name: str = "get_exchanges_where_token_can_be_traded"
-    description: str = "Retrieve exchanges where token can be traded"
-
-    def build_tool(self, autotx: AutoTx) -> Callable[[str], list[str]]:
-        def run(
-            token_id: Annotated[str, "ID of token"]
-        ) -> list[str]:
-            print(f"Fetching exchanges where token ({token_id}) can be traded")
-
-            tickers = get_coingecko().coins.get_tickers(id=token_id)["tickers"]
-            market_names = {item["market"]["name"] for item in tickers}
-            return list(market_names)
-
-        return run
-
 class ResearchTokensAgent(AutoTxAgent):
     name = name
     system_message = system_message
+    description = description
     tools = [
         GetTokenInformationTool(),
         SearchTokenTool(),
         GetAvailableCategoriesTool(),
         GetTokensBasedOnCategoryTool(),
-        GetExchangesWhereTokenCanBeTradedTool(),
     ]

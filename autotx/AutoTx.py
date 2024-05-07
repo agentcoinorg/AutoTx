@@ -55,6 +55,8 @@ class AutoTx:
     agents: list[AutoTxAgent]
     log_costs: bool
     max_rounds: int
+    current_run_cost_without_cache: float = 0
+    current_run_cost_with_cache: float = 0
 
     def __init__(
         self,
@@ -80,9 +82,11 @@ class AutoTx:
         total_cost_with_cache: float = 0
 
         while True:
+            self.current_run_costs_without_cache = 0
+            self.current_run_costs_with_cache = 0
             result = self.try_run(prompt, non_interactive, summary_method)
-            total_cost_without_cache += result.total_cost_without_cache
-            total_cost_with_cache += result.total_cost_with_cache
+            total_cost_without_cache += result.total_cost_without_cache + self.current_run_cost_without_cache
+            total_cost_with_cache += result.total_cost_with_cache + self.current_run_cost_with_cache
 
             if result.end_reason == EndReason.TERMINATE or non_interactive:
                 if self.log_costs:

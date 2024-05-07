@@ -43,6 +43,7 @@ def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool
             - Discuss
             - Plan actions and advise the user
             - Develop purchase strategies
+            - Execute transactions
             All of that is within scope of the agents.
 
             The only things the clarifier should do are:

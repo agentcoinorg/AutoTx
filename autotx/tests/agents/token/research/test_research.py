@@ -13,7 +13,7 @@ def test_price_change_information(auto_tx):
         community_data=False,
         sparkline=False,
     )
-    prompt = "What's the 24 hours price change of Starknet (STRK)"
+    prompt = "What's the 24 hours price change of Starknet (STRK)?"
 
     result = auto_tx.run(prompt, non_interactive=True)
 
@@ -23,16 +23,6 @@ def test_price_change_information(auto_tx):
     assert (
         str(price_change) in result.chat_history_json or str(price_change_rounded) in result.chat_history_json
     )
-
-def test_get_token_exchanges(auto_tx):
-    prompt = "What are all the places I can buy OP?"
-
-    result = auto_tx.run(prompt, non_interactive=True)
-
-    assert "Binance".lower() in result.chat_history_json.lower()
-    assert "Coinbase".lower() in result.chat_history_json.lower()
-    assert "Kraken".lower() in result.chat_history_json.lower()
-    assert "Uniswap v3".lower() in result.chat_history_json.lower()
 
 def test_get_top_5_tokens_from_base(auto_tx):
     tokens = get_coingecko().coins.get_markets(
@@ -74,7 +64,7 @@ def test_get_top_5_memecoins(auto_tx):
 
 def test_get_top_5_memecoins_in_optimism(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
-    prompt = "What are the top 5 meme coins in optimism"
+    prompt = "What are the top 5 meme coins on Optimism?"
 
     result = auto_tx.run(prompt, non_interactive=True)
 

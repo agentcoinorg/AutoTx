@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 class AutoTxAgent():
     name: str
     system_message: str | Callable[['AutoTx'], str]
+    description: str
     tools: list['AutoTxTool']
     tool_descriptions: list[str]
 
@@ -30,6 +31,7 @@ class AutoTxAgent():
             llm_config=llm_config,
             human_input_mode="NEVER",
             code_execution_config=False,
+            description=self.description,
         )
 
         # Print all messages sent form the verifier to the group chat manager,
