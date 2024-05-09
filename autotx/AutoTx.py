@@ -15,6 +15,7 @@ from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
 
 @dataclass(kw_only=True)
 class Config:
@@ -60,6 +61,7 @@ class AutoTx:
     current_run_cost_without_cache: float = 0
     current_run_cost_with_cache: float = 0
     info_messages: list[str] = []
+    verbose: bool
 
     def __init__(
         self,
@@ -79,11 +81,16 @@ class AutoTx:
         self.agents = agents
         self.log_costs = config.log_costs
         self.max_rounds = config.max_rounds
+        self.verbose = config.verbose
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         total_cost_without_cache: float = 0
         total_cost_with_cache: float = 0
         info_messages = []
+
+        if self.verbose:
+            print(f"LLM model: {OPENAI_MODEL_NAME}")
+            print(f"LLM API URL: {OPENAI_BASE_URL}")
 
         while True:
             result = self.try_run(prompt, non_interactive, summary_method)
