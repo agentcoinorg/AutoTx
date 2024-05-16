@@ -107,7 +107,7 @@ class ResearchUserQuery(AutoTxTool):
                 code_execution_config=False,
             )
             
-            research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config(), autotx.notify_user)
+            research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config())
 
             chat = user_proxy_agent.initiate_chat(
                 research_agent, 

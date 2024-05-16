@@ -18,7 +18,7 @@ class AutoTxAgent():
             f"{tool.name}: {tool.description}" for tool in self.tools
         ]
 
-    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]], notify_user: Callable[[str, Color | None], None]) -> autogen.Agent:
+    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]]) -> autogen.Agent:
         system_message = None
         if isinstance(self.system_message, str):
             system_message = self.system_message
@@ -45,9 +45,9 @@ class AutoTxAgent():
         ) -> Union[Dict[str, Any], str]:
             if recipient.name == "chat_manager" and message != "TERMINATE":
                 if isinstance(message, str):
-                    notify_user(message, "light_yellow")
+                    autotx.notify_user(message, "light_yellow")
                 elif message["content"] != None:
-                    notify_user(message["content"], "light_yellow")
+                    autotx.notify_user(message["content"], "light_yellow")
             return message
 
         agent.register_hook(

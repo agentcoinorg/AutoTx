@@ -167,7 +167,7 @@ class AutoTx:
             if not non_interactive:
                 helper_agents.append(clarifier_agent)
 
-            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.notify_user) for agent in self.agents]
+            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
 
             manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
 
