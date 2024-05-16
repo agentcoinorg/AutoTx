@@ -3,7 +3,16 @@ from autotx.agents.ResearchTokensAgent import (
     get_coingecko,
 )
 
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
+
+def get_top_token_addresses_by_market_cap(category: str, network: str, count: int, auto_tx) -> list[ETHAddress]:
+    tokens = get_coingecko().coins.get_markets(vs_currency="usd", category=category, per_page=250)
+    tokens_in_network = filter_token_list_by_network(
+        tokens, network
+    )
+
+    return [ETHAddress(auto_tx.network.tokens[token["symbol"].lower()]) for token in tokens_in_network[:count]]
 
 def test_price_change_information(auto_tx):
     token_information = get_coingecko().coins.get_id(
@@ -21,7 +30,7 @@ def test_price_change_information(auto_tx):
     price_change_rounded = round(price_change, 2)
 
     assert (
-        str(price_change) in result.chat_history_json or str(price_change_rounded) in result.chat_history_json
+        str(price_change) in "\n".join(result.info_messages).lower() or str(price_change_rounded) in "\n".join(result.info_messages).lower()
     )
 
 def test_get_top_5_tokens_from_base(auto_tx):
@@ -34,7 +43,7 @@ def test_get_top_5_tokens_from_base(auto_tx):
 
     for token in tokens[:5]:
         symbol: str = token["symbol"]
-        assert symbol.lower() in result.chat_history_json.lower()
+        assert symbol.lower() in "\n".join(result.info_messages).lower()
 
 def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
     tokens = get_coingecko().coins.get_markets(
@@ -46,7 +55,7 @@ def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
 
     for token in tokens[:5]:
         symbol: str = token["symbol"]
-        assert symbol.lower() in result.chat_history_json.lower()
+        assert symbol.lower() in "\n".join(result.info_messages).lower()
 
 def test_get_top_5_memecoins(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
@@ -60,7 +69,7 @@ def test_get_top_5_memecoins(auto_tx):
 
     for token in tokens_in_network[:5]:
         symbol: str = token["symbol"]
-        assert symbol.lower() in result.chat_history_json.lower()
+        assert symbol.lower() in "\n".join(result.info_messages).lower()
 
 def test_get_top_5_memecoins_in_optimism(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
@@ -71,4 +80,4 @@ def test_get_top_5_memecoins_in_optimism(auto_tx):
     tokens = filter_token_list_by_network(tokens, ChainId.OPTIMISM.name)
     for token in tokens[:5]:
         symbol: str = token["symbol"]
-        assert symbol.lower() in result.chat_history_json.lower()
+        assert symbol.lower() in "\n".join(result.info_messages).lower()

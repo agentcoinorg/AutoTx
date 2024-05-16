@@ -110,7 +110,7 @@ class GetTokenInformationTool(AutoTxTool):
         def run(
             token_id: Annotated[str, "ID of token"]
         ) -> str:
-            print(f"Fetching token information for {token_id}")
+            autotx.notify_user(f"Fetching token information for {token_id}")
            
             token_information = get_coingecko().coins.get_id(
                 id=token_id,
@@ -166,7 +166,7 @@ class SearchTokenTool(AutoTxTool):
             token_symbol: Annotated[str, "Symbol of token to search"],
             retrieve_duplicate: Annotated[bool, "Set to true to retrieve all instances of tokens sharing the same symbol, indicating potential duplicates. By default, it is False, meaning only a single, most relevant token is retrieved unless duplication is explicitly requested."]
         ) -> str:
-            print(f"Searching for token with symbol: {token_symbol}")
+            autotx.notify_user(f"Searching for token with symbol: {token_symbol}")
 
             response = get_coingecko().search.get(token_symbol)
 
@@ -184,7 +184,7 @@ class GetAvailableCategoriesTool(AutoTxTool):
 
     def build_tool(self, autotx: AutoTx) -> Callable[[], str]:
         def run() -> str:
-            print("Fetching available token categories")
+            autotx.notify_user("Fetching available token categories")
 
             categories = get_coingecko().categories.get_list()
             return json.dumps([category["category_id"] for category in categories])
@@ -203,7 +203,7 @@ class GetTokensBasedOnCategoryTool(AutoTxTool):
             price_change_percentage_interval: Annotated[str, "Interval of time in price change percentage. It can be: '1h' | '24h' | '7d' | '14d' | '30d' | '200d' | '1y'. '24h' is the default"],
             network_name: Annotated[Optional[str], f"Possible values include: {SUPPORTED_NETWORKS_AS_STRING}. Use this parameter only if you require analysis for a specific network. Otherwise, pass an empty string"]
         ) -> str:
-            print(f"Fetching tokens from category: {category}")
+            autotx.notify_user(f"Fetching tokens from category: {category}")
 
             try:
                 tokens_in_category = get_coingecko().coins.get_markets(

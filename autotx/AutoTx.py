@@ -10,10 +10,12 @@ from termcolor import cprint
 from typing import Optional
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
+from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
 
 @dataclass(kw_only=True)
 class Config:
@@ -45,6 +47,7 @@ class RunResult:
     end_reason: EndReason
     total_cost_without_cache: float
     total_cost_with_cache: float
+    info_messages: list[str]
 
 class AutoTx:
     manager: SafeManager
@@ -57,6 +60,8 @@ class AutoTx:
     max_rounds: int
     current_run_cost_without_cache: float = 0
     current_run_cost_with_cache: float = 0
+    info_messages: list[str] = []
+    verbose: bool
 
     def __init__(
         self,
@@ -76,17 +81,22 @@ class AutoTx:
         self.agents = agents
         self.log_costs = config.log_costs
         self.max_rounds = config.max_rounds
+        self.verbose = config.verbose
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         total_cost_without_cache: float = 0
         total_cost_with_cache: float = 0
+        info_messages = []
+
+        if self.verbose:
+            print(f"LLM model: {OPENAI_MODEL_NAME}")
+            print(f"LLM API URL: {OPENAI_BASE_URL}")
 
         while True:
-            self.current_run_costs_without_cache = 0
-            self.current_run_costs_with_cache = 0
             result = self.try_run(prompt, non_interactive, summary_method)
             total_cost_without_cache += result.total_cost_without_cache + self.current_run_cost_without_cache
             total_cost_with_cache += result.total_cost_with_cache + self.current_run_cost_with_cache
+            info_messages += result.info_messages
 
             if result.end_reason == EndReason.TERMINATE or non_interactive:
                 if self.log_costs:
@@ -98,14 +108,29 @@ class AutoTx:
                     with open(f"costs/{now_str}.txt", "w") as f:
                         f.write(str(total_cost_without_cache))
 
-                return result
+                return RunResult(
+                    result.summary, 
+                    result.chat_history_json, 
+                    result.transactions, 
+                    result.end_reason, 
+                    total_cost_without_cache, 
+                    total_cost_with_cache, 
+                    info_messages
+                )
             else:
-                cprint("Prompt not supported. Please provide a new prompt.", "yellow")
+                prompt_not_supported = "Prompt not supported. Please provide a new prompt."
+
+                cprint(prompt_not_supported, "yellow")
+                info_messages.append(prompt_not_supported)
+
                 prompt = input("Enter a new prompt: ")
 
     def try_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         original_prompt = prompt
         past_runs: list[PastRun] = []
+        self.current_run_costs_without_cache = 0
+        self.current_run_costs_with_cache = 0
+        self.info_messages = []
         self.logger.start()
 
         while True:
@@ -128,12 +153,12 @@ class AutoTx:
                     + prev_history
                     + "Pay close attention to the user's feedback and try again.\n")
 
-            print("Running AutoTx with the following prompt: ", prompt)
+            self.notify_user("Running AutoTx with the following prompt: " + prompt)
 
             agents_information = self.get_agents_information(self.agents)
 
             user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config)
+            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
@@ -159,9 +184,9 @@ class AutoTx:
 
             if "ERROR:" in chat.summary:
                 error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
-                cprint(error_message, "red")
+                self.notify_user(error_message, "red")
             else:
-                cprint(chat.summary.replace("\n", ""), "green")
+                self.notify_user(chat.summary.replace("\n", ""), "green")
 
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
@@ -181,7 +206,7 @@ class AutoTx:
                     break
 
             except Exception as e:
-                cprint(e, "red")
+                self.notify_user(str(e), "red")
                 break
 
         self.logger.stop()
@@ -192,7 +217,14 @@ class AutoTx:
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]))
+        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
+
+    def notify_user(self, message: str, color: Color | None = None) -> None:
+        if color:
+            cprint(message, color)
+        else:
+            print(message)
+        self.info_messages.append(message)
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []

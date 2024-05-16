@@ -24,7 +24,7 @@ class ExampleTool(AutoTxTool):
             receiver: Annotated[str, "The receiver of something."]
         ) -> str:
             # TODO: do something useful
-            print(f"ExampleTool run: {amount} {receiver}")
+            autotx.notify_user(f"ExampleTool run: {amount} {receiver}")
             
             # NOTE: you can add transactions to AutoTx's current bundle
             # autotx.transactions.append(tx)
