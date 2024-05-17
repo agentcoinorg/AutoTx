@@ -1,12 +1,12 @@
 from decimal import Decimal
 from textwrap import dedent
 from typing import Annotated, Callable
+from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, build_swap_transaction
-from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.networks import NetworkInfo
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
@@ -80,7 +80,7 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 class InvalidInput(Exception):
     pass
 
-def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[PreparedTx]:
+def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.Transaction]:
     sell_parts = token_to_sell.split(" ")
     buy_parts = token_to_buy.split(" ")
 
@@ -121,7 +121,7 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[Prepared
         is_exact_input,
         autotx.network.chain_id
     )
-    autotx.transactions.extend(swap_transactions)
+    autotx.add_transactions(swap_transactions)
 
     return swap_transactions
 

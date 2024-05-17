@@ -1,5 +1,5 @@
 import sys
-from typing import Optional, cast
+from typing import Any, Optional, cast
 import re
 import logging
 
@@ -16,8 +16,8 @@ from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.api.base_api import SafeAPIException
 from eth_account.signers.local import LocalAccount
 
+from autotx import models
 from autotx.utils.ethereum.get_native_balance import get_native_balance
-from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
@@ -230,15 +230,15 @@ class SafeManager:
 
         ts_api.post_transaction(tx)
 
-    def send_tx(self, tx: TxParams, safe_nonce: Optional[int] = None) -> str | None:
+    def send_tx(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> str | None:
         if self.use_tx_service:
-            self.post_transaction(tx, safe_nonce)
+            self.post_transaction(cast(TxParams, tx), safe_nonce)
             return None
         else:
-            hash = self.execute_tx(tx, safe_nonce)
+            hash = self.execute_tx(cast(TxParams, tx), safe_nonce)
             return hash.hex()
 
-    def send_tx_batch(self, txs: list[PreparedTx], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+    def send_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:
@@ -276,7 +276,7 @@ class SafeManager:
 
             print("Sending transactions to your smart account...")
 
-            for i, tx in enumerate([prepared_tx.tx for prepared_tx in txs]):
+            for i, tx in enumerate([prepared_tx.params for prepared_tx in txs]):
                 self.send_tx(tx, start_nonce + i)
 
             print("Transactions sent to your smart account for signing.")
@@ -304,7 +304,7 @@ class SafeManager:
 
             for i, prepared_tx in enumerate([prepared_tx for prepared_tx in txs]):
                 try:
-                    self.send_tx(prepared_tx.tx, start_nonce + i)
+                    self.send_tx(prepared_tx.params, start_nonce + i)
                 except ExecutionRevertedError as e:
                     raise Exception(f"{prepared_tx.summary} failed with error: {e}")
         

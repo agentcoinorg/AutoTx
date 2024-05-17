@@ -8,12 +8,12 @@ from dataclasses import dataclass
 from autogen import Agent as AutogenAgent
 from termcolor import cprint
 from typing import Optional
+from autotx import models
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
 from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
-from autotx.utils.PreparedTx import PreparedTx
-from autotx.utils.ethereum import SafeManager
+from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
 
@@ -43,7 +43,7 @@ class EndReason(Enum):
 class RunResult:
     summary: str
     chat_history_json: str
-    transactions: list[PreparedTx]
+    transactions: list[models.Transaction]
     end_reason: EndReason
     total_cost_without_cache: float
     total_cost_with_cache: float
@@ -52,16 +52,17 @@ class RunResult:
 class AutoTx:
     manager: SafeManager
     logger: Logger
-    transactions: list[PreparedTx] = []
+    transactions: list[models.Transaction]
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     agents: list[AutoTxAgent]
     log_costs: bool
     max_rounds: int
-    current_run_cost_without_cache: float = 0
-    current_run_cost_with_cache: float = 0
-    info_messages: list[str] = []
+    current_run_cost_without_cache: float
+    current_run_cost_with_cache: float
+    info_messages: list[str]
     verbose: bool
+    on_transactions_added: Callable[[list[models.Transaction]], None]
 
     def __init__(
         self,
@@ -69,7 +70,8 @@ class AutoTx:
         network: NetworkInfo,
         agents: list[AutoTxAgent],
         config: Config,
-        get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+        get_llm_config: Callable[[], Optional[Dict[str, Any]]],
+        on_transactions_added: Callable[[list[models.Transaction]], None] = lambda _: None
     ):
         self.manager = manager
         self.network = network
@@ -82,8 +84,13 @@ class AutoTx:
         self.log_costs = config.log_costs
         self.max_rounds = config.max_rounds
         self.verbose = config.verbose
+        self.on_transactions_added = on_transactions_added
+        self.transactions = []
+        self.current_run_cost_without_cache = 0
+        self.current_run_cost_with_cache = 0
+        self.info_messages = []
 
-    def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+    async def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         total_cost_without_cache: float = 0
         total_cost_with_cache: float = 0
         info_messages = []
@@ -93,7 +100,7 @@ class AutoTx:
             print(f"LLM API URL: {OPENAI_BASE_URL}")
 
         while True:
-            result = self.try_run(prompt, non_interactive, summary_method)
+            result = await self.try_run(prompt, non_interactive, summary_method)
             total_cost_without_cache += result.total_cost_without_cache + self.current_run_cost_without_cache
             total_cost_with_cache += result.total_cost_with_cache + self.current_run_cost_with_cache
             info_messages += result.info_messages
@@ -125,7 +132,7 @@ class AutoTx:
 
                 prompt = input("Enter a new prompt: ")
 
-    def try_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+    async def try_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         original_prompt = prompt
         past_runs: list[PastRun] = []
         self.current_run_costs_without_cache = 0
@@ -171,7 +178,7 @@ class AutoTx:
 
             manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
 
-            chat = user_proxy_agent.initiate_chat(
+            chat = await user_proxy_agent.a_initiate_chat(
                 manager_agent, 
                 message=dedent(
                     f"""
@@ -218,6 +225,10 @@ class AutoTx:
         chat_history = json.dumps(chat.chat_history, indent=4)
 
         return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
+
+    def add_transactions(self, txs: list[models.Transaction]) -> None:
+        self.transactions.extend(txs)
+        self.on_transactions_added(txs)
 
     def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:

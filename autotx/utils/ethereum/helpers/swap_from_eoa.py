@@ -1,8 +1,10 @@
 from decimal import Decimal
-import json
-from autotx.utils.ethereum.eth_address import ETHAddress
+from typing import cast
 from eth_account.signers.local import LocalAccount
 from gnosis.eth import EthereumClient
+from web3.types import TxParams
+
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import ChainId
 
@@ -26,13 +28,13 @@ def swap(
     )
 
     for tx in txs:
-        del tx.tx["gas"]
-        gas = client.w3.eth.estimate_gas(tx.tx)
-        tx.tx.update({"gas": gas})
+        del tx.params["gas"]
+        gas = client.w3.eth.estimate_gas(cast(TxParams, tx.params))
+        tx.params.update({"gas": gas})
 
         transaction = user.sign_transaction(  # type: ignore
             {
-                **tx.tx,
+                **tx.params,
                 "nonce": client.w3.eth.get_transaction_count(user.address),
             }
         )

@@ -21,7 +21,7 @@ def test_buy_one_usdc(configuration):
         False,
         network_info.chain_id,
     )
-    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
+    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
     assert expected_usdc_amount <= usdc_balance  <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
@@ -43,7 +43,7 @@ def test_buy_one_thousand_usdc(configuration):
         network_info.chain_id,
     )
     print(buy_usdc_with_eth_transaction[0].summary)
-    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
+    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
     assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
@@ -66,7 +66,7 @@ def test_receive_native(configuration):
         True,
         network_info.chain_id,
     )
-    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].tx)
+    hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
     safe_eth_balance = manager.balance_of()
     assert safe_eth_balance == 5
@@ -80,9 +80,9 @@ def test_receive_native(configuration):
         False,
         network_info.chain_id,
     )
-    hash = manager.send_tx(buy_eth_with_usdc_transaction[0].tx)
+    hash = manager.send_tx(buy_eth_with_usdc_transaction[0].params)
     manager.wait(hash)
-    hash = manager.send_tx(buy_eth_with_usdc_transaction[1].tx)
+    hash = manager.send_tx(buy_eth_with_usdc_transaction[1].params)
     manager.wait(hash)
     safe_eth_balance = manager.balance_of()
     assert safe_eth_balance >= 9
@@ -103,7 +103,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
         False,
         network_info.chain_id,
     )
-    hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].tx)
+    hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].params)
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
@@ -124,7 +124,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
         False,
         network_info.chain_id,
     )
-    hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].tx)
+    hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].params)
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
@@ -151,7 +151,7 @@ def test_swap_multiple_tokens(configuration):
         True,
         network_info.chain_id,
     )
-    hash = manager.send_tx(sell_eth_for_usdc_transaction[0].tx)
+    hash = manager.send_tx(sell_eth_for_usdc_transaction[0].params)
     manager.wait(hash)
     usdc_balance = manager.balance_of(usdc_address)
     assert usdc_balance > 2900
@@ -169,9 +169,9 @@ def test_swap_multiple_tokens(configuration):
         network_info.chain_id,
     )
 
-    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[0].tx)
+    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[0].params)
     manager.wait(hash)
-    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[1].tx)
+    hash = manager.send_tx(buy_wbtc_with_usdc_transaction[1].params)
     manager.wait(hash)
     wbtc_balance = manager.balance_of(wbtc_address)
     assert wbtc_balance >= 0.01
@@ -188,9 +188,9 @@ def test_swap_multiple_tokens(configuration):
         True,
         network_info.chain_id,
     )
-    hash = manager.send_tx(sell_wbtc_for_shib[0].tx)
+    hash = manager.send_tx(sell_wbtc_for_shib[0].params)
     manager.wait(hash)
-    hash = manager.send_tx(sell_wbtc_for_shib[1].tx)
+    hash = manager.send_tx(sell_wbtc_for_shib[1].params)
     manager.wait(hash)
     shib_balance = manager.balance_of(shib_address)
     shib_balance = manager.balance_of(shib_address)
