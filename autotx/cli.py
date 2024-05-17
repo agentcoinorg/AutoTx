@@ -73,10 +73,11 @@ async def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: st
 @click.option("-l", "--logs", type=click.Path(exists=False, file_okay=False, dir_okay=True), help="Path to the directory where logs will be stored.")
 @click.option("-r", "--max-rounds", type=int, help="Maximum number of rounds to run")
 @click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
-def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
+@click.option("-p", "--port", type=int, help="Port to run the server on")
+def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, port: int | None) -> None:
     print_autotx_info()
     
-    start_server(verbose, logs, max_rounds, cache)
+    start_server(verbose, logs, max_rounds, cache, port)
 
 @main.group()
 def agent() -> None:

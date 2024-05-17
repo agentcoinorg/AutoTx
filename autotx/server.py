@@ -166,10 +166,10 @@ def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache:
         get_llm_config=get_llm_config
     )
 
-def start_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
+def start_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, port: int | None) -> None:
     setup_server(verbose, logs, max_rounds, cache)
 
-    port = 8000
+    port = port or 8000
     config = Config()
     config.bind = [f"localhost:{port}"]
     asyncio.run(serve(app, config)) # type: ignore
