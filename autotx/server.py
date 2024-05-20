@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List
 import uuid
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,34 +15,34 @@ from autotx.AutoTx import AutoTx
 from autotx.AutoTx import Config as AutoTxConfig
 from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.configuration import get_configuration
-from autotx.utils.ethereum import SafeManager
+from autotx.utils.ethereum import SafeManager, load_w3
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.wallets.api_smart_wallet import ApiSmartWallet
+from autotx.wallets.smart_wallet import SmartWallet
 
 class AutoTxParams:
     verbose: bool
-    logs_dir: str | None
+    logs: str | None
+    cache: bool
     max_rounds: int | None
-    manager: SafeManager
-    network_info: NetworkInfo
-    agents: list[AutoTxAgent]
-    get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+    is_dev: bool
+    dev_wallet: SmartWallet | None
 
     def __init__(self, 
         verbose: bool, 
-        logs_dir: str | None, 
+        logs: str | None, 
+        cache: bool,
         max_rounds: int | None, 
-        manager: SafeManager, 
-        network_info: NetworkInfo, 
-        agents: list[AutoTxAgent], 
-        get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+        is_dev: bool,
+        dev_wallet: SmartWallet | None,
     ):
         self.verbose = verbose
-        self.logs_dir = logs_dir
+        self.logs = logs
+        self.cache = cache
         self.max_rounds = max_rounds
-        self.manager = manager
-        self.network_info = network_info
-        self.agents = agents
-        self.get_llm_config = get_llm_config
+        self.is_dev = is_dev
+        self.dev_wallet = dev_wallet
 
 tasks: list[models.Task] = []
 
@@ -54,6 +54,12 @@ app_router = APIRouter()
 async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks) -> 'models.Task':
     global tasks
     global autotx_params
+    if autotx_params is None:
+        raise HTTPException(status_code=500, detail="AutoTx not started")
+
+    if not autotx_params.is_dev and not task.address:
+        raise HTTPException(status_code=400, detail="Address is required for non-dev mode")
+    
     task_id = str(uuid.uuid4())
     now = datetime.utcnow()
     created_task = models.Task(
@@ -66,35 +72,31 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
         transactions=[],
     )
     tasks.append(created_task)
+    prompt = task.prompt
 
     print(f"Starting task: {task_id}")
 
-    prompt = task.prompt
+    (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
 
-    if autotx_params is None:
-        raise HTTPException(status_code=500, detail="AutoTx not started")
+    web3 = load_w3()
+    chain_id = web3.eth.chain_id
+    network_info = NetworkInfo(chain_id)    
 
-    def on_transactions_added(txs: List[models.Transaction]) -> None:
-        saved_task = next(filter(lambda x: x.id == task_id, tasks), None)
-        if saved_task is None:
-            raise Exception("Task not found: " + task_id)
-        for tx in txs:
-            tx.id = str(uuid.uuid4())
-            tx.task_id = task_id
-
-        saved_task.transactions.extend(txs)
+    wallet: SmartWallet
+    if autotx_params.is_dev:
+        wallet = autotx_params.dev_wallet
+    else:
+        wallet = ApiSmartWallet(ETHAddress(task.address), task_id, tasks)
 
     autotx = AutoTx(
-        autotx_params.manager,
-        autotx_params.network_info,
-        autotx_params.agents,
-        AutoTxConfig(verbose=autotx_params.verbose, logs_dir=autotx_params.logs_dir, max_rounds=autotx_params.max_rounds),
-        get_llm_config=autotx_params.get_llm_config,
-        on_transactions_added=on_transactions_added,
+        wallet,
+        network_info,
+        agents,
+        AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
     )
 
     async def run_task() -> None:
-        await autotx.run(prompt, non_interactive=True)
+        await autotx.a_run(prompt, non_interactive=True)
         saved_task = next(filter(lambda x: x.id == task_id, tasks), None)
         if saved_task is None:
             raise Exception("Task not found: " + task_id)
@@ -145,29 +147,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
+def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, is_dev: bool) -> None:
     global tasks
     tasks = []
 
-    (smart_account_addr, agent, client) = get_configuration()
+    dev_wallet: SmartWallet | None = None
 
-    (manager, network_info, _web3) = setup.setup_safe(smart_account_addr, agent, client)
-
-    (get_llm_config, agents, logs_dir) = setup.setup_agents(manager, logs, cache=cache)
+    if is_dev: 
+        (smart_account_addr, agent, client) = get_configuration()
+        (wallet, _network, _web3) = setup.setup_safe(smart_account_addr, agent, client, interactive=False)
+        dev_wallet = wallet
 
     global autotx_params
     autotx_params = AutoTxParams(
         verbose=verbose, 
-        logs_dir=logs_dir, 
+        logs=logs,
+        cache=cache,
         max_rounds=max_rounds, 
-        manager=manager, 
-        network_info=network_info, 
-        agents=agents, 
-        get_llm_config=get_llm_config
+        is_dev=is_dev,
+        dev_wallet=dev_wallet,
     )
 
-def start_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, port: int | None) -> None:
-    setup_server(verbose, logs, max_rounds, cache)
+def start_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, is_dev: bool) -> None:
+    setup_server(verbose, logs, max_rounds, cache, is_dev)
 
     port = port or 8000
     config = Config()

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, cast
+
+from web3 import Web3
 from autotx import models
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
@@ -103,7 +105,7 @@ def get_quote(
 
 
 def build_swap_transaction(
-    ethereum_client: EthereumClient,
+    web3: Web3,
     amount: Decimal,
     token_in_address: ETHAddress,
     token_out_address: ETHAddress,
@@ -113,7 +115,7 @@ def build_swap_transaction(
 ) -> list[models.Transaction]:
     native_token_symbol = get_native_token_symbol(chain)
     token_in_is_native = token_in_address.hex == NATIVE_TOKEN_ADDRESS
-    token_in = ethereum_client.w3.eth.contract(
+    token_in = web3.eth.contract(
         address=token_in_address.hex, abi=ERC20_ABI
     )
     token_in_symbol = (
@@ -126,7 +128,7 @@ def build_swap_transaction(
     )
 
     token_out_is_native = token_out_address.hex == NATIVE_TOKEN_ADDRESS
-    token_out = ethereum_client.w3.eth.contract(
+    token_out = web3.eth.contract(
         address=token_out_address.hex, abi=ERC20_ABI
     )
     token_out_decimals = (
@@ -162,7 +164,7 @@ def build_swap_transaction(
                 {
                     "from": _from.hex,
                     "gasPrice": Wei(
-                        int(ethereum_client.w3.eth.gas_price * GAS_PRICE_MULTIPLIER)
+                        int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)
                     ),
                 }
             )

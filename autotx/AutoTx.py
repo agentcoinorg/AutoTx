@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum
 from datetime import datetime
 import json
@@ -13,9 +14,9 @@ from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
 from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
-from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
+from autotx.wallets.smart_wallet import SmartWallet
 
 @dataclass(kw_only=True)
 class Config:
@@ -23,9 +24,11 @@ class Config:
     logs_dir: Optional[str] = None
     log_costs: bool
     max_rounds: int
+    get_llm_config: Callable[[], Optional[Dict[str, Any]]]
 
-    def __init__(self, verbose: bool, logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
+    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
         self.verbose = verbose
+        self.get_llm_config = get_llm_config
         self.logs_dir = logs_dir
         self.log_costs = log_costs if log_costs is not None else False
         self.max_rounds = max_rounds if max_rounds is not None else 100
@@ -50,7 +53,7 @@ class RunResult:
     info_messages: list[str]
 
 class AutoTx:
-    manager: SafeManager
+    wallet: SmartWallet
     logger: Logger
     transactions: list[models.Transaction]
     network: NetworkInfo
@@ -62,20 +65,16 @@ class AutoTx:
     current_run_cost_with_cache: float
     info_messages: list[str]
     verbose: bool
-    on_transactions_added: Callable[[list[models.Transaction]], None]
 
     def __init__(
         self,
-        manager: SafeManager,
+        wallet: SmartWallet,
         network: NetworkInfo,
         agents: list[AutoTxAgent],
         config: Config,
-        get_llm_config: Callable[[], Optional[Dict[str, Any]]],
-        on_transactions_added: Callable[[list[models.Transaction]], None] = lambda _: None
     ):
-        self.manager = manager
+        self.wallet = wallet
         self.network = network
-        self.get_llm_config = get_llm_config
         self.logger = Logger(
             dir=config.logs_dir,
             silent=not config.verbose
@@ -84,13 +83,16 @@ class AutoTx:
         self.log_costs = config.log_costs
         self.max_rounds = config.max_rounds
         self.verbose = config.verbose
-        self.on_transactions_added = on_transactions_added
+        self.get_llm_config = config.get_llm_config
         self.transactions = []
         self.current_run_cost_without_cache = 0
         self.current_run_cost_with_cache = 0
         self.info_messages = []
 
-    async def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+    def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
+        return asyncio.run(self.a_run(prompt, non_interactive, summary_method))    
+
+    async def a_run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         total_cost_without_cache: float = 0
         total_cost_with_cache: float = 0
         info_messages = []
@@ -182,7 +184,7 @@ class AutoTx:
                 manager_agent, 
                 message=dedent(
                     f"""
-                    I am currently connected with the following wallet: {self.manager.address}, on network: {self.network.chain_id.name}
+                    I am currently connected with the following wallet: {self.wallet.address}, on network: {self.network.chain_id.name}
                     My goal is: {prompt} 
                     """
                 ), 
@@ -198,7 +200,7 @@ class AutoTx:
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
             try:
-                result = self.manager.send_tx_batch(self.transactions, require_approval=not non_interactive)
+                result = self.wallet.on_transactions_ready(self.transactions)
 
                 if isinstance(result, str):
                     transactions_info ="\n".join(
@@ -228,7 +230,7 @@ class AutoTx:
 
     def add_transactions(self, txs: list[models.Transaction]) -> None:
         self.transactions.extend(txs)
-        self.on_transactions_added(txs)
+        self.wallet.on_transactions_prepared(txs)
 
     def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:

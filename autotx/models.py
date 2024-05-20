@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 from datetime import datetime
 
 class TransactionType(str, Enum):
@@ -8,14 +8,14 @@ class TransactionType(str, Enum):
     APPROVE = "approve"
     SWAP = "swap"
 
-class BaseTransactionBase(BaseModel):
+class TransactionBase(BaseModel):
     type: TransactionType
     id: str
     task_id: str
     summary: str
     params: dict[str, Any]
 
-class SendTransaction(BaseTransactionBase):
+class SendTransaction(TransactionBase):
     type: TransactionType = TransactionType.SEND
     receiver: str
     token_symbol: str
@@ -34,7 +34,7 @@ class SendTransaction(BaseTransactionBase):
             summary=f"Transfer {amount} {token_symbol} to {receiver}",
         )
 
-class ApproveTransaction(BaseTransactionBase):
+class ApproveTransaction(TransactionBase):
     type: TransactionType = TransactionType.APPROVE
     token_symbol: str
     token_address: str
@@ -53,7 +53,7 @@ class ApproveTransaction(BaseTransactionBase):
             summary=f"Approve {amount} {token_symbol} to {spender}"
         )
 
-class SwapTransaction(BaseTransactionBase):
+class SwapTransaction(TransactionBase):
     type: TransactionType = TransactionType.SWAP
     from_token_symbol: str
     to_token_symbol: str
@@ -80,6 +80,7 @@ Transaction = Union[SendTransaction, ApproveTransaction, SwapTransaction]
 
 class TaskCreate(BaseModel):
     prompt: str
+    address: Optional[str] = None
 
 class Task(BaseModel):
     id: str

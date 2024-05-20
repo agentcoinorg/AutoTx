@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
+from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
 
 from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
@@ -55,15 +56,14 @@ def auto_tx(configuration):
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
 
     return AutoTx(
-        manager, 
+        SafeSmartWallet(manager, interactive=False),
         network_info, 
         [
             SendTokensAgent(),
             SwapTokensAgent(),
             DelegateResearchTokensAgent()
         ], 
-        Config(verbose=True, logs_dir=None, log_costs=True, max_rounds=100), 
-        get_llm_config
+        Config(verbose=True, get_llm_config=get_llm_config, logs_dir=None, log_costs=True, max_rounds=100), 
     )
 
 @pytest.fixture()

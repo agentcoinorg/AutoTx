@@ -19,12 +19,14 @@ from autotx.utils.ethereum.helpers.show_address_balances import show_address_bal
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
+from autotx.wallets.safe_smart_wallet import SafeSmartWallet
+from autotx.wallets.smart_wallet import SmartWallet
 
 def print_agent_address() -> None:
     acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
-def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient) -> tuple[SafeManager, NetworkInfo, Web3]:
+def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, interactive: bool) -> tuple[SmartWallet, NetworkInfo, Web3]:
     web3 = client.w3
 
     chain_id = web3.eth.chain_id
@@ -65,9 +67,11 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
         show_address_balances(web3, network_info.chain_id, manager.address)
         print("=" * 50)
 
-    return (manager, network_info, web3)
+    wallet = SafeSmartWallet(manager, interactive)
 
-def setup_agents(manager: SafeManager, logs: str | None, cache: bool | None) -> tuple[Callable[[], Optional[Dict[str, Any]]], list[AutoTxAgent], str | None]:
+    return (wallet, network_info, web3)
+
+def setup_agents(logs: str | None, cache: bool | None) -> tuple[Callable[[], Optional[Dict[str, Any]]], list[AutoTxAgent], str | None]:
     now = datetime.now()
     now_str = now.strftime('%Y-%m-%d-%H-%M-%S-') + str(now.microsecond)
     logs_dir = os.path.join(logs, now_str) if logs is not None else None

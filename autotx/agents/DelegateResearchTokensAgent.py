@@ -113,7 +113,7 @@ class ResearchUserQuery(AutoTxTool):
                 research_agent, 
                 message=dedent(
                     f"""
-                    I am currently connected with the following wallet: {autotx.manager.address}, on network: {autotx.network.chain_id.name}
+                    I am currently connected with the following wallet: {autotx.wallet.address}, on network: {autotx.network.chain_id.name}
                     Tasks:
                     {tasks}
                     """

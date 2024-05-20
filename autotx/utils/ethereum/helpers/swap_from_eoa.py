@@ -18,7 +18,7 @@ def swap(
     chain: ChainId,
 ) -> None:
     txs = build_swap_transaction(
-        client,
+        client.w3,
         Decimal(str(amount)),
         from_token,
         to_token,
