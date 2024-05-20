@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 import uuid
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -84,9 +84,9 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
     wallet: SmartWallet
     if autotx_params.is_dev:
-        wallet = autotx_params.dev_wallet
+        wallet = cast(SmartWallet, autotx_params.dev_wallet)
     else:
-        wallet = ApiSmartWallet(ETHAddress(task.address), task_id, tasks)
+        wallet = ApiSmartWallet(ETHAddress(cast(str, task.address)), task_id, tasks)
 
     autotx = AutoTx(
         wallet,
@@ -147,7 +147,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, is_dev: bool) -> None:
+def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, is_dev: bool) -> None:
     global tasks
     tasks = []
 

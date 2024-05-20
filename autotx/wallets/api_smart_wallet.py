@@ -1,10 +1,11 @@
 import uuid
 from autotx import models
+from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.wallets.smart_wallet import SmartWallet
 
 
 class ApiSmartWallet(SmartWallet):
-    def __init__(self, address: str, task_id: str, tasks: list[models.Task]):
+    def __init__(self, address: ETHAddress, task_id: str, tasks: list[models.Task]):
         super().__init__(address)
         self.task_id = task_id
         self.tasks = tasks
@@ -19,5 +20,5 @@ class ApiSmartWallet(SmartWallet):
 
         saved_task.transactions.extend(txs)
 
-    def on_transactions_ready(self, _txs: list[models.Transaction]) -> None:
-        pass
+    def on_transactions_ready(self, _txs: list[models.Transaction]) -> bool | str:
+        return True

@@ -16,7 +16,7 @@ class TransactionBase(BaseModel):
     params: dict[str, Any]
 
 class SendTransaction(TransactionBase):
-    type: TransactionType = TransactionType.SEND
+    type: TransactionType
     receiver: str
     token_symbol: str
     token_address: str
@@ -26,6 +26,7 @@ class SendTransaction(TransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.SEND,
             token_symbol=token_symbol,
             token_address=token_address,
             amount=amount,
@@ -35,7 +36,7 @@ class SendTransaction(TransactionBase):
         )
 
 class ApproveTransaction(TransactionBase):
-    type: TransactionType = TransactionType.APPROVE
+    type: TransactionType
     token_symbol: str
     token_address: str
     amount: float
@@ -45,6 +46,7 @@ class ApproveTransaction(TransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.APPROVE,
             token_symbol=token_symbol,
             token_address=token_address,
             amount=amount,
@@ -54,7 +56,7 @@ class ApproveTransaction(TransactionBase):
         )
 
 class SwapTransaction(TransactionBase):
-    type: TransactionType = TransactionType.SWAP
+    type: TransactionType
     from_token_symbol: str
     to_token_symbol: str
     from_token_address: str
@@ -66,6 +68,7 @@ class SwapTransaction(TransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.SWAP,
             from_token_symbol=from_token_symbol,
             to_token_symbol=to_token_symbol,
             from_token_address=from_token_address,

@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_create_task(configuration):
     dev_account = configuration[0]
     
-    server.setup_server(verbose=True, logs=None, max_rounds=None, cache=None, is_dev=False)
+    server.setup_server(verbose=True, logs=None, max_rounds=None, cache=False, is_dev=False)
     
     response = client.post("/api/v1/tasks", json={
         "prompt": "Send 1 ETH to vitalik.eth",

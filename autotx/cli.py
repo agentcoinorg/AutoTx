@@ -45,7 +45,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
 
     (smart_account_addr, agent, client) = get_configuration()
 
-    (wallet, network_info, _web3) = setup_safe(smart_account_addr, agent, client, not non_interactive)
+    (wallet, network_info, web3) = setup_safe(smart_account_addr, agent, client, not non_interactive)
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 
@@ -56,7 +56,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
         Config(verbose=verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=max_rounds)
     )
 
-    result = autotx.run(prompt, non_interactive)
+    result = autotx.run(cast(str, prompt), non_interactive)
 
     if result.total_cost_without_cache > 0:
         print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
