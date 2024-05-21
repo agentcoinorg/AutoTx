@@ -37,7 +37,7 @@ def main() -> None:
 @click.option("-l", "--logs", type=click.Path(exists=False, file_okay=False, dir_okay=True), help="Path to the directory where logs will be stored.")
 @click.option("-r", "--max-rounds", type=int, help="Maximum number of rounds to run")
 @click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
-async def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
+def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
     print_autotx_info()
     
     if prompt == None:
@@ -45,19 +45,18 @@ async def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: st
 
     (smart_account_addr, agent, client) = get_configuration()
 
-    (manager, network_info, web3) = setup_safe(smart_account_addr, agent, client)
+    (wallet, network_info, web3) = setup_safe(smart_account_addr, agent, client, not non_interactive)
 
-    (get_llm_config, agents, logs_dir) = setup_agents(manager, logs, cache)
+    (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 
     autotx = AutoTx(
-        manager,
+        wallet,
         network_info,
         agents,
-        Config(verbose=verbose, logs_dir=logs_dir, max_rounds=max_rounds),
-        get_llm_config=get_llm_config,
+        Config(verbose=verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=max_rounds)
     )
 
-    result = await autotx.run(cast(str, prompt), non_interactive)
+    result = autotx.run(cast(str, prompt), non_interactive)
 
     if result.total_cost_without_cache > 0:
         print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
@@ -65,7 +64,7 @@ async def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: st
     if not smart_account_addr:
         print("=" * 50)
         print("Final smart account balances:")
-        show_address_balances(web3, network_info.chain_id, manager.address)
+        show_address_balances(web3, network_info.chain_id, wallet.address)
         print("=" * 50)
 
 @main.command()
@@ -74,10 +73,11 @@ async def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: st
 @click.option("-r", "--max-rounds", type=int, help="Maximum number of rounds to run")
 @click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
 @click.option("-p", "--port", type=int, help="Port to run the server on")
-def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None, port: int | None) -> None:
+@click.option("-d", "--dev", is_flag=True, help="Run the server in development mode")
+def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, dev: bool) -> None:
     print_autotx_info()
-    
-    start_server(verbose, logs, max_rounds, cache, port)
+
+    start_server(verbose, logs, max_rounds, cache, port, dev)
 
 @main.group()
 def agent() -> None:

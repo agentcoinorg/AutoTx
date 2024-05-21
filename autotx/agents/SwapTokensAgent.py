@@ -5,6 +5,7 @@ from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
+from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -113,11 +114,11 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.T
     )
 
     swap_transactions = build_swap_transaction(
-        autotx.manager.client,
+        load_w3(),
         Decimal(exact_amount),
         ETHAddress(token_in_address),
         ETHAddress(token_out_address),
-        autotx.manager.address,
+        autotx.wallet.address,
         is_exact_input,
         autotx.network.chain_id
     )

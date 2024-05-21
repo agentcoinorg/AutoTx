@@ -13,7 +13,7 @@ def test_buy_one_usdc(configuration):
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     expected_usdc_amount = 1
     buy_usdc_with_eth_transaction = build_swap_transaction(
-        client,
+        client.w3,
         expected_usdc_amount,
         eth_address,
         usdc_address,
@@ -34,7 +34,7 @@ def test_buy_one_thousand_usdc(configuration):
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     expected_usdc_amount = 1000
     buy_usdc_with_eth_transaction = build_swap_transaction(
-        client,
+        client.w3,
         expected_usdc_amount,
         eth_address,
         usdc_address,
@@ -58,7 +58,7 @@ def test_receive_native(configuration):
     safe_eth_balance = manager.balance_of()
     assert safe_eth_balance == 10
     buy_usdc_with_eth_transaction = build_swap_transaction(
-        client,
+        client.w3,
         5,
         eth_address,
         usdc_address,
@@ -72,7 +72,7 @@ def test_receive_native(configuration):
     assert safe_eth_balance == 5
 
     buy_eth_with_usdc_transaction = build_swap_transaction(
-        client,
+        client.w3,
         4,
         usdc_address,
         eth_address,
@@ -95,7 +95,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
     expected_wbtc_amount = 0.01
     buy_wbtc_with_eth_transaction = build_swap_transaction(
-        client,
+        client.w3,
         Decimal(str(expected_wbtc_amount)),
         eth_address,
         wbtc_address,
@@ -116,7 +116,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
     expected_wbtc_amount = 0.1
     buy_wbtc_with_eth_transaction = build_swap_transaction(
-        client,
+        client.w3,
         Decimal(str(expected_wbtc_amount)),
         eth_address,
         wbtc_address,
@@ -143,7 +143,7 @@ def test_swap_multiple_tokens(configuration):
     assert usdc_balance == 0
 
     sell_eth_for_usdc_transaction = build_swap_transaction(
-        client,
+        client.w3,
         1,
         eth_address,
         usdc_address,
@@ -160,7 +160,7 @@ def test_swap_multiple_tokens(configuration):
     assert wbtc_balance == 0
 
     buy_wbtc_with_usdc_transaction = build_swap_transaction(
-        client,
+        client.w3,
         0.01,
         usdc_address,
         wbtc_address,
@@ -180,7 +180,7 @@ def test_swap_multiple_tokens(configuration):
     assert shib_balance == 0
 
     sell_wbtc_for_shib = build_swap_transaction(
-        client,
+        client.w3,
         0.005,
         wbtc_address,
         shib_address,

@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 from datetime import datetime
 
 class TransactionType(str, Enum):
@@ -8,15 +8,15 @@ class TransactionType(str, Enum):
     APPROVE = "approve"
     SWAP = "swap"
 
-class BaseTransactionBase(BaseModel):
+class TransactionBase(BaseModel):
     type: TransactionType
     id: str
     task_id: str
     summary: str
     params: dict[str, Any]
 
-class SendTransaction(BaseTransactionBase):
-    type: TransactionType = TransactionType.SEND
+class SendTransaction(TransactionBase):
+    type: TransactionType
     receiver: str
     token_symbol: str
     token_address: str
@@ -26,6 +26,7 @@ class SendTransaction(BaseTransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.SEND,
             token_symbol=token_symbol,
             token_address=token_address,
             amount=amount,
@@ -34,8 +35,8 @@ class SendTransaction(BaseTransactionBase):
             summary=f"Transfer {amount} {token_symbol} to {receiver}",
         )
 
-class ApproveTransaction(BaseTransactionBase):
-    type: TransactionType = TransactionType.APPROVE
+class ApproveTransaction(TransactionBase):
+    type: TransactionType
     token_symbol: str
     token_address: str
     amount: float
@@ -45,6 +46,7 @@ class ApproveTransaction(BaseTransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.APPROVE,
             token_symbol=token_symbol,
             token_address=token_address,
             amount=amount,
@@ -53,8 +55,8 @@ class ApproveTransaction(BaseTransactionBase):
             summary=f"Approve {amount} {token_symbol} to {spender}"
         )
 
-class SwapTransaction(BaseTransactionBase):
-    type: TransactionType = TransactionType.SWAP
+class SwapTransaction(TransactionBase):
+    type: TransactionType
     from_token_symbol: str
     to_token_symbol: str
     from_token_address: str
@@ -66,6 +68,7 @@ class SwapTransaction(BaseTransactionBase):
         super().__init__(
             id="",
             task_id="",
+            type=TransactionType.SWAP,
             from_token_symbol=from_token_symbol,
             to_token_symbol=to_token_symbol,
             from_token_address=from_token_address,
@@ -80,6 +83,7 @@ Transaction = Union[SendTransaction, ApproveTransaction, SwapTransaction]
 
 class TaskCreate(BaseModel):
     prompt: str
+    address: Optional[str] = None
 
 class Task(BaseModel):
     id: str
