@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
-from autotx.utils.PreparedTx import PreparedTx
+from typing import Any, cast
+
+from web3 import Web3
+from autotx import models
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -103,17 +105,17 @@ def get_quote(
 
 
 def build_swap_transaction(
-    ethereum_client: EthereumClient,
+    web3: Web3,
     amount: Decimal,
     token_in_address: ETHAddress,
     token_out_address: ETHAddress,
     _from: ETHAddress,
     is_exact_input: bool,
     chain: ChainId,
-) -> list[PreparedTx]:
+) -> list[models.Transaction]:
     native_token_symbol = get_native_token_symbol(chain)
     token_in_is_native = token_in_address.hex == NATIVE_TOKEN_ADDRESS
-    token_in = ethereum_client.w3.eth.contract(
+    token_in = web3.eth.contract(
         address=token_in_address.hex, abi=ERC20_ABI
     )
     token_in_symbol = (
@@ -126,7 +128,7 @@ def build_swap_transaction(
     )
 
     token_out_is_native = token_out_address.hex == NATIVE_TOKEN_ADDRESS
-    token_out = ethereum_client.w3.eth.contract(
+    token_out = web3.eth.contract(
         address=token_out_address.hex, abi=ERC20_ABI
     )
     token_out_decimals = (
@@ -151,7 +153,7 @@ def build_swap_transaction(
         _from,
     )
 
-    transactions: list[PreparedTx] = []
+    transactions: list[models.Transaction] = []
     if not token_in_is_native:
         approval_address = quote.approval_address
         allowance = token_in.functions.allowance(_from.hex, approval_address).call()
@@ -162,20 +164,28 @@ def build_swap_transaction(
                 {
                     "from": _from.hex,
                     "gasPrice": Wei(
-                        int(ethereum_client.w3.eth.gas_price * GAS_PRICE_MULTIPLIER)
+                        int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)
                     ),
                 }
             )
             transactions.append(
-                PreparedTx(
-                    f"Approve {Decimal(str(quote.amount_in / 10 ** token_in_decimals))} {token_in_symbol} to {quote.exchange_name}",
-                    tx,
+                models.ApproveTransaction(
+                    token_symbol=token_in_symbol,
+                    token_address=str(token_in_address),
+                    amount=float(Decimal(str(quote.amount_in)) / 10 ** token_in_decimals),
+                    spender=approval_address,
+                    params=cast(dict[str, Any], tx),
                 )
             )
     transactions.append(
-        PreparedTx(
-            f"Swap {Decimal(str(quote.amount_in / 10 ** token_in_decimals))} {token_in_symbol} for at least {Decimal(str(int(quote.to_amount_min) / 10 ** token_out_decimals))} {token_out_symbol}",
-            quote.transaction,
+        models.SwapTransaction(
+            from_token_symbol=token_in_symbol,
+            to_token_symbol=token_out_symbol,
+            from_token_address=str(token_in_address),
+            to_token_address=str(token_out_address),
+            from_amount=float(Decimal(str(quote.amount_in)) / 10 ** token_in_decimals),
+            to_amount=float(Decimal(str(int(quote.to_amount_min))) / 10 ** token_out_decimals),
+            params=cast(dict[str, Any], quote.transaction),
         )
     )
     return transactions

@@ -1,11 +1,11 @@
 from textwrap import dedent
-from typing import Annotated, Callable
+from typing import Annotated, Any, Callable, cast
 
 from web3 import Web3
+from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
-from autotx.utils.PreparedTx import PreparedTx
 from autotx.utils.ethereum import (
     build_transfer_erc20,
     get_erc20_balance,
@@ -16,6 +16,7 @@ from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
+from web3.types import TxParams
 
 name = "send-tokens"
 
@@ -90,16 +91,22 @@ class TransferTokenTool(AutoTxTool):
             receiver_addr = ETHAddress(receiver)
             token_address = ETHAddress(autotx.network.tokens[token.lower()])
 
-            prepared_tx: PreparedTx | None = None
+            tx: TxParams
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
                 tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO), receiver_addr, amount)
             else:
                 tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
 
-            prepared_tx = PreparedTx(f"Transfer {amount} {token} to {str(receiver_addr)}", tx)
+            prepared_tx = models.SendTransaction(
+                token_symbol=token,
+                token_address=str(token_address),
+                amount=amount,
+                receiver=str(receiver_addr),
+                params=cast(dict[str, Any], tx),
+            )
 
-            autotx.transactions.append(prepared_tx)
+            autotx.add_transactions([prepared_tx])
             
             autotx.notify_user(f"Prepared transaction: {prepared_tx.summary}")
             

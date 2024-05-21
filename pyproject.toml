@@ -16,6 +16,8 @@ requests = "^2.31.0"
 python-dotenv = "^1.0.0"
 coingecko = "^0.13"
 pyautogen = "^0.2.27"
+fastapi = "^0.111.0"
+hypercorn = "^0.16.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
@@ -29,6 +31,7 @@ start-devnet = "autotx.chain_fork:start"
 stop-devnet = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
+serve = "autotx.cli:serve"
 load-tokens = "autotx.load_tokens:run"
 build-check = "autotx.build_check:run"
 
