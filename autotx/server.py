@@ -13,9 +13,8 @@ from autotx import models, setup
 from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.AutoTx import Config as AutoTxConfig
-from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.configuration import get_configuration
-from autotx.utils.ethereum import SafeManager, load_w3
+from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.wallets.api_smart_wallet import ApiSmartWallet
@@ -84,7 +83,7 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
     wallet: SmartWallet
     if autotx_params.is_dev:
-        wallet = cast(SmartWallet, autotx_params.dev_wallet)
+        wallet = ApiSmartWallet(cast(SmartWallet, autotx_params.dev_wallet), task_id, tasks)
     else:
         wallet = ApiSmartWallet(ETHAddress(cast(str, task.address)), task_id, tasks)
 
