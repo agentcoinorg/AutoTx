@@ -40,9 +40,6 @@ def configuration():
     dev_account = get_dev_account()
     delete_cached_safe_address()
 
-    # Send 10 ETH to the smart account for tests
-    send_native(dev_account, wallet.address, 10, app_config.web3)
-
     return (dev_account, app_config.agent, app_config.client, app_config.manager, wallet)
 
 @pytest.fixture()
