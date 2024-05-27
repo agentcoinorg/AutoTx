@@ -1,13 +1,16 @@
 from dotenv import load_dotenv
 
-from autotx.setup import print_agent_address, setup_agents, setup_safe
-from autotx.server import start_server
-from autotx.utils.configuration import get_configuration
+from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
+import uvicorn
 
 from typing import cast
 import click
 
+from autotx.utils.configuration import AppConfig
+from autotx.utils.is_dev_env import is_dev_env
+from autotx.setup import print_agent_address, setup_agents
+from autotx.server import setup_server
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 
@@ -39,19 +42,19 @@ def main() -> None:
 @click.option("-c", "--cache", is_flag=True, help="Use cache for LLM requests")
 def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | None, max_rounds: int | None, cache: bool | None) -> None:
     print_autotx_info()
-    
+
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
-    (smart_account_addr, agent, client) = get_configuration()
-
-    (wallet, network_info, web3) = setup_safe(smart_account_addr, agent, client, not non_interactive)
+    app_config = AppConfig.load()
+    wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=non_interactive)
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 
     autotx = AutoTx(
+        app_config.web3,
         wallet,
-        network_info,
+        app_config.network_info,
         agents,
         Config(verbose=verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=max_rounds)
     )
@@ -61,10 +64,10 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     if result.total_cost_without_cache > 0:
         print(f"LLM cost: ${result.total_cost_without_cache:.2f} (Actual: ${result.total_cost_with_cache:.2f})")
         
-    if not smart_account_addr:
+    if is_dev_env():
         print("=" * 50)
         print("Final smart account balances:")
-        show_address_balances(web3, network_info.chain_id, wallet.address)
+        show_address_balances(app_config.web3, app_config.network_info.chain_id, wallet)
         print("=" * 50)
 
 @main.command()
@@ -77,7 +80,8 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
 def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, dev: bool) -> None:
     print_autotx_info()
 
-    start_server(verbose, logs, max_rounds, cache, port, dev)
+    setup_server(verbose, logs, max_rounds, cache, dev)
+    uvicorn.run("autotx.server:app", host="localhost", port=8000, workers=1)
 
 @main.group()
 def agent() -> None:

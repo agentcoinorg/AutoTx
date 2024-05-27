@@ -8,34 +8,79 @@ from gnosis.eth import EthereumClient
 from eth_typing import URI
 from eth_account.signers.local import LocalAccount
 
+from autotx.setup import setup_safe
+from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
 from autotx.utils.ethereum.constants import DEVNET_RPC_URL
 from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.is_dev_env import is_dev_env
+from autotx.wallets.smart_wallet import SmartWallet
 
 smart_account_addr = get_env_vars()
 
-def get_configuration() -> tuple[ETHAddress | None, LocalAccount, EthereumClient]:
-    rpc_url = DEVNET_RPC_URL if is_dev_env() else os.getenv("CHAIN_RPC_URL")
-    
-    if not rpc_url:
-        sys.exit("CHAIN_RPC_URL is not set")
+class AppConfig:
+    web3: Web3
+    client: EthereumClient
+    agent: LocalAccount
+    manager: SafeManager
+    network_info: NetworkInfo
 
-    web3 = Web3(Web3.HTTPProvider(rpc_url))
+    def __init__(
+        self,
+        web3: Web3,
+        client: EthereumClient,
+        agent: LocalAccount,
+        manager: SafeManager,
+        network_info: NetworkInfo,
+    ):
+        self.web3 = web3
+        self.client = client
+        self.agent = agent
+        self.manager = manager
+        self.network_info = network_info
 
-    for i in range(16):
-        if web3.is_connected():
-            break
-        if i == 15:
-            if is_dev_env():
-                sys.exit("Can not connect with local node. Did you run `poetry run start-devnet`?")
-            else:
-                sys.exit("Can not connect with remote node. Check your CHAIN_RPC_URL")
-        sleep(0.5)
+    @staticmethod
+    def load(
+        smart_account_addr: str | None = None,
+        subsidized_chain_id: int | None = None, 
+    ) -> "AppConfig":
+        rpc_url: str
 
-    client = EthereumClient(URI(rpc_url))
-    agent = get_or_create_agent_account()
+        if subsidized_chain_id:
+            network_info = NetworkInfo.from_chain_id(subsidized_chain_id)
+            alchemy_rpc_url = network_info.get_alchemy_rpc_url()
+            
+            if not alchemy_rpc_url:
+                raise ValueError(f"Chain ID {subsidized_chain_id} is not supported")
+            
+            print(f"Subsidized chain: {network_info.chain_id.name}", f"RPC URL: {alchemy_rpc_url}")
+            rpc_url = alchemy_rpc_url
+        else:
+            provided_rpc_url = DEVNET_RPC_URL if is_dev_env() else os.getenv("CHAIN_RPC_URL")
 
-    smart_account = ETHAddress(smart_account_addr) if smart_account_addr else None
+            if not provided_rpc_url:
+                sys.exit("CHAIN_RPC_URL is not set")
+            
+            rpc_url = provided_rpc_url
+            
+        client = EthereumClient(URI(rpc_url))
 
-    return (smart_account, agent, client)
+        for i in range(16):
+            if client.w3.is_connected():
+                break
+            if i == 15:
+                if is_dev_env():
+                    sys.exit("Can not connect with local node. Did you run `poetry run start-devnet`?")
+                else:
+                    sys.exit("Can not connect with remote node. Check your CHAIN_RPC_URL")
+            sleep(0.5)
+
+        agent = get_or_create_agent_account()
+
+        smart_account_addr = smart_account_addr if smart_account_addr else os.getenv("SMART_ACCOUNT_ADDRESS")
+        smart_account = ETHAddress(smart_account_addr) if smart_account_addr else None
+        
+        manager = setup_safe(smart_account, agent, client)
+
+        return AppConfig(client.w3, client, agent, manager, NetworkInfo(client.w3.eth.chain_id))

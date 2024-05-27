@@ -10,7 +10,6 @@ from autotx.utils.ethereum import (
     build_transfer_erc20,
     get_erc20_balance,
 )
-from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.build_transfer_native import build_transfer_native
 from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
@@ -87,16 +86,15 @@ class TransferTokenTool(AutoTxTool):
         ) -> str:
             amount = float(amount)
 
-            web3 = load_w3()
             receiver_addr = ETHAddress(receiver)
             token_address = ETHAddress(autotx.network.tokens[token.lower()])
 
             tx: TxParams
 
             if token_address.hex == NATIVE_TOKEN_ADDRESS:
-                tx = build_transfer_native(web3, ETHAddress(ADDRESS_ZERO), receiver_addr, amount)
+                tx = build_transfer_native(autotx.web3, ETHAddress(ADDRESS_ZERO), receiver_addr, amount)
             else:
-                tx = build_transfer_erc20(web3, token_address, receiver_addr, amount)
+                tx = build_transfer_erc20(autotx.web3, token_address, receiver_addr, amount)
 
             prepared_tx = models.SendTransaction(
                 token_symbol=token,
@@ -127,7 +125,7 @@ class GetTokenBalanceTool(AutoTxTool):
             token: Annotated[str, "Token symbol of erc20"],
             owner: Annotated[str, "The token owner's address or ENS domain"]
         ) -> float:
-            web3 = load_w3()
+            web3 = autotx.web3
             owner_addr = ETHAddress(owner)
             token_address = ETHAddress(autotx.network.tokens[token.lower()])
             

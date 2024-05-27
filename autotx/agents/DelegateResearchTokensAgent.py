@@ -73,7 +73,7 @@ class ResearchUserQuery(AutoTxTool):
     description: str = "Research user task"
 
     def build_tool(self, autotx: AutoTx) -> Callable[[str], str]:
-        def run(
+        async def run(
             tasks: Annotated[str, "User tasks to research"]
         ) -> str:
             autotx.notify_user(f"Researching user tasks: " + tasks)
@@ -109,7 +109,7 @@ class ResearchUserQuery(AutoTxTool):
             
             research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config())
 
-            chat = user_proxy_agent.initiate_chat(
+            chat = await user_proxy_agent.a_initiate_chat(
                 research_agent, 
                 message=dedent(
                     f"""

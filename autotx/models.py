@@ -84,10 +84,13 @@ Transaction = Union[SendTransaction, ApproveTransaction, SwapTransaction]
 class TaskCreate(BaseModel):
     prompt: str
     address: Optional[str] = None
+    chain_id: Optional[int] = None
 
 class Task(BaseModel):
     id: str
     prompt: str
+    address: str
+    chain_id: int
     created_at: datetime
     updated_at: datetime
     running: bool

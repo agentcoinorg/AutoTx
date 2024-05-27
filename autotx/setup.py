@@ -2,7 +2,6 @@ from datetime import datetime
 import os
 from typing import Any, Callable, Dict, Optional
 from eth_account.signers.local import LocalAccount
-from web3 import Web3
 from gnosis.eth import EthereumClient
 
 from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
@@ -26,7 +25,7 @@ def print_agent_address() -> None:
     acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
-def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, interactive: bool) -> tuple[SmartWallet, NetworkInfo, Web3]:
+def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient) -> SafeManager:
     web3 = client.w3
 
     chain_id = web3.eth.chain_id
@@ -67,9 +66,7 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
         show_address_balances(web3, network_info.chain_id, manager.address)
         print("=" * 50)
 
-    wallet = SafeSmartWallet(manager, interactive)
-
-    return (wallet, network_info, web3)
+    return manager
 
 def setup_agents(logs: str | None, cache: bool | None) -> tuple[Callable[[], Optional[Dict[str, Any]]], list[AutoTxAgent], str | None]:
     now = datetime.now()
