@@ -49,13 +49,12 @@ class AppConfig:
 
         if subsidized_chain_id:
             network_info = NetworkInfo.from_chain_id(subsidized_chain_id)
-            alchemy_rpc_url = network_info.get_alchemy_rpc_url()
+            subsidized_rpc_url = network_info.get_subsidized_rpc_url()
             
-            if not alchemy_rpc_url:
+            if not subsidized_rpc_url:
                 raise ValueError(f"Chain ID {subsidized_chain_id} is not supported")
             
-            print(f"Subsidized chain: {network_info.chain_id.name}", f"RPC URL: {alchemy_rpc_url}")
-            rpc_url = alchemy_rpc_url
+            rpc_url = subsidized_rpc_url
         else:
             provided_rpc_url = DEVNET_RPC_URL if is_dev_env() else os.getenv("CHAIN_RPC_URL")
 

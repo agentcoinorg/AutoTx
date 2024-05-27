@@ -62,7 +62,7 @@ class NetworkInfo:
             if token["chainId"] == chain_id and Web3.is_checksum_address(cast(str, token["address"]))
         }
 
-    def get_alchemy_rpc_url(self) -> str | None:
+    def get_subsidized_rpc_url(self) -> str | None:
         network = SUPPORTED_ALCHEMY_NETWORKS.get(cast(ChainId, self.chain_id))
 
         if not network:
@@ -72,12 +72,14 @@ class NetworkInfo:
 
 @dataclass
 class NetworkConfiguration:
+    network_name: str
     transaction_service_url: str
     default_tokens: dict[str, str]
 
 
 SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
     ChainId.MAINNET: NetworkConfiguration(
+        "Ethereum",
         "https://safe-transaction-mainnet.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -89,6 +91,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.OPTIMISM: NetworkConfiguration(
+        "Optimism",
         "https://safe-transaction-optimism.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -99,6 +102,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.ZKSYNC_V2: NetworkConfiguration(
+        "zkSync",
         "https://safe-transaction-zksync.safe.global/",
         {
             "usdc": "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4",
@@ -107,6 +111,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.POLYGON: NetworkConfiguration(
+        "Polygon PoS",
         "https://safe-transaction-polygon.safe.global/",
         {
             "matic": NATIVE_TOKEN_ADDRESS,
@@ -118,6 +123,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.BASE_MAINNET: NetworkConfiguration(
+        "Base",
         "https://safe-transaction-base.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -127,6 +133,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.ARBITRUM_ONE: NetworkConfiguration(
+        "Arbitrum",
         "https://safe-transaction-arbitrum.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -137,6 +144,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.SEPOLIA: NetworkConfiguration(
+        "Sepolia",
         "https://safe-transaction-sepolia.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -144,6 +152,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.GNOSIS: NetworkConfiguration(
+        "Gnosis Chain",
         "https://safe-transaction-gnosis-chain.safe.global",
         {
             "xdai": NATIVE_TOKEN_ADDRESS,

@@ -11,6 +11,7 @@ from autotx import models, setup
 from autotx.AutoTx import AutoTx, Config as AutoTxConfig
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.chain_short_names import CHAIN_ID_TO_SHORT_NAME
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP
 from autotx.wallets.api_smart_wallet import ApiSmartWallet
 from autotx.wallets.smart_wallet import SmartWallet
 
@@ -147,13 +148,23 @@ def send_transactions(task_id: str, model: SendTransactionsParams) -> str:
 
     return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(model.chain_id)]}:{model.address}"
 
+class SupportedNetwork(BaseModel):
+    name: str
+    chain_id: int
+
+@app_router.get("/api/v1/supported-networks", response_model=List[SupportedNetwork])
+def get_supported_networks() -> list[SupportedNetwork]:
+    return [
+        SupportedNetwork(name=config.network_name, chain_id=chain_id)
+        for chain_id, config in SUPPORTED_NETWORKS_CONFIGURATION_MAP.items()
+    ]
+
 class FeedbackParams(BaseModel):
     feedback: str
 
 @app_router.post("/api/v1/tasks/{task_id}/feedback", response_model=models.Task)
 def provide_feedback(task_id: str, model: FeedbackParams, background_tasks: BackgroundTasks) -> 'models.Task':
     global tasks
-    global task_to_autotx
     task = next(filter(lambda x: x.id == task_id, tasks), None)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
