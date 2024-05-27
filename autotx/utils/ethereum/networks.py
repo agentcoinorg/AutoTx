@@ -63,7 +63,7 @@ class NetworkInfo:
         }
 
     def get_subsidized_rpc_url(self) -> str | None:
-        network = SUPPORTED_ALCHEMY_NETWORKS.get(cast(ChainId, self.chain_id))
+        network = SUPPORTED_ALCHEMY_NETWORKS.get(self.chain_id)
 
         if not network:
             return None

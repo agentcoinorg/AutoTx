@@ -2,7 +2,7 @@ from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
 def test_send_native(configuration, auto_tx, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
     receiver = test_accounts[0]
     balance = get_native_balance(client.w3, receiver)
     assert balance == 0
@@ -13,7 +13,7 @@ def test_send_native(configuration, auto_tx, test_accounts):
     assert balance == 1
 
 def test_send_erc20(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
 
     receiver = test_accounts[0]
 
@@ -28,7 +28,7 @@ def test_send_erc20(configuration, auto_tx, usdc, test_accounts):
     assert balance + 10 == new_balance
 
 def test_send_native_sequential(configuration, auto_tx, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
     receiver = test_accounts[0]
 
     auto_tx.run(f"Send 1 ETH to {receiver}", non_interactive=True)
@@ -61,7 +61,7 @@ def test_send_erc20_parallel(configuration, auto_tx, usdc, test_accounts):
     assert balance_two + 3 == new_balance_two
 
 def test_send_eth_multiple(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
 
     receiver_1 = test_accounts[0]
     receiver_2 = test_accounts[1]

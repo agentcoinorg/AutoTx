@@ -1,7 +1,7 @@
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 
 def test_research_and_buy_one(configuration, auto_tx):
-    (_, _, _, manager) = configuration
+    (_, _, _, manager, _) = configuration
     
     prompt = (
         f"Buy 1 ETH worth of a meme token with the largest market cap in Ethereum mainnet"
@@ -15,7 +15,7 @@ def test_research_and_buy_one(configuration, auto_tx):
     assert token_balance_in_safe > 1000
 
 def test_research_and_buy_multiple(configuration, auto_tx):
-    (_, _, _, manager) = configuration
+    (_, _, _, manager, _) = configuration
 
     old_eth_balance = manager.balance_of()
 

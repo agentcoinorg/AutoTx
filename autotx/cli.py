@@ -67,7 +67,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     if is_dev_env():
         print("=" * 50)
         print("Final smart account balances:")
-        show_address_balances(app_config.web3, app_config.network_info.chain_id, wallet)
+        show_address_balances(app_config.web3, app_config.network_info.chain_id, wallet.address)
         print("=" * 50)
 
 @main.command()

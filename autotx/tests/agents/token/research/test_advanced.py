@@ -2,7 +2,7 @@ from autotx.tests.agents.token.research.test_research import get_top_token_addre
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx):
-    (_, _, _, manager) = configuration
+    (_, _, _, manager, _) = configuration
     uni_address = ETHAddress(auto_tx.network.tokens["uni"])
     
     uni_balance_in_safe = manager.balance_of(uni_address)
@@ -40,7 +40,7 @@ def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx)
     assert meme_token_balance_in_safe > 0
 
 def test_research_and_swap_many_tokens_subjective_complex(configuration, auto_tx):
-    (_, _, _, manager) = configuration
+    (_, _, _, manager, _) = configuration
 
     starting_balance = manager.balance_of()
 

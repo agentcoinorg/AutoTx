@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from web3 import Web3
 from autotx import models
-from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 

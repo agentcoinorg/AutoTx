@@ -68,7 +68,7 @@ class AutoTx:
     current_run_cost_with_cache: float
     info_messages: list[str]
     verbose: bool
-    on_notify_user: Callable[[str, Color], None] | None
+    on_notify_user: Callable[[str], None] | None
 
     def __init__(
         self,
@@ -77,7 +77,7 @@ class AutoTx:
         network: NetworkInfo,
         agents: list[AutoTxAgent],
         config: Config,
-        on_notify_user: Callable[[str, Color], None] = None
+        on_notify_user: Callable[[str], None] | None = None
     ):
         self.web3 = web3
         self.wallet = wallet

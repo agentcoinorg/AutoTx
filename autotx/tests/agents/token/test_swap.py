@@ -4,7 +4,7 @@ from autotx.utils.ethereum.eth_address import ETHAddress
 DIFFERENCE_PERCENTAGE = 1.01
 
 def test_swap_with_non_default_token(configuration, auto_tx):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     shib_address = ETHAddress(network_info.tokens["shib"])
@@ -20,7 +20,7 @@ def test_swap_with_non_default_token(configuration, auto_tx):
     assert expected_shib_amount <= new_balance <= expected_shib_amount * DIFFERENCE_PERCENTAGE
 
 def test_swap_native(configuration, auto_tx):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -33,7 +33,7 @@ def test_swap_native(configuration, auto_tx):
     assert expected_usdc_amount <= new_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
 def test_swap_multiple_1(configuration, auto_tx):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -52,7 +52,7 @@ def test_swap_multiple_1(configuration, auto_tx):
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_swap_multiple_2(configuration, auto_tx):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -69,7 +69,7 @@ def test_swap_multiple_2(configuration, auto_tx):
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_swap_triple(configuration, auto_tx): 
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -91,7 +91,7 @@ def test_swap_triple(configuration, auto_tx):
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 def test_swap_complex_1(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -107,7 +107,7 @@ def test_swap_complex_1(configuration, auto_tx): # This one is complex because i
     assert wbtc_balance < manager.balance_of(wbtc_address)
 
 def test_swap_complex_2(configuration, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])

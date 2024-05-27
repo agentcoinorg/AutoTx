@@ -4,7 +4,7 @@ from autotx.utils.ethereum import get_erc20_balance
 DIFFERENCE_PERCENTAGE = 0.01
 
 def test_research_buy_one_send_one(configuration, auto_tx, test_accounts):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
 
     receiver = test_accounts[0]
@@ -24,7 +24,7 @@ def test_research_buy_one_send_one(configuration, auto_tx, test_accounts):
     assert token_balance_in_safe / receiver_balance < DIFFERENCE_PERCENTAGE
 
 def test_research_buy_one_send_multiple(configuration, auto_tx, test_accounts):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
 
     receiver_1 = test_accounts[0]
@@ -48,7 +48,7 @@ def test_research_buy_one_send_multiple(configuration, auto_tx, test_accounts):
     assert meme_token_balance_in_safe > 10000
 
 def test_research_buy_multiple_send_multiple(configuration, auto_tx, test_accounts):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     web3 = client.w3
 
     receiver_1 = test_accounts[0]
