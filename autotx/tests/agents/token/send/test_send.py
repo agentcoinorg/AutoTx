@@ -42,7 +42,7 @@ def test_send_native_sequential(configuration, auto_tx, test_accounts):
     assert balance == 1.5
       
 def test_send_erc20_parallel(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
 
     receiver_one = test_accounts[0]
     receiver_two = test_accounts[1]
