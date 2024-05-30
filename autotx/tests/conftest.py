@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
+from autotx.utils.ethereum.send_native import send_native
 from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
 
@@ -12,7 +13,6 @@ from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from eth_account import Account
 
 from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
-from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
@@ -21,7 +21,6 @@ import pytest
 from autotx.AutoTx import AutoTx, Config
 from autotx.chain_fork import stop, start
 from autotx.utils.ethereum import (
-    send_native,
     transfer_erc20,
 )
 
@@ -38,7 +37,8 @@ def configuration():
     app_config = AppConfig.load()
     wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=True)
     dev_account = get_dev_account()
-    delete_cached_safe_address()
+
+    send_native(dev_account, wallet.address, 10, app_config.web3)
 
     return (dev_account, app_config.agent, app_config.client, app_config.manager, wallet)
 

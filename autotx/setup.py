@@ -18,14 +18,12 @@ from autotx.utils.ethereum.helpers.show_address_balances import show_address_bal
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
-from autotx.wallets.safe_smart_wallet import SafeSmartWallet
-from autotx.wallets.smart_wallet import SmartWallet
 
 def print_agent_address() -> None:
     acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
-def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient) -> SafeManager:
+def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, fill_dev_account: bool) -> SafeManager:
     web3 = client.w3
 
     chain_id = web3.eth.chain_id
@@ -57,7 +55,7 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
         
-        if not is_safe_deployed:
+        if not is_safe_deployed and fill_dev_account:
             fill_dev_account_with_tokens(client, dev_account, manager.address, network_info)
             print(f"Funds sent to smart account for testing purposes")
 

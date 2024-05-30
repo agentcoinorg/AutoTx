@@ -263,7 +263,7 @@ def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache:
     tasks = []
 
     if is_dev: 
-        AppConfig.load() # Loading the configuration deploys the dev wallet in dev mode
+        AppConfig.load(fill_dev_account=True) # Loading the configuration deploys the dev wallet in dev mode
 
     global autotx_params
     autotx_params = AutoTxParams(

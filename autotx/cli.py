@@ -46,7 +46,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
-    app_config = AppConfig.load()
+    app_config = AppConfig.load(fill_dev_account=True)
     wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=non_interactive)
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
