@@ -19,7 +19,7 @@ def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx)
     gaming_token_address = get_top_token_addresses_by_market_cap("gaming", "MAINNET", 1, auto_tx)[0]
     gaming_token_balance_in_safe = manager.balance_of(gaming_token_address)
 
-    ai_token_address = get_top_token_addresses_by_market_cap("ai-themed-coins", "MAINNET", 1, auto_tx)[0]
+    ai_token_address = get_top_token_addresses_by_market_cap("artificial-intelligence", "MAINNET", 1, auto_tx)[0]
     ai_token_balance_in_safe = manager.balance_of(ai_token_address)
 
     meme_token_address = get_top_token_addresses_by_market_cap("meme-token", "MAINNET", 1, auto_tx)[0]
