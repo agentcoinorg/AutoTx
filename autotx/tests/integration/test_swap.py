@@ -7,7 +7,7 @@ DIFFERENCE_PERCENTAGE = 1.01
 
 
 def test_buy_one_usdc(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -28,7 +28,7 @@ def test_buy_one_usdc(configuration):
 
 
 def test_buy_one_thousand_usdc(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -50,7 +50,7 @@ def test_buy_one_thousand_usdc(configuration):
 
 
 def test_receive_native(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
 
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
@@ -89,7 +89,7 @@ def test_receive_native(configuration):
 
 
 def test_buy_small_amount_wbtc_with_eth(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
@@ -110,7 +110,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
 
 
 def test_buy_big_amount_wbtc_with_eth(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
@@ -131,7 +131,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
 
 
 def test_swap_multiple_tokens(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, manager, _) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
 
     eth_address = ETHAddress(network_info.tokens["eth"])

@@ -6,7 +6,6 @@ from .transfer_erc20 import transfer_erc20
 from .build_transfer_erc20 import build_transfer_erc20
 from .get_erc20_balance import get_erc20_balance
 from .SafeManager import SafeManager
-from .load_w3 import load_w3
 from .build_approve_erc20 import build_approve_erc20
 from .get_erc20_info import get_erc20_info
 from .is_valid_safe import is_valid_safe
@@ -28,6 +27,5 @@ __all__ = [
     "get_erc20_balance",
     "get_erc20_info",
     "SafeManager",
-    "load_w3",
     "is_valid_safe",
 ]

@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 
+from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
+from autotx.utils.ethereum.send_native import send_native
 from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
 
@@ -11,7 +13,6 @@ from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from eth_account import Account
 
 from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
-from autotx.utils.ethereum.cached_safe_address import delete_cached_safe_address
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
@@ -19,10 +20,7 @@ from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 import pytest
 from autotx.AutoTx import AutoTx, Config
 from autotx.chain_fork import stop, start
-from autotx.utils.configuration import get_configuration
 from autotx.utils.ethereum import (
-    SafeManager,
-    send_native,
     transfer_erc20,
 )
 
@@ -36,27 +34,23 @@ def start_and_stop_local_fork():
 
 @pytest.fixture()
 def configuration():
-    (_, agent, client) = get_configuration()
+    app_config = AppConfig.load()
+    wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=True)
     dev_account = get_dev_account()
-    delete_cached_safe_address()
 
-    manager = SafeManager.deploy_safe(
-        client, dev_account, agent, [dev_account.address, agent.address], 1
-    )
+    send_native(dev_account, wallet.address, 10, app_config.web3)
 
-    # Send 10 ETH to the smart account for tests
-    send_native(dev_account, manager.address, 10, client.w3)
-
-    return (dev_account, agent, client, manager)
+    return (dev_account, app_config.agent, app_config.client, app_config.manager, wallet)
 
 @pytest.fixture()
 def auto_tx(configuration):
-    (_, _, client, manager) = configuration
+    (_, _, client, _, wallet) = configuration
     network_info = NetworkInfo(client.w3.eth.chain_id)
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
 
     return AutoTx(
-        SafeSmartWallet(manager, interactive=False),
+        client.w3,
+        wallet,
         network_info, 
         [
             SendTokensAgent(),
@@ -68,7 +62,7 @@ def auto_tx(configuration):
 
 @pytest.fixture()
 def usdc(configuration) -> ETHAddress:
-    (user, _, client, manager) = configuration
+    (user, _, client, _, wallet) = configuration
  
     chain_id = client.w3.eth.chain_id
     network_info = NetworkInfo(chain_id)
@@ -80,14 +74,12 @@ def usdc(configuration) -> ETHAddress:
 
     swap(client, user, amount, eth_address, usdc_address, network_info.chain_id)
     
-    transfer_erc20(client.w3, usdc_address, user, manager.address, amount)
+    transfer_erc20(client.w3, usdc_address, user, wallet.address, amount)
 
     return usdc_address
 
 @pytest.fixture()
-def test_accounts(configuration) -> list[ETHAddress]:
-    (_, _, client, _) = configuration
-
+def test_accounts() -> list[ETHAddress]:
     # Create 10 random test accounts
     accounts = [ETHAddress(Account.create().address) for _ in range(10)]
 

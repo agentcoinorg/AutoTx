@@ -1,12 +1,12 @@
 import pytest
-from autotx.utils.ethereum import get_erc20_balance, load_w3
+from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.ethereum.eth_address import ETHAddress
 
 
 @pytest.mark.skip()
 def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
 
     receiver = test_accounts[0]
 
@@ -40,8 +40,8 @@ def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
 
 @pytest.mark.skip()
 def test_auto_tx_swap(configuration, auto_tx):
-    (_, _, _, manager) = configuration
-    web3 = load_w3()
+    (_, _, client, manager, _) = configuration
+    web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
 
@@ -75,7 +75,7 @@ def test_auto_tx_swap(configuration, auto_tx):
 
 @pytest.mark.skip()
 def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _) = configuration
+    (_, _, client, _, _) = configuration
 
     receiver_one = test_accounts[0]
     receiver_two = test_accounts[1]
@@ -114,8 +114,8 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
 
 @pytest.mark.skip()
 def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
-    (_, _, client, manager) = configuration
-    web3 = load_w3()
+    (_, _, client, manager, _) = configuration
+    web3 = client.w3
     network_info = NetworkInfo(web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])

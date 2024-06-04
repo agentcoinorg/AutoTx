@@ -5,7 +5,6 @@ from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
-from autotx.utils.ethereum import load_w3
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -91,7 +90,12 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.T
         )
 
     if len(sell_parts) == 2 and len(buy_parts) == 2:
-        raise InvalidInput(f"Invalid input: \"{token_to_sell} to {token_to_buy}\". Only one token amount should be provided. IMPORTANT: Take another look at the user's goal, and try again.")
+        sell_amount = Decimal(sell_parts[0])
+        buy_amount = Decimal(buy_parts[0])
+        sell_token = sell_parts[1]
+        buy_token = buy_parts[1]
+
+        raise InvalidInput(f"Invalid input: \"{token_to_sell} to {token_to_buy}\". Only one token amount should be provided. Choose between '{sell_amount} {sell_token} to {buy_token}' or '{sell_token} to {buy_amount} {buy_token}'.")
     
     if len(sell_parts) < 2 and len(buy_parts) < 2:
         raise InvalidInput(f"Invalid input: \"{token_to_sell} to {token_to_buy}\". Token amount is missing. Only one token amount should be provided.")
@@ -114,7 +118,7 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.T
     )
 
     swap_transactions = build_swap_transaction(
-        load_w3(),
+        autotx.web3,
         Decimal(exact_amount),
         ETHAddress(token_in_address),
         ETHAddress(token_out_address),

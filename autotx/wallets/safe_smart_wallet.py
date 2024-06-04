@@ -5,16 +5,16 @@ from autotx.wallets.smart_wallet import SmartWallet
 
 class SafeSmartWallet(SmartWallet):
     manager: SafeManager
-    interactive: bool
+    auto_submit_tx: bool
 
-    def __init__(self, manager: SafeManager, interactive: bool):
-        super().__init__(manager.address)
+    def __init__(self, manager: SafeManager, auto_submit_tx: bool):
+        super().__init__(manager.client.w3, manager.address)
 
         self.manager = manager
-        self.interactive = interactive
+        self.auto_submit_tx = auto_submit_tx
 
     def on_transactions_prepared(self, txs: list[models.Transaction]) -> None:
         pass
 
     def on_transactions_ready(self, txs: list[models.Transaction]) -> bool | str:
-        return self.manager.send_tx_batch(txs, self.interactive)
+        return self.manager.send_tx_batch(txs, not self.auto_submit_tx)

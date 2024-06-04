@@ -1,20 +1,20 @@
 import uuid
+
+from web3 import Web3
 from autotx import models
+from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.wallets.smart_wallet import SmartWallet
 
 
 class ApiSmartWallet(SmartWallet):
-    external_wallet: SmartWallet | None
+    manager: SafeManager
 
-    def __init__(self, wallet: ETHAddress | SmartWallet, task_id: str, tasks: list[models.Task]):
-        super().__init__(wallet.address if isinstance(wallet, SmartWallet) else wallet)
+    def __init__(self, web3: Web3, manager: SafeManager, task_id: str, tasks: list[models.Task]):
+        super().__init__(web3, manager.address)
         self.task_id = task_id
         self.tasks = tasks
-        if isinstance(wallet, SmartWallet):
-            self.external_wallet = wallet
-        else:
-            self.external_wallet = None
+        self.manager = manager
 
     def on_transactions_prepared(self, txs: list[models.Transaction]) -> None:
         saved_task = next(filter(lambda x: x.id == self.task_id, self.tasks), None)
@@ -26,11 +26,5 @@ class ApiSmartWallet(SmartWallet):
 
         saved_task.transactions.extend(txs)
 
-        if self.external_wallet:
-            self.external_wallet.on_transactions_prepared(txs)
-
     def on_transactions_ready(self, _txs: list[models.Transaction]) -> bool | str:
-        if self.external_wallet:
-            return self.external_wallet.on_transactions_ready(_txs)
-
         return True

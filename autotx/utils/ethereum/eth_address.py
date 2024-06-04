@@ -1,7 +1,7 @@
 from eth_typing import ChecksumAddress
-from web3 import Web3
+from web3 import HTTPProvider, Web3
 
-from autotx.utils.ethereum.networks import MAINNET_DEFAULT_RPC
+from autotx.utils.constants import MAINNET_DEFAULT_RPC
 
 class ETHAddress:
     hex: ChecksumAddress
@@ -9,7 +9,7 @@ class ETHAddress:
 
     def __init__(self, hex_or_ens: str):
         if hex_or_ens.endswith(".eth"):
-            web3 = Web3(MAINNET_DEFAULT_RPC)
+            web3 = Web3(HTTPProvider(MAINNET_DEFAULT_RPC))
             address = web3.ens.address(hex_or_ens)  # type: ignore
             if address == None:
                 raise ValueError(f"Invalid ENS: {hex_or_ens}")

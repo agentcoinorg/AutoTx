@@ -3,12 +3,29 @@ from typing import cast
 from gnosis.eth import EthereumNetwork
 from web3 import Web3, HTTPProvider
 
+from autotx.utils.constants import ALCHEMY_API_KEY
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.helpers.token_list import token_list
 
 ChainId = EthereumNetwork
 
-MAINNET_DEFAULT_RPC = HTTPProvider("https://mainnet.infura.io/v3/f1f688077be642c190ac9b28769daecf")
+SUPPORTED_ALCHEMY_NETWORKS: dict[ChainId, str] = {
+    ChainId.MAINNET: "eth-mainnet",
+    ChainId.GOERLI: "eth-goerli",
+    ChainId.SEPOLIA: "eth-sepolia",
+    ChainId.OPTIMISM: "opt-mainnet",
+    ChainId.OPTIMISM_GOERLI_TESTNET: "opt-goerli",
+    ChainId.ARBITRUM_ONE: "arb-mainnet",
+    ChainId.ARBITRUM_GOERLI: "arb-goerli",
+    ChainId.POLYGON: "polygon-mainnet",
+    ChainId.MUMBAI: "polygon-mumbai",
+    ChainId.ASTAR: "astar-mainnet",
+    ChainId.POLYGON_ZKEVM: "polygonzkevm-mainnet",
+    ChainId.POLYGON_ZKEVM_TESTNET: "polygonzkevm-testnet",
+    ChainId.BASE_MAINNET: "base-mainnet",
+    ChainId.BASE_GOERLI_TESTNET: "base-goerli",
+    ChainId.ZKSYNC_V2: "zksync-mainnet",
+}
 
 class NetworkInfo:
     chain_id: ChainId
@@ -28,6 +45,16 @@ class NetworkInfo:
         self.transaction_service_url = config.transaction_service_url
         self.tokens = { **self.fetch_tokens_for_chain(chain_id), **config.default_tokens }
 
+    @staticmethod
+    def from_chain_id(chain_id: int) -> 'NetworkInfo':
+        return NetworkInfo(chain_id)
+    
+    @staticmethod
+    def from_rpc_url(rpc_url: str) -> 'NetworkInfo':
+        web3 = Web3(HTTPProvider(rpc_url))
+        chain_id = web3.eth.chain_id
+        return NetworkInfo(chain_id)
+
     def fetch_tokens_for_chain(self, chain_id: int) -> dict[str, str]:
         return {
             cast(str, token["symbol"]).lower(): Web3.to_checksum_address(cast(str, token["address"]))
@@ -35,15 +62,24 @@ class NetworkInfo:
             if token["chainId"] == chain_id and Web3.is_checksum_address(cast(str, token["address"]))
         }
 
+    def get_subsidized_rpc_url(self) -> str | None:
+        network = SUPPORTED_ALCHEMY_NETWORKS.get(self.chain_id)
+
+        if not network:
+            return None
+
+        return f"https://{network}.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 
 @dataclass
 class NetworkConfiguration:
+    network_name: str
     transaction_service_url: str
     default_tokens: dict[str, str]
 
 
 SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
     ChainId.MAINNET: NetworkConfiguration(
+        "Ethereum",
         "https://safe-transaction-mainnet.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -55,6 +91,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.OPTIMISM: NetworkConfiguration(
+        "Optimism",
         "https://safe-transaction-optimism.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -65,6 +102,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.ZKSYNC_V2: NetworkConfiguration(
+        "zkSync",
         "https://safe-transaction-zksync.safe.global/",
         {
             "usdc": "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4",
@@ -73,6 +111,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.POLYGON: NetworkConfiguration(
+        "Polygon PoS",
         "https://safe-transaction-polygon.safe.global/",
         {
             "matic": NATIVE_TOKEN_ADDRESS,
@@ -84,6 +123,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.BASE_MAINNET: NetworkConfiguration(
+        "Base",
         "https://safe-transaction-base.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -93,6 +133,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.ARBITRUM_ONE: NetworkConfiguration(
+        "Arbitrum",
         "https://safe-transaction-arbitrum.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -103,6 +144,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.SEPOLIA: NetworkConfiguration(
+        "Sepolia",
         "https://safe-transaction-sepolia.safe.global/",
         {
             "eth": NATIVE_TOKEN_ADDRESS,
@@ -110,6 +152,7 @@ SUPPORTED_NETWORKS_CONFIGURATION_MAP: dict[ChainId, NetworkConfiguration] = {
         },
     ),
     ChainId.GNOSIS: NetworkConfiguration(
+        "Gnosis Chain",
         "https://safe-transaction-gnosis-chain.safe.global",
         {
             "xdai": NATIVE_TOKEN_ADDRESS,

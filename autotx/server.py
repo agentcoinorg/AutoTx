@@ -1,22 +1,17 @@
-import asyncio
 from datetime import datetime
-from typing import Any, Dict, List, cast
+from textwrap import dedent
+from typing import Any, Dict, List
 import uuid
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
+from pydantic import BaseModel
 
 from autotx import models, setup
-
-from autotx import models
-from autotx.AutoTx import AutoTx
-from autotx.AutoTx import Config as AutoTxConfig
-from autotx.utils.configuration import get_configuration
-from autotx.utils.ethereum import load_w3
-from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.AutoTx import AutoTx, Config as AutoTxConfig
+from autotx.utils.configuration import AppConfig
+from autotx.utils.ethereum.chain_short_names import CHAIN_ID_TO_SHORT_NAME
+from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP
 from autotx.wallets.api_smart_wallet import ApiSmartWallet
 from autotx.wallets.smart_wallet import SmartWallet
 
@@ -26,7 +21,6 @@ class AutoTxParams:
     cache: bool
     max_rounds: int | None
     is_dev: bool
-    dev_wallet: SmartWallet | None
 
     def __init__(self, 
         verbose: bool, 
@@ -34,14 +28,12 @@ class AutoTxParams:
         cache: bool,
         max_rounds: int | None, 
         is_dev: bool,
-        dev_wallet: SmartWallet | None,
     ):
         self.verbose = verbose
         self.logs = logs
         self.cache = cache
         self.max_rounds = max_rounds
         self.is_dev = is_dev
-        self.dev_wallet = dev_wallet
 
 tasks: list[models.Task] = []
 
@@ -56,14 +48,26 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     if autotx_params is None:
         raise HTTPException(status_code=500, detail="AutoTx not started")
 
-    if not autotx_params.is_dev and not task.address:
-        raise HTTPException(status_code=400, detail="Address is required for non-dev mode")
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
     
     task_id = str(uuid.uuid4())
+    prompt = task.prompt
+    
+    app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id)
+
+    wallet: SmartWallet
+    if autotx_params.is_dev:
+        wallet = ApiSmartWallet(app_config.web3, app_config.manager, task_id, tasks)
+    else:
+        wallet = ApiSmartWallet(app_config.web3, app_config.manager, task_id, tasks)
+
     now = datetime.utcnow()
     created_task = models.Task(
         id=task_id,
-        prompt=task.prompt,
+        prompt=prompt,
+        address=wallet.address.hex,
+        chain_id=app_config.network_info.chain_id,
         created_at=now,
         updated_at=now,
         running=True,
@@ -71,27 +75,20 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
         transactions=[],
     )
     tasks.append(created_task)
-    prompt = task.prompt
-
-    print(f"Starting task: {task_id}")
-
+    
     (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
 
-    web3 = load_w3()
-    chain_id = web3.eth.chain_id
-    network_info = NetworkInfo(chain_id)    
-
-    wallet: SmartWallet
-    if autotx_params.is_dev:
-        wallet = ApiSmartWallet(cast(SmartWallet, autotx_params.dev_wallet), task_id, tasks)
-    else:
-        wallet = ApiSmartWallet(ETHAddress(cast(str, task.address)), task_id, tasks)
+    def on_notify_user(message: str) -> None:
+        created_task.messages.append(message)
+        created_task.updated_at = datetime.utcnow()
 
     autotx = AutoTx(
+        app_config.web3,
         wallet,
-        network_info,
+        app_config.network_info,
         agents,
         AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
+        on_notify_user=on_notify_user
     )
 
     async def run_task() -> None:
@@ -101,7 +98,7 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
             raise Exception("Task not found: " + task_id)
 
         saved_task.running = False
-        saved_task.messages = autotx.info_messages
+        saved_task.updated_at = datetime.utcnow()
 
     background_tasks.add_task(run_task)
 
@@ -128,6 +125,121 @@ def get_transactions(task_id: str) -> Any:
         raise HTTPException(status_code=404, detail="Task not found")
     return task.transactions
 
+class SendTransactionsParams(BaseModel):
+    address: str
+    chain_id: int
+
+@app_router.post("/api/v1/tasks/{task_id}/transactions")
+def send_transactions(task_id: str, model: SendTransactionsParams) -> str:
+    global tasks
+    task = next(filter(lambda x: x.id == task_id, tasks), None)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    if task.running:
+        raise HTTPException(status_code=400, detail="Task is still running")
+    
+    app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id)
+
+    app_config.manager.send_tx_batch(
+        task.transactions,
+        require_approval=False,
+    )
+
+    return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(model.chain_id)]}:{model.address}"
+
+class SupportedNetwork(BaseModel):
+    name: str
+    chain_id: int
+
+@app_router.get("/api/v1/supported-networks", response_model=List[SupportedNetwork])
+def get_supported_networks() -> list[SupportedNetwork]:
+    return [
+        SupportedNetwork(name=config.network_name, chain_id=chain_id)
+        for chain_id, config in SUPPORTED_NETWORKS_CONFIGURATION_MAP.items()
+    ]
+
+class FeedbackParams(BaseModel):
+    feedback: str
+
+@app_router.post("/api/v1/tasks/{task_id}/feedback", response_model=models.Task)
+def provide_feedback(task_id: str, model: FeedbackParams, background_tasks: BackgroundTasks) -> 'models.Task':
+    global tasks
+    task = next(filter(lambda x: x.id == task_id, tasks), None)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    if task.running:
+        raise HTTPException(status_code=400, detail="Task is still running")
+        
+    global autotx_params
+    if autotx_params is None:
+        raise HTTPException(status_code=500, detail="AutoTx not started")
+
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
+    
+    app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id)
+
+    (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
+
+    wallet: SmartWallet
+    if autotx_params.is_dev:
+        wallet = ApiSmartWallet(app_config.web3, app_config.manager, task_id, tasks)
+    else:
+        wallet = ApiSmartWallet(app_config.web3, app_config.manager, task_id, tasks)
+
+    def on_notify_user(message: str) -> None:
+        task.messages.append(message)
+        task.updated_at = datetime.utcnow()
+
+    autotx = AutoTx(
+        app_config.web3,
+        wallet,
+        app_config.network_info,
+        agents,
+        AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
+        on_notify_user=on_notify_user
+    )
+
+    transactions_info = "\n".join(
+        [
+            f"{i + 1}. {tx.summary}"
+            for i, tx in enumerate(task.transactions)
+        ]
+    )
+
+    prev_history = dedent(f"""
+        Then you prepared these transactions to accomplish the goal:
+        {transactions_info}
+        Then the user provided feedback:
+        {model.feedback}"""
+    )
+
+    task.prompt = (f"\nOriginaly the user said: {task.prompt}"
+        + prev_history
+        + "\nPay close attention to the user's feedback and try again.")
+    task.transactions = []
+    task.running = True
+    task.updated_at = datetime.utcnow()
+    task.messages = []
+
+    prompt = task.prompt
+
+    async def run_task() -> None:
+            await autotx.a_run(prompt, non_interactive=True)
+            saved_task = next(filter(lambda x: x.id == task_id, tasks), None)
+            if saved_task is None:
+                raise Exception("Task not found: " + task_id)
+
+            saved_task.running = False
+            saved_task.messages = autotx.info_messages
+            saved_task.updated_at = datetime.utcnow()
+
+    background_tasks.add_task(run_task)
+
+    return task
+
 @app_router.get("/api/v1/version", response_class=JSONResponse)
 async def get_version() -> Dict[str, str]:
     return {"version": "0.1.0"}
@@ -150,12 +262,8 @@ def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache:
     global tasks
     tasks = []
 
-    dev_wallet: SmartWallet | None = None
-
     if is_dev: 
-        (smart_account_addr, agent, client) = get_configuration()
-        (wallet, _network, _web3) = setup.setup_safe(smart_account_addr, agent, client, interactive=False)
-        dev_wallet = wallet
+        AppConfig.load(fill_dev_account=True) # Loading the configuration deploys the dev wallet in dev mode
 
     global autotx_params
     autotx_params = AutoTxParams(
@@ -164,13 +272,4 @@ def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache:
         cache=cache,
         max_rounds=max_rounds, 
         is_dev=is_dev,
-        dev_wallet=dev_wallet,
     )
-
-def start_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, is_dev: bool) -> None:
-    setup_server(verbose, logs, max_rounds, cache, is_dev)
-
-    port = port or 8000
-    config = Config()
-    config.bind = [f"localhost:{port}"]
-    asyncio.run(serve(app, config)) # type: ignore

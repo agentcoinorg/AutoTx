@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from autogen import Agent as AutogenAgent
 from termcolor import cprint
 from typing import Optional
+
+from web3 import Web3
 from autotx import models
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
@@ -53,6 +55,7 @@ class RunResult:
     info_messages: list[str]
 
 class AutoTx:
+    web3: Web3
     wallet: SmartWallet
     logger: Logger
     transactions: list[models.Transaction]
@@ -65,14 +68,18 @@ class AutoTx:
     current_run_cost_with_cache: float
     info_messages: list[str]
     verbose: bool
+    on_notify_user: Callable[[str], None] | None
 
     def __init__(
         self,
+        web3: Web3,
         wallet: SmartWallet,
         network: NetworkInfo,
         agents: list[AutoTxAgent],
         config: Config,
+        on_notify_user: Callable[[str], None] | None = None
     ):
+        self.web3 = web3
         self.wallet = wallet
         self.network = network
         self.logger = Logger(
@@ -88,6 +95,7 @@ class AutoTx:
         self.current_run_cost_without_cache = 0
         self.current_run_cost_with_cache = 0
         self.info_messages = []
+        self.on_notify_user = on_notify_user
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         return asyncio.run(self.a_run(prompt, non_interactive, summary_method))    
@@ -195,7 +203,7 @@ class AutoTx:
                 error_message = chat.summary.replace("ERROR: ", "").replace("\n", "")
                 self.notify_user(error_message, "red")
             else:
-                self.notify_user(chat.summary.replace("\n", ""), "green")
+                self.notify_user(chat.summary, "green")
 
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
@@ -238,6 +246,8 @@ class AutoTx:
         else:
             print(message)
         self.info_messages.append(message)
+        if self.on_notify_user:
+            self.on_notify_user(message)
 
     def get_agents_information(self, agents: list[AutoTxAgent]) -> str:
         agent_descriptions = []

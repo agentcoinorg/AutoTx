@@ -1,12 +1,11 @@
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
-from autotx.utils.ethereum import get_erc20_balance, load_w3
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.utils.ethereum import get_erc20_balance
 
 DIFFERENCE_PERCENTAGE = 0.01
 
 def test_research_buy_one_send_one(configuration, auto_tx, test_accounts):
-    (_, _, _, manager) = configuration
-    web3 = load_w3()
+    (_, _, client, manager, _) = configuration
+    web3 = client.w3
 
     receiver = test_accounts[0]
     
@@ -25,8 +24,8 @@ def test_research_buy_one_send_one(configuration, auto_tx, test_accounts):
     assert token_balance_in_safe / receiver_balance < DIFFERENCE_PERCENTAGE
 
 def test_research_buy_one_send_multiple(configuration, auto_tx, test_accounts):
-    (_, _, _, manager) = configuration
-    web3 = load_w3()
+    (_, _, client, manager, _) = configuration
+    web3 = client.w3
 
     receiver_1 = test_accounts[0]
     receiver_2 = test_accounts[1]
@@ -49,8 +48,8 @@ def test_research_buy_one_send_multiple(configuration, auto_tx, test_accounts):
     assert meme_token_balance_in_safe > 10000
 
 def test_research_buy_multiple_send_multiple(configuration, auto_tx, test_accounts):
-    (_, _, _, manager) = configuration
-    web3 = load_w3()
+    (_, _, client, manager, _) = configuration
+    web3 = client.w3
 
     receiver_1 = test_accounts[0]
     receiver_2 = test_accounts[1]
