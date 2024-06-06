@@ -80,7 +80,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
 def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, dev: bool) -> None:
     print_autotx_info()
 
-    setup_server(verbose, logs, max_rounds, cache, dev)
+    setup_server(verbose, logs, max_rounds, cache, dev, check_valid_safe=True)
     uvicorn.run("autotx.server:app", host="localhost", port=8000, workers=1)
 
 @main.group()

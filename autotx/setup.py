@@ -23,7 +23,7 @@ def print_agent_address() -> None:
     acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
-def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, fill_dev_account: bool) -> SafeManager:
+def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, fill_dev_account: bool, check_valid_safe: bool) -> SafeManager:
     web3 = client.w3
 
     chain_id = web3.eth.chain_id
@@ -40,7 +40,7 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
     manager: SafeManager
 
     if smart_account_addr:
-        if not SafeManager.is_valid_safe(client, smart_account_addr):
+        if check_valid_safe and not SafeManager.is_valid_safe(client, smart_account_addr):
             raise Exception(f"Invalid safe address: {smart_account_addr}")
 
         print(f"Smart account connected: {smart_account_addr}")

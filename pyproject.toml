@@ -18,6 +18,7 @@ fastapi = "^0.111.0"
 web3 = "^6.19.0"
 safe-eth-py = "^5.8.0"
 uvicorn = "^0.29.0"
+supabase = "^2.5.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"

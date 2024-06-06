@@ -12,7 +12,6 @@ from autotx.utils.ethereum.helpers.get_native_token_symbol import (
 )
 from autotx.utils.ethereum.lifi import Lifi, TokenNotSupported
 from autotx.utils.ethereum.networks import ChainId
-from gnosis.eth import EthereumClient
 from web3.types import TxParams, Wei
 
 SLIPPAGE = 0.005  # 0.5%
@@ -169,7 +168,7 @@ def build_swap_transaction(
                 }
             )
             transactions.append(
-                models.ApproveTransaction(
+                models.ApproveTransaction.create(
                     token_symbol=token_in_symbol,
                     token_address=str(token_in_address),
                     amount=float(Decimal(str(quote.amount_in)) / 10 ** token_in_decimals),
@@ -178,7 +177,7 @@ def build_swap_transaction(
                 )
             )
     transactions.append(
-        models.SwapTransaction(
+        models.SwapTransaction.create(
             from_token_symbol=token_in_symbol,
             to_token_symbol=token_out_symbol,
             from_token_address=str(token_in_address),

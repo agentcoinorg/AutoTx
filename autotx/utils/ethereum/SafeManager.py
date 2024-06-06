@@ -1,4 +1,3 @@
-import sys
 from typing import Any, Optional, cast
 import re
 import logging
@@ -13,7 +12,6 @@ from gnosis.safe import Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from web3.types import TxParams, TxReceipt
 from gnosis.safe.api import TransactionServiceApi
-from gnosis.safe.api.base_api import SafeAPIException
 from eth_account.signers.local import LocalAccount
 
 from autotx import models
@@ -116,7 +114,7 @@ class SafeManager:
             raise ValueError("Dev account not set. This function should not be called in production.")
         multicall_addr = deploy_multicall(self.client, self.dev_account)
         self.connect_multicall(multicall_addr)
-    
+
     def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
         if not self.multisend:
             raise Exception("No multisend contract address has been set to SafeManager")
@@ -203,19 +201,15 @@ class SafeManager:
     def post_transaction(self, tx: TxParams, safe_nonce: Optional[int] = None) -> None:
         if not self.network:
             raise Exception("Network not defined for transaction service")
-            
-        try:
-            ts_api = TransactionServiceApi(
-                self.network, ethereum_client=self.client, base_url=self.transaction_service_url
-            )
 
-            safe_tx = self.build_tx(tx, safe_nonce)
-            safe_tx.sign(self.agent.key.hex())
+        ts_api = TransactionServiceApi(
+            self.network, ethereum_client=self.client, base_url=self.transaction_service_url
+        )
 
-            ts_api.post_transaction(safe_tx)
-        except SafeAPIException as e:
-            if "is not an owner or delegate" in str(e):
-                sys.exit(f"Agent with address {self.agent.address} is not a signer of the safe with address {self.address.hex}. Please add it and try again") 
+        safe_tx = self.build_tx(tx, safe_nonce)
+        safe_tx.sign(self.agent.key.hex())
+
+        ts_api.post_transaction(safe_tx)
 
     def post_multisend_transaction(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> None:
         if not self.network:

@@ -96,7 +96,7 @@ class TransferTokenTool(AutoTxTool):
             else:
                 tx = build_transfer_erc20(autotx.web3, token_address, receiver_addr, amount)
 
-            prepared_tx = models.SendTransaction(
+            prepared_tx = models.SendTransaction.create(
                 token_symbol=token,
                 token_address=str(token_address),
                 amount=amount,
