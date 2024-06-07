@@ -30,11 +30,18 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
+    - name: Install dependencies
+      run: poetry install
+
+    - name: Check types
+      run: poetry run build-check
+
     - id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: ${{ secrets.PROD_GOOGLE_WIP }}
         service_account: ${{ secrets.PROD_GOOGLE_SA }}
+        credentials_json: '${{ secrets.PROD_GOOGLE_SA_KEY_JSON }}' 
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v1'
