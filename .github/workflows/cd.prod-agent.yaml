@@ -1,0 +1,59 @@
+name: CD Prod Agent
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ./**
+
+jobs:
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+    - uses: 'actions/checkout@v4'
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Install and configure Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.1
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: ${{ secrets.PROD_GOOGLE_WIP }}
+        service_account: ${{ secrets.PROD_GOOGLE_SA }}
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        version: '>= 363.0.0'
+    - name: 'Use gcloud CLI'
+      run: 'gcloud info'
+
+    - name: Create .deploy.env file
+      run: |
+        echo "ALCHEMY_API_KEY=${{ secrets.ALCHEMY_API_KEY }}" >> .deploy.env
+        echo "OPENAI_API_KEY=${{ secrets.CI_OPENAI_API_KEY }}" >> .deploy.env
+        echo "OPENAI_BASE_URL=https://api.openai.com/v1" >> .deploy.env
+        echo "OPENAI_MODEL_NAME=gpt-4o" >> .deploy.env
+        echo "COINGECKO_API_KEY=${{ secrets.CI_COINGECKO_API_KEY }}" >> .deploy.env
+        echo "LIFI_API_KEY=${{ secrets.LIFI_API_KEY }}" >> .deploy.env
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.PROD_SUPABASE_SERVICE_ROLE_KEY }}" >> .deploy.env
+        echo "SUPABASE_URL=${{ secrets.PROD_SUPABASE_URL }}" >> .deploy.env
+
+    - name: 'deploy'
+      run: 'gcloud run deploy sample --port 80 --source .'

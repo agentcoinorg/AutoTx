@@ -8,7 +8,7 @@ def start() -> None:
     delete_cached_safe_address()
 
     build = subprocess.run(
-        ["docker", "build", "-t", "autotx_chain_fork", "."], capture_output=True
+        ["docker", "build", "-t", "autotx_chain_fork", ".", "-f", "fork.Dockerfile"], capture_output=True
     )
 
     if build.returncode != 0:
