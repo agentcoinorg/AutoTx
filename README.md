@@ -159,6 +159,9 @@ python benchmarks.py ./autotx/tests/file_name.py::function_name 5
 python benchmarks.py ./autotx/tests/file_name.py::function_name 5 output_folder_name
 ```
 
+# API Server
+To view the API server documentation, please see the [API.md](./API.md) file.
+
 ## Need Help?
 
 Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
