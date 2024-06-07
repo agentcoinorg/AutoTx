@@ -41,7 +41,6 @@ jobs:
       with:
         workload_identity_provider: ${{ secrets.PROD_GOOGLE_WIP }}
         service_account: ${{ secrets.PROD_GOOGLE_SA }}
-        credentials_json: '${{ secrets.PROD_GOOGLE_SA_KEY_JSON }}' 
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v1'
