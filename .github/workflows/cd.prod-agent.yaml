@@ -46,6 +46,7 @@ jobs:
       uses: 'google-github-actions/setup-gcloud@v1'
       with:
         version: '>= 363.0.0'
+
     - name: 'Use gcloud CLI'
       run: 'gcloud info'
 
@@ -60,5 +61,11 @@ jobs:
         echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.PROD_SUPABASE_SERVICE_ROLE_KEY }}" >> .deploy.env
         echo "SUPABASE_URL=${{ secrets.PROD_SUPABASE_URL }}" >> .deploy.env
 
-    - name: 'deploy'
-      run: 'gcloud run deploy sample --port 80 --source . --service-account=${{ secrets.PROD_GOOGLE_SA }} --region=us-east1 --allow-unauthenticated'
+    - name: 'Deploy to Cloud Run'
+      run: |
+        gcloud run deploy sample \
+          --port 80 \
+          --source . \
+          --service-account=${{ secrets.PROD_GOOGLE_SA }} \
+          --region=us-east1 \
+          --allow-unauthenticated
