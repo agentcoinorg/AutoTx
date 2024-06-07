@@ -55,4 +55,4 @@ jobs:
         echo "SUPABASE_URL=${{ secrets.PROD_SUPABASE_URL }}" >> .deploy.env
 
     - name: 'deploy'
-      run: 'gcloud run deploy sample --port 80 --source .'
+      run: 'gcloud run deploy sample --port 80 --source . --service-account=${{ secrets.PROD_GOOGLE_SA }} --region=us-east1 --allow-unauthenticated'
