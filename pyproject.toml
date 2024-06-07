@@ -33,6 +33,7 @@ stop-devnet = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
 serve = "autotx.cli:serve"
+new_app = "autotx.cli:new_app"
 load-tokens = "autotx.load_tokens:run"
 build-check = "autotx.build_check:run"
 

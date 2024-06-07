@@ -1,5 +1,7 @@
+import uuid
 from dotenv import load_dotenv
 
+from autotx import db
 from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
 import uvicorn
@@ -82,6 +84,15 @@ def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, 
 
     setup_server(verbose, logs, max_rounds, cache, dev, check_valid_safe=True)
     uvicorn.run("autotx.server:app", host="localhost", port=8000, workers=1)
+
+@main.command()
+@click.option("-n", "--name", type=str, help="Name of the application to create")
+def new_app(name: str) -> None:
+    print(f"Creating new application: {name}")
+
+    app = db.create_app(name, uuid.uuid4().hex)
+
+    print(f"Application '{name}' created with API key: {app.api_key}")
 
 @main.group()
 def agent() -> None:
