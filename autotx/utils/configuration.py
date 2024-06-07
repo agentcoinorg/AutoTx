@@ -44,7 +44,9 @@ class AppConfig:
     def load(
         smart_account_addr: str | None = None,
         subsidized_chain_id: int | None = None, 
-        fill_dev_account: bool = False
+        fill_dev_account: bool = False,
+        agent: LocalAccount | None = None,
+        check_valid_safe: bool = False,
     ) -> "AppConfig":
         rpc_url: str
 
@@ -76,11 +78,11 @@ class AppConfig:
                     sys.exit("Can not connect with remote node. Check your CHAIN_RPC_URL")
             sleep(0.5)
 
-        agent = get_or_create_agent_account()
+        agent = agent if agent else get_or_create_agent_account()
 
         smart_account_addr = smart_account_addr if smart_account_addr else os.getenv("SMART_ACCOUNT_ADDRESS")
         smart_account = ETHAddress(smart_account_addr) if smart_account_addr else None
         
-        manager = setup_safe(smart_account, agent, client, fill_dev_account)
+        manager = setup_safe(smart_account, agent, client, fill_dev_account, check_valid_safe)
 
         return AppConfig(client.w3, client, agent, manager, NetworkInfo(client.w3.eth.chain_id))

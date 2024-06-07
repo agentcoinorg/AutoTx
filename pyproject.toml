@@ -18,6 +18,7 @@ fastapi = "^0.111.0"
 web3 = "^6.19.0"
 safe-eth-py = "^5.8.0"
 uvicorn = "^0.29.0"
+supabase = "^2.5.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
@@ -32,6 +33,7 @@ stop-devnet = "autotx.chain_fork:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
 serve = "autotx.cli:serve"
+new_app = "autotx.cli:new_app"
 load-tokens = "autotx.load_tokens:run"
 build-check = "autotx.build_check:run"
 

@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, List, Optional, Union
 from datetime import datetime
 
@@ -10,22 +10,20 @@ class TransactionType(str, Enum):
 
 class TransactionBase(BaseModel):
     type: TransactionType
-    id: str
-    task_id: str
+    id: str = Field(default="")
+    task_id: str = Field(default="")
     summary: str
     params: dict[str, Any]
 
 class SendTransaction(TransactionBase):
-    type: TransactionType
     receiver: str
     token_symbol: str
     token_address: str
     amount: float
 
-    def __init__(self, token_symbol: str, token_address: str, amount: float, receiver: str, params: dict[str, Any]):
-        super().__init__(
-            id="",
-            task_id="",
+    @classmethod
+    def create(cls, token_symbol: str, token_address: str, amount: float, receiver: str, params: dict[str, Any]) -> 'SendTransaction':
+        return cls(
             type=TransactionType.SEND,
             token_symbol=token_symbol,
             token_address=token_address,
@@ -36,16 +34,14 @@ class SendTransaction(TransactionBase):
         )
 
 class ApproveTransaction(TransactionBase):
-    type: TransactionType
     token_symbol: str
     token_address: str
     amount: float
     spender: str
 
-    def __init__(self, token_symbol: str, token_address: str, amount: float, spender: str, params: dict[str, Any]):
-        super().__init__(
-            id="",
-            task_id="",
+    @classmethod
+    def create(cls, token_symbol: str, token_address: str, amount: float, spender: str, params: dict[str, Any]) -> 'ApproveTransaction':
+        return cls(
             type=TransactionType.APPROVE,
             token_symbol=token_symbol,
             token_address=token_address,
@@ -56,7 +52,6 @@ class ApproveTransaction(TransactionBase):
         )
 
 class SwapTransaction(TransactionBase):
-    type: TransactionType
     from_token_symbol: str
     to_token_symbol: str
     from_token_address: str
@@ -64,10 +59,9 @@ class SwapTransaction(TransactionBase):
     from_amount: float
     to_amount: float
 
-    def __init__(self, from_token_symbol: str, to_token_symbol: str, from_token_address: str, to_token_address: str, from_amount: float, to_amount: float, params: dict[str, Any]):
-        super().__init__(
-            id="",
-            task_id="",
+    @classmethod
+    def create(cls, from_token_symbol: str, to_token_symbol: str, from_token_address: str, to_token_address: str, from_amount: float, to_amount: float, params: dict[str, Any]) -> 'SwapTransaction':
+        return cls(
             type=TransactionType.SWAP,
             from_token_symbol=from_token_symbol,
             to_token_symbol=to_token_symbol,
@@ -81,11 +75,6 @@ class SwapTransaction(TransactionBase):
 
 Transaction = Union[SendTransaction, ApproveTransaction, SwapTransaction]
 
-class TaskCreate(BaseModel):
-    prompt: str
-    address: Optional[str] = None
-    chain_id: Optional[int] = None
-
 class Task(BaseModel):
     id: str
     prompt: str
@@ -97,3 +86,33 @@ class Task(BaseModel):
     messages: List[str]
     transactions: List[Transaction]
 
+class App(BaseModel):
+    id: str
+    name: str
+    api_key: str
+    allowed: bool
+
+class AppUser(BaseModel):
+    id: str
+    user_id: str
+    agent_address: str
+    created_at: datetime
+    app_id: str
+
+class ConnectionCreate(BaseModel):
+    user_id: str
+
+class TaskCreate(BaseModel):
+    prompt: str
+    address: Optional[str] = None
+    chain_id: Optional[int] = None
+    user_id: str
+
+class SendTransactionsParams(BaseModel):
+    address: str
+    chain_id: int
+    user_id: str
+
+class SupportedNetwork(BaseModel):
+    name: str
+    chain_id: int
