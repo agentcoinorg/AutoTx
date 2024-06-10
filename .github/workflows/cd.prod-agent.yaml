@@ -66,6 +66,5 @@ jobs:
         gcloud run deploy sample \
           --port 80 \
           --source . \
-          --service-account=${{ secrets.PROD_GOOGLE_SA }} \
           --region=us-east1 \
           --allow-unauthenticated
