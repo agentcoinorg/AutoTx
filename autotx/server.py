@@ -35,7 +35,7 @@ class AutoTxParams:
         self.max_rounds = max_rounds
         self.is_dev = is_dev
 
-autotx_params: AutoTxParams | None = None
+autotx_params: AutoTxParams = AutoTxParams(verbose=False, logs=None, cache=False, max_rounds=None, is_dev=False)
 
 app_router = APIRouter()
 
@@ -107,7 +107,15 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     )
 
     async def run_task() -> None:
-        await autotx.a_run(prompt, non_interactive=True)
+        try: 
+            await autotx.a_run(prompt, non_interactive=True)
+        except Exception as e:
+            task = tasks.get(task_id)
+            if task is None:
+                raise Exception("Task not found: " + task_id)
+
+            task.messages.append(str(e))
+            tasks.update(task)
         tasks.stop(task_id)
 
     background_tasks.add_task(run_task)
@@ -180,6 +188,9 @@ def send_transactions(task_id: str, model: models.SendTransactionsParams, author
     global autotx_params
     if autotx_params is None:
         raise HTTPException(status_code=500, detail="AutoTx not started")
+    
+    if task.transactions is None or len(task.transactions) == 0:
+        raise HTTPException(status_code=400, detail="No transactions to send")
 
     if autotx_params.is_dev:
         print("Dev mode: skipping transaction submission")
