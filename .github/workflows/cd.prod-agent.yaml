@@ -18,6 +18,20 @@ jobs:
     steps:
     - uses: 'actions/checkout@v4'
 
+    - uses: supabase/setup-cli@v1
+      with:
+        version: latest
+    - run: supabase link --project-ref $PROJECT_ID --password $DB_PASSWORD --debug
+      env:
+        DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
+        PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+
+    - run: supabase db push --password $DB_PASSWORD --include-all
+      env:
+        DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:
