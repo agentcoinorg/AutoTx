@@ -61,10 +61,13 @@ jobs:
         echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.PROD_SUPABASE_SERVICE_ROLE_KEY }}" >> .deploy.env
         echo "SUPABASE_URL=${{ secrets.PROD_SUPABASE_URL }}" >> .deploy.env
 
+    - name: Export requirements.txt from Poetry
+      run: poetry export --without-hashes --format=requirements.txt > requirements.txt
+
     - name: 'Deploy to Cloud Run'
       run: |
-        gcloud run deploy sample \
-          --port 80 \
+        gcloud run deploy autotx-prod \
+          --port 8080 \
           --source . \
           --region=us-east1 \
           --allow-unauthenticated
