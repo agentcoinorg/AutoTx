@@ -67,9 +67,6 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     tasks = db.TasksRepository(app.id)
 
     global autotx_params
-    if autotx_params is None:
-        raise HTTPException(status_code=500, detail="AutoTx not started")
-
     if not autotx_params.is_dev and (not task.address or not task.chain_id):
         raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
     
@@ -184,14 +181,10 @@ def send_transactions(task_id: str, model: models.SendTransactionsParams, author
 
     agent = Account.from_key(agent_private_key)
 
-
-    global autotx_params
-    if autotx_params is None:
-        raise HTTPException(status_code=500, detail="AutoTx not started")
-    
     if task.transactions is None or len(task.transactions) == 0:
         raise HTTPException(status_code=400, detail="No transactions to send")
 
+    global autotx_params
     if autotx_params.is_dev:
         print("Dev mode: skipping transaction submission")
         db.submit_transactions(app.id, model.address, model.chain_id, app_user.id, task_id)
