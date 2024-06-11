@@ -5,6 +5,7 @@ from gnosis.safe.api.base_api import SafeAPIException
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import traceback
 
 from autotx import models, setup
 from autotx import db
@@ -84,40 +85,49 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     task_id = created_task.id
     wallet.task_id = task_id
 
-    (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
+    try:
+        (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
 
-    def on_notify_user(message: str) -> None:
-        task = tasks.get(task_id)
-        if task is None:
-            raise Exception("Task not found: " + task_id)
-
-        task.messages.append(message)
-        tasks.update(task)
-
-    autotx = AutoTx(
-        app_config.web3,
-        wallet,
-        app_config.network_info,
-        agents,
-        AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
-        on_notify_user=on_notify_user
-    )
-
-    async def run_task() -> None:
-        try: 
-            await autotx.a_run(prompt, non_interactive=True)
-        except Exception as e:
+        def on_notify_user(message: str) -> None:
             task = tasks.get(task_id)
             if task is None:
                 raise Exception("Task not found: " + task_id)
 
-            task.messages.append(str(e))
+            task.messages.append(message)
             tasks.update(task)
-        tasks.stop(task_id)
 
-    background_tasks.add_task(run_task)
+        autotx = AutoTx(
+            app_config.web3,
+            wallet,
+            app_config.network_info,
+            agents,
+            AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
+            on_notify_user=on_notify_user
+        )
 
-    return created_task
+        async def run_task() -> None:
+            try: 
+                await autotx.a_run(prompt, non_interactive=True)
+            except Exception as e:
+                task = tasks.get(task_id)
+                if task is None:
+                    raise Exception("Task not found: " + task_id)
+
+                task.messages.append(str(e))
+                task.error = traceback.format_exc()
+                task.running = False
+                tasks.update(task)
+                raise e
+            tasks.stop(task_id)
+
+        background_tasks.add_task(run_task)
+
+        return created_task
+    except Exception as e:
+        created_task.error = traceback.format_exc()
+        created_task.running = False
+        tasks.update(created_task)
+        raise e
 
 @app_router.post("/api/v1/connect", response_model=models.AppUser)
 async def connect(model: models.ConnectionCreate, authorization: Annotated[str | None, Header()] = None) -> models.AppUser:

@@ -82,6 +82,7 @@ class Task(BaseModel):
     chain_id: int
     created_at: datetime
     updated_at: datetime
+    error: str | None
     running: bool
     messages: List[str]
     transactions: List[Transaction]
