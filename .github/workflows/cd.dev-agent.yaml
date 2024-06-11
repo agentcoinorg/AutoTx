@@ -1,8 +1,8 @@
-name: CD Prod Agent
+name: CD DEV Agent
 on:
   push:
     branches:
-      - main
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -23,14 +23,14 @@ jobs:
         version: latest
     - run: supabase link --project-ref $PROJECT_ID --password $DB_PASSWORD --debug
       env:
-        DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
-        PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
-        SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+        DB_PASSWORD: ${{ secrets.DEV_SUPABASE_DB_PASSWORD }}
+        PROJECT_ID: ${{ secrets.DEV_SUPABASE_PROJECT_ID }}
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.DEV_SUPABASE_ACCESS_TOKEN }}
 
     - run: supabase db push --password $DB_PASSWORD --include-all
       env:
-        DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
-        SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+        DB_PASSWORD: ${{ secrets.DEV_SUPABASE_DB_PASSWORD }}
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.DEV_SUPABASE_ACCESS_TOKEN }}
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
@@ -72,15 +72,15 @@ jobs:
         echo "OPENAI_MODEL_NAME=gpt-4o" >> .deploy.env
         echo "COINGECKO_API_KEY=${{ secrets.CI_COINGECKO_API_KEY }}" >> .deploy.env
         echo "LIFI_API_KEY=${{ secrets.LIFI_API_KEY }}" >> .deploy.env
-        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.PROD_SUPABASE_SERVICE_ROLE_KEY }}" >> .deploy.env
-        echo "SUPABASE_URL=${{ secrets.PROD_SUPABASE_URL }}" >> .deploy.env
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.DEV_SUPABASE_SERVICE_ROLE_KEY }}" >> .deploy.env
+        echo "SUPABASE_URL=${{ secrets.DEV_SUPABASE_URL }}" >> .deploy.env
 
     - name: Export requirements.txt from Poetry
       run: poetry export --without-hashes --format=requirements.txt > requirements.txt
 
     - name: 'Deploy to Cloud Run'
       run: |
-        gcloud run deploy autotx-prod \
+        gcloud run deploy autotx-dev \
           --port 8080 \
           --source . \
           --region=us-east1 \
