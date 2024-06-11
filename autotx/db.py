@@ -47,6 +47,7 @@ class TasksRepository:
                 "address": address,
                 "chain_id": chain_id,
                 "running": True,
+                "error": None,
                 "created_at": str(created_at),
                 "updated_at": str(updated_at),
                 "messages": json.dumps([]),
@@ -62,6 +63,7 @@ class TasksRepository:
             created_at=created_at,
             updated_at=updated_at,
             running=True,
+            error=None,
             messages=[],
             transactions=[]
         )
@@ -87,6 +89,7 @@ class TasksRepository:
                 "running": task.running,
                 "updated_at": str(datetime.utcnow()),
                 "messages": json.dumps(task.messages),
+                "error": task.error,
                 "transactions": json.dumps(txs)
             }
         ).eq("id", task.id).eq("app_id", self.app_id).execute()
@@ -113,6 +116,7 @@ class TasksRepository:
             created_at=task_data["created_at"],
             updated_at=task_data["updated_at"],
             running=task_data["running"],
+            error=task_data["error"],
             messages=json.loads(task_data["messages"]),
             transactions=json.loads(task_data["transactions"])
         )
@@ -134,6 +138,7 @@ class TasksRepository:
                     created_at=task_data["created_at"],
                     updated_at=task_data["updated_at"],
                     running=task_data["running"],
+                    error=task_data["error"],
                     messages=json.loads(task_data["messages"]),
                     transactions=json.loads(task_data["transactions"])
                 )
