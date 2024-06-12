@@ -136,7 +136,7 @@ class SafeManager:
 
         return safe_tx
 
-    def build_tx(self, tx: TxParams, safe_nonce: Optional[int] = None) -> SafeTx:
+    def build_tx(self, tx: TxParams, safe_nonce: Optional[int] = None, skip_estimate_gas: bool = False) -> SafeTx:
         safe_tx = SafeTx(
             self.client,
             self.address.hex,
@@ -151,8 +151,10 @@ class SafeManager:
             self.address.hex,
             safe_nonce=self.track_nonce(safe_nonce),
         )
-        safe_tx.safe_tx_gas = self.safe.estimate_tx_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation)
-        safe_tx.base_gas = self.safe.estimate_tx_base_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation, NULL_ADDRESS, safe_tx.safe_tx_gas)
+
+        if not skip_estimate_gas:
+            safe_tx.safe_tx_gas = self.safe.estimate_tx_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation)
+            safe_tx.base_gas = self.safe.estimate_tx_base_gas(safe_tx.to, safe_tx.value, safe_tx.data, safe_tx.operation, NULL_ADDRESS, safe_tx.safe_tx_gas)
 
         return safe_tx
     
@@ -206,7 +208,7 @@ class SafeManager:
             self.network, ethereum_client=self.client, base_url=self.transaction_service_url
         )
 
-        safe_tx = self.build_tx(tx, safe_nonce)
+        safe_tx = self.build_tx(tx, safe_nonce, skip_estimate_gas=True)
         safe_tx.sign(self.agent.key.hex())
 
         ts_api.post_transaction(safe_tx)
@@ -231,7 +233,15 @@ class SafeManager:
         else:
             hash = self.execute_tx(cast(TxParams, tx), safe_nonce)
             return hash.hex()
-
+        
+    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> str | None:
+        if self.use_tx_service:
+            self.post_multisend_transaction(txs, safe_nonce)
+            return None
+        else:
+            hash = self.execute_multisend_tx(txs, safe_nonce)
+            return hash.hex()
+        
     def send_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
@@ -303,6 +313,68 @@ class SafeManager:
                     raise Exception(f"{prepared_tx.summary} failed with error: {e}")
         
             print("Transactions executed.")
+
+            return True
+
+    def send_multisend_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+        print("=" * 50)
+
+        if not txs:
+            print("No transactions to send.")
+            return True
+
+        transactions_info = "\n".join(
+            [
+                f"{i + 1}. {tx.summary}"
+                for i, tx in enumerate(txs)
+            ]
+        )
+
+        print(f"Prepared transactions:\n{transactions_info}")
+
+        if self.use_tx_service:
+            if require_approval:
+                response = input("Do you want the above transactions to be sent to your smart account?\nRespond (y/n) or write feedback: ")
+
+                if response.lower() == "n" or response.lower() == "no":
+                    print("Transactions not sent to your smart account (declined).")
+                  
+                    return False
+                elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    return response
+            else:
+                print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
+
+            print("Sending multi-send transaction to your smart account...")
+
+            self.send_multisend_tx([prepared_tx.params for prepared_tx in txs], safe_nonce)
+
+            print("Transactions sent as a single multi-send transaction to your smart account for signing.")
+            
+            return True
+        else:
+            if require_approval:
+                response = input("Do you want to execute the above transactions?\nRespond (y/n) or write feedback: ")
+
+                if response.lower() == "n" or response.lower() == "no":
+                    print("Transactions not executed (declined).")
+                    
+                    return False
+                elif response.lower() != "y" and response.lower() != "yes":
+                    
+                    return response
+            else:
+                print("Non-interactive mode enabled. Transactions will be executed without approval.")
+
+            print("Executing transactions...")
+
+            try:
+                self.send_multisend_tx([prepared_tx.params for prepared_tx in txs], safe_nonce)
+            except ExecutionRevertedError as e:
+                raise Exception(f"Executing transactions failed with error: {e}")
+        
+            print("Transactions executed as a single multi-send transaction.")
 
             return True
 
