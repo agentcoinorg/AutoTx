@@ -203,7 +203,7 @@ def send_transactions(task_id: str, model: models.SendTransactionsParams, author
     try:
         app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id, agent=agent)
        
-        app_config.manager.send_tx_batch(
+        app_config.manager.send_multisend_tx_batch(
             task.transactions,
             require_approval=False,
         )

@@ -17,4 +17,4 @@ class SafeSmartWallet(SmartWallet):
         pass
 
     def on_transactions_ready(self, txs: list[models.Transaction]) -> bool | str:
-        return self.manager.send_tx_batch(txs, not self.auto_submit_tx)
+        return self.manager.send_multisend_tx_batch(txs, not self.auto_submit_tx)
