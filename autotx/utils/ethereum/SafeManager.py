@@ -115,7 +115,7 @@ class SafeManager:
         multicall_addr = deploy_multicall(self.client, self.dev_account)
         self.connect_multicall(multicall_addr)
 
-    def build_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> SafeTx:
+    def build_multisend_tx(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> SafeTx:
         if not self.multisend:
             raise Exception("No multisend contract address has been set to SafeManager")
 
@@ -136,7 +136,7 @@ class SafeManager:
 
         return safe_tx
 
-    def build_tx(self, tx: TxParams, safe_nonce: Optional[int] = None, skip_estimate_gas: bool = False) -> SafeTx:
+    def build_tx(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None, skip_estimate_gas: bool = False) -> SafeTx:
         safe_tx = SafeTx(
             self.client,
             self.address.hex,
@@ -158,7 +158,7 @@ class SafeManager:
 
         return safe_tx
     
-    def execute_tx(self, tx: TxParams, safe_nonce: Optional[int] = None) -> HexBytes:
+    def execute_tx(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
 
@@ -184,7 +184,7 @@ class SafeManager:
             raise Exception("Unknown error executing transaction", e)
 
 
-    def execute_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> HexBytes:
+    def execute_multisend_tx(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
 
@@ -200,7 +200,7 @@ class SafeManager:
 
         return tx_hash
     
-    def post_transaction(self, tx: TxParams, safe_nonce: Optional[int] = None) -> None:
+    def post_transaction(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> None:
         if not self.network:
             raise Exception("Network not defined for transaction service")
 
@@ -213,7 +213,7 @@ class SafeManager:
 
         ts_api.post_transaction(safe_tx)
 
-    def post_multisend_transaction(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> None:
+    def post_multisend_transaction(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> None:
         if not self.network:
             raise Exception("Network not defined for transaction service")
 
@@ -234,7 +234,7 @@ class SafeManager:
             hash = self.execute_tx(cast(TxParams, tx), safe_nonce)
             return hash.hex()
         
-    def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> str | None:
+    def send_multisend_tx(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> str | None:
         if self.use_tx_service:
             if len(txs) == 1:
                 self.post_transaction(txs[0], safe_nonce)
