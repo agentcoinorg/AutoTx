@@ -236,10 +236,16 @@ class SafeManager:
         
     def send_multisend_tx(self, txs: list[TxParams], safe_nonce: Optional[int] = None) -> str | None:
         if self.use_tx_service:
-            self.post_multisend_transaction(txs, safe_nonce)
+            if len(txs) == 1:
+                self.post_transaction(txs[0], safe_nonce)
+            elif len(txs) > 1:
+                self.post_multisend_transaction(txs, safe_nonce)
             return None
         else:
-            hash = self.execute_multisend_tx(txs, safe_nonce)
+            if len(txs) == 1:
+                hash = self.execute_tx(txs[0], safe_nonce)
+            elif len(txs) > 1:
+                hash = self.execute_multisend_tx(txs, safe_nonce)
             return hash.hex()
         
     def send_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
@@ -346,11 +352,14 @@ class SafeManager:
             else:
                 print("Non-interactive mode enabled. Transactions will be sent to your smart account without approval.")
 
-            print("Sending multi-send transaction to your smart account...")
+            print("Sending batched transactions to your smart account...")
 
             self.send_multisend_tx([prepared_tx.params for prepared_tx in txs], safe_nonce)
 
-            print("Transactions sent as a single multi-send transaction to your smart account for signing.")
+            if len(txs) == 1:
+                print("Transaction sent to your smart account for signing.")
+            else:
+                print("Transactions sent as a single multi-send transaction to your smart account for signing.")
             
             return True
         else:
@@ -374,7 +383,10 @@ class SafeManager:
             except ExecutionRevertedError as e:
                 raise Exception(f"Executing transactions failed with error: {e}")
         
-            print("Transactions executed as a single multi-send transaction.")
+            if len(txs) == 1:
+                print("Transaction executed.")
+            else:
+                print("Transactions executed as a single multi-send transaction.")
 
             return True
 
