@@ -1,12 +1,13 @@
 from decimal import Decimal
 from textwrap import dedent
 from typing import Annotated, Callable
-from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
+from autotx.intents import BuyIntent, Intent, SellIntent
+from autotx.token import Token
 from autotx.utils.ethereum.eth_address import ETHAddress
-from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, build_swap_transaction
+from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, can_build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
@@ -80,7 +81,7 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 class InvalidInput(Exception):
     pass
 
-def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.Transaction]:
+def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> Intent:
     sell_parts = token_to_sell.split(" ")
     buy_parts = token_to_buy.split(" ")
 
@@ -117,7 +118,7 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.T
         token_in, token_out, autotx.network
     )
 
-    swap_transactions = build_swap_transaction(
+    can_build_swap_transaction(
         autotx.web3,
         Decimal(exact_amount),
         ETHAddress(token_in_address),
@@ -126,9 +127,21 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> list[models.T
         is_exact_input,
         autotx.network.chain_id
     )
-    autotx.add_transactions(swap_transactions)
 
-    return swap_transactions
+    # Create buy intent if amount of token to buy is provided else create sell intent
+    swap_intent: Intent = BuyIntent.create(
+            from_token=Token(symbol=token_symbol_to_sell, address=token_in_address),
+            to_token=Token(symbol=token_symbol_to_buy, address=token_out_address),
+            amount=float(exact_amount),
+        ) if len(buy_parts) == 2 else SellIntent.create(
+            from_token=Token(symbol=token_symbol_to_sell, address=token_in_address),
+            to_token=Token(symbol=token_symbol_to_buy, address=token_out_address),
+            amount=float(exact_amount),
+        )
+
+    autotx.add_intents([swap_intent])
+
+    return swap_intent
 
 class BulkSwapTool(AutoTxTool):
     name: str = "prepare_bulk_swap_transactions"
@@ -152,14 +165,13 @@ class BulkSwapTool(AutoTxTool):
             ],
         ) -> str:
             swaps = tokens.split("\n")
-            all_txs = []
+            all_intents = []
             all_errors: list[Exception] = []
 
             for swap_str in swaps:
                 (token_to_sell, token_to_buy) = swap_str.strip().split(" to ")
                 try:
-                    txs = swap(autotx, token_to_sell, token_to_buy)
-                    all_txs.extend(txs)
+                    all_intents.append(swap(autotx, token_to_sell, token_to_buy))
                 except InvalidInput as e:
                     all_errors.append(e)
                 except Exception as e:
@@ -167,21 +179,21 @@ class BulkSwapTool(AutoTxTool):
 
 
             summary = "".join(
-                f"Prepared transaction: {swap_transaction.summary}\n"
-                for swap_transaction in all_txs
+                f"Prepared transaction: {intent.summary}\n"
+                for intent in all_intents
             )
 
             if all_errors:
                 summary += "\n".join(str(e) for e in all_errors)
-                if len(all_txs) > 0:
-                    summary += f"\n{len(all_errors)} errors occurred. {len(all_txs)} transactions were prepared. There is no need to re-run the transactions that were prepared."
+                if len(all_intents) > 0:
+                    summary += f"\n{len(all_errors)} errors occurred. {len(all_intents)} transactions were prepared. There is no need to re-run the transactions that were prepared."
                 else:
                     summary += f"\n{len(all_errors)} errors occurred."
 
             total_summary = ("\n" + " " * 16).join(
                 [
                     f"{i + 1}. {tx.summary}"
-                    for i, tx in enumerate(autotx.transactions)
+                    for i, tx in enumerate(autotx.intents)
                 ]
             )
 

@@ -1,17 +1,15 @@
 from textwrap import dedent
-from typing import Annotated, Any, Callable, cast
+from typing import Annotated, Any, Callable
 
-from web3 import Web3
-from autotx import models
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
+from autotx.intents import SendIntent
+from autotx.token import Token
 from autotx.utils.ethereum import (
     build_transfer_erc20,
     get_erc20_balance,
 )
-from autotx.utils.ethereum.build_transfer_native import build_transfer_native
-from web3.constants import ADDRESS_ZERO
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
@@ -89,26 +87,17 @@ class TransferTokenTool(AutoTxTool):
             receiver_addr = ETHAddress(receiver)
             token_address = ETHAddress(autotx.network.tokens[token.lower()])
 
-            tx: TxParams
-
-            if token_address.hex == NATIVE_TOKEN_ADDRESS:
-                tx = build_transfer_native(autotx.web3, ETHAddress(ADDRESS_ZERO), receiver_addr, amount)
-            else:
-                tx = build_transfer_erc20(autotx.web3, token_address, receiver_addr, amount)
-
-            prepared_tx = models.SendTransaction.create(
-                token_symbol=token,
-                token_address=str(token_address),
+            intent = SendIntent.create(
+                token=Token(symbol=token, address=token_address.hex),
                 amount=amount,
-                receiver=str(receiver_addr),
-                params=cast(dict[str, Any], tx),
+                receiver=receiver_addr
             )
 
-            autotx.add_transactions([prepared_tx])
+            autotx.add_intents([intent])
             
-            autotx.notify_user(f"Prepared transaction: {prepared_tx.summary}")
+            autotx.notify_user(f"Prepared transaction: {intent.summary}")
             
-            return prepared_tx.summary
+            return intent.summary
 
         return run
 

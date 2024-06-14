@@ -15,11 +15,12 @@ from gnosis.safe.api import TransactionServiceApi
 from eth_account.signers.local import LocalAccount
 
 from autotx import models
+from autotx.transactions import Transaction
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
-from autotx.utils.ethereum.networks import ChainId
+from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
@@ -37,7 +38,7 @@ class SafeManager:
     safe_nonce: int | None = None
     gas_multiplier: float | None = GAS_PRICE_MULTIPLIER
     dev_account: LocalAccount | None = None
-    network: ChainId | None = None
+    network: NetworkInfo
     transaction_service_url: str | None = None
     address: ETHAddress
     use_tx_service: bool
@@ -54,6 +55,7 @@ class SafeManager:
         self.safe = safe
         self.use_tx_service = False
         self.safe_nonce = None
+        self.network = NetworkInfo(client.w3.eth.chain_id)
         self.address = ETHAddress(safe.address)
 
 
@@ -93,14 +95,12 @@ class SafeManager:
 
         return manager
     
-    def connect_tx_service(self, network: ChainId, transaction_service_url: str) -> None:
+    def connect_tx_service(self, transaction_service_url: str) -> None:
         self.use_tx_service = True
-        self.network = network
         self.transaction_service_url = transaction_service_url
     
     def disconnect_tx_service(self) -> None:
         self.use_tx_service = False
-        self.network = None
         self.transaction_service_url = None
 
     def connect_multisend(self, address: ChecksumAddress) -> None:
@@ -201,11 +201,8 @@ class SafeManager:
         return tx_hash
     
     def post_transaction(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> None:
-        if not self.network:
-            raise Exception("Network not defined for transaction service")
-
         ts_api = TransactionServiceApi(
-            self.network, ethereum_client=self.client, base_url=self.transaction_service_url
+            self.network.chain_id, ethereum_client=self.client, base_url=self.transaction_service_url
         )
 
         safe_tx = self.build_tx(tx, safe_nonce, skip_estimate_gas=True)
@@ -214,11 +211,8 @@ class SafeManager:
         ts_api.post_transaction(safe_tx)
 
     def post_multisend_transaction(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> None:
-        if not self.network:
-            raise Exception("Network not defined for transaction service")
-
         ts_api = TransactionServiceApi(
-            self.network, ethereum_client=self.client, base_url=self.transaction_service_url
+            self.network.chain_id, ethereum_client=self.client, base_url=self.transaction_service_url
         )
 
         tx = self.build_multisend_tx(txs, safe_nonce)
@@ -248,7 +242,7 @@ class SafeManager:
                 hash = self.execute_multisend_tx(txs, safe_nonce)
             return hash.hex()
         
-    def send_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+    def send_tx_batch(self, txs: list[Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:
@@ -322,7 +316,7 @@ class SafeManager:
 
             return True
 
-    def send_multisend_tx_batch(self, txs: list[models.Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+    def send_multisend_tx_batch(self, txs: list[Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:

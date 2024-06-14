@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+from typing import Any
 import uuid
 from pydantic import BaseModel
 from supabase import create_client
@@ -8,6 +9,7 @@ from supabase.client import Client
 from supabase.lib.client_options import ClientOptions
 
 from autotx import models
+from autotx.transactions import Transaction
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -51,7 +53,7 @@ class TasksRepository:
                 "created_at": str(created_at),
                 "updated_at": str(updated_at),
                 "messages": json.dumps([]),
-                "transactions": json.dumps([])
+                "intents": json.dumps([])
             }
         ).execute()
 
@@ -65,7 +67,7 @@ class TasksRepository:
             running=True,
             error=None,
             messages=[],
-            transactions=[]
+            intents=[]
         )
 
     def stop(self, task_id: str) -> None:
@@ -81,7 +83,7 @@ class TasksRepository:
     def update(self, task: models.Task) -> None:
         client = get_db_client("public")
 
-        txs = [json.loads(tx.json()) for tx in task.transactions]
+        intents = [json.loads(intent.json()) for intent in task.intents]
 
         client.table("tasks").update(
             {
@@ -90,7 +92,7 @@ class TasksRepository:
                 "updated_at": str(datetime.utcnow()),
                 "messages": json.dumps(task.messages),
                 "error": task.error,
-                "transactions": json.dumps(txs)
+                "intents": json.dumps(intents)
             }
         ).eq("id", task.id).eq("app_id", self.app_id).execute()
 
@@ -118,7 +120,7 @@ class TasksRepository:
             running=task_data["running"],
             error=task_data["error"],
             messages=json.loads(task_data["messages"]),
-            transactions=json.loads(task_data["transactions"])
+            intents=json.loads(task_data["intents"])
         )
 
     def get_all(self) -> list[models.Task]:
@@ -140,7 +142,7 @@ class TasksRepository:
                     running=task_data["running"],
                     error=task_data["error"],
                     messages=json.loads(task_data["messages"]),
-                    transactions=json.loads(task_data["transactions"])
+                    intents=json.loads(task_data["intents"])
                 )
             )
 
@@ -222,9 +224,11 @@ def get_agent_private_key(app_id: str, user_id: str) -> str | None:
 
     return str(result.data[0]["agent_private_key"])
 
-def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str) -> None:
+def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str, transactions: list[Transaction]) -> None:
     client = get_db_client("public")
     
+    txs = [json.loads(tx.json()) for tx in transactions]
+
     created_at = datetime.utcnow()
     client.table("submitted_batches") \
         .insert(
@@ -234,7 +238,8 @@ def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: s
                 "chain_id": chain_id,
                 "app_user_id": app_user_id,
                 "task_id": task_id,
-                "created_at": str(created_at)
+                "created_at": str(created_at),
+                "transactions": json.dumps(txs)
             }
         ).execute()
     
@@ -246,6 +251,7 @@ class SubmittedBatch(BaseModel):
     app_user_id: str
     task_id: str
     created_at: datetime
+    transactions: list[dict[str, Any]]
 
 def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
     client = get_db_client("public")
@@ -267,7 +273,8 @@ def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
                 chain_id=batch_data["chain_id"],
                 app_user_id=batch_data["app_user_id"],
                 task_id=batch_data["task_id"],
-                created_at=batch_data["created_at"]
+                created_at=batch_data["created_at"],
+                transactions=json.loads(batch_data["transactions"])
             )
         )
 

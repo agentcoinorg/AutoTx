@@ -8,16 +8,81 @@ from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 
 client = TestClient(app)
 
-def test_send_transactions_auth():
+def test_get_intents_auth():
+    response = client.get("/api/v1/tasks/123/intents")
+    assert response.status_code == 401
+
+def test_get_transactions_auth():
     
     user_id = uuid.uuid4().hex
 
-    response = client.post("/api/v1/tasks/123/transactions", json={
+    response = client.get("/api/v1/tasks/123/transactions", params={
         "user_id": user_id,
         "address": "0x123",
         "chain_id": 1,
     })
     assert response.status_code == 401
+
+def test_send_transactions_auth():
+    
+    user_id = uuid.uuid4().hex
+
+    response = client.post("/api/v1/tasks/123/transactions", params={
+        "user_id": user_id,
+        "address": "0x123",
+        "chain_id": 1,
+    })
+    assert response.status_code == 401
+
+
+def test_get_transactions():
+    db.clear_db()
+    db.create_app("test", "1234")
+    server.setup_server(verbose=True, logs=None, max_rounds=None, cache=False, is_dev=True, check_valid_safe=False)
+
+    user_id = uuid.uuid4().hex
+    smart_wallet_address = get_cached_safe_address()
+   
+    response = client.post("/api/v1/connect", json={
+        "user_id": user_id,
+    }, headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 200
+    data = response.json()
+
+    response = client.post("/api/v1/tasks", json={
+        "prompt": "Send 1 ETH to vitalik.eth",
+        "address": smart_wallet_address,
+        "chain_id": 1,
+        "user_id": user_id
+    }, headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 200
+    data = response.json()
+
+    task_id = data["id"]
+
+    response = client.get(f"/api/v1/tasks/{task_id}/transactions", params={
+        "user_id": user_id,
+        "address": smart_wallet_address,
+        "chain_id": 1,
+    }, headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 1
+
+    response = client.get(f"/api/v1/tasks/{task_id}/intents", headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 1
 
 def test_send_transactions():
     db.clear_db()
@@ -48,7 +113,7 @@ def test_send_transactions():
 
     task_id = data["id"]
 
-    response = client.post(f"/api/v1/tasks/{task_id}/transactions", json={
+    response = client.post(f"/api/v1/tasks/{task_id}/transactions", params={
         "user_id": user_id,
         "address": smart_wallet_address,
         "chain_id": 1,
