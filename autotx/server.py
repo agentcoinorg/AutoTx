@@ -218,6 +218,9 @@ def get_transactions(
     
     task = get_task_or_404(task_id, tasks)
 
+    if task.chain_id != chain_id:
+        raise HTTPException(status_code=400, detail="Chain ID does not match task")
+
     (transactions, _) = build_transactions(app.id, app_user.user_id, chain_id, address, task)
 
     return transactions
@@ -235,6 +238,9 @@ def send_transactions(
     tasks = db.TasksRepository(app.id)
     
     task = get_task_or_404(task_id, tasks)
+
+    if task.chain_id != chain_id:
+        raise HTTPException(status_code=400, detail="Chain ID does not match task")
 
     (transactions, app_config) = build_transactions(app.id, app_user.user_id, chain_id, address, task)
 

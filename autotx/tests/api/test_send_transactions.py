@@ -64,6 +64,14 @@ def test_get_transactions():
 
     task_id = data["id"]
 
+    response = client.get(f"/api/v1/tasks/{task_id}/intents", headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 1
+
     response = client.get(f"/api/v1/tasks/{task_id}/transactions", params={
         "user_id": user_id,
         "address": smart_wallet_address,
@@ -76,13 +84,14 @@ def test_get_transactions():
 
     assert len(data) == 1
 
-    response = client.get(f"/api/v1/tasks/{task_id}/intents", headers={
+    response = client.get(f"/api/v1/tasks/{task_id}/transactions", params={
+        "user_id": user_id,
+        "address": smart_wallet_address,
+        "chain_id": 2,
+    }, headers={
         "Authorization": f"Bearer 1234"
     })
-    assert response.status_code == 200
-    data = response.json()
-
-    assert len(data) == 1
+    assert response.status_code == 400
 
 def test_send_transactions():
     db.clear_db()
@@ -112,6 +121,15 @@ def test_send_transactions():
     data = response.json()
 
     task_id = data["id"]
+
+    response = client.post(f"/api/v1/tasks/{task_id}/transactions", params={
+        "user_id": user_id,
+        "address": smart_wallet_address,
+        "chain_id": 2,
+    }, headers={
+        "Authorization": f"Bearer 1234"
+    })
+    assert response.status_code == 400
 
     response = client.post(f"/api/v1/tasks/{task_id}/transactions", params={
         "user_id": user_id,
