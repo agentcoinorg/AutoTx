@@ -9,7 +9,7 @@ from supabase.client import Client
 from supabase.lib.client_options import ClientOptions
 
 from autotx import models
-from autotx.transactions import Transaction
+from autotx.transactions import Transaction, TransactionBase
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -224,13 +224,13 @@ def get_agent_private_key(app_id: str, user_id: str) -> str | None:
 
     return str(result.data[0]["agent_private_key"])
 
-def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str, transactions: list[Transaction]) -> None:
+def save_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str, transactions: list[Transaction]) -> str:
     client = get_db_client("public")
     
     txs = [json.loads(tx.json()) for tx in transactions]
 
     created_at = datetime.utcnow()
-    client.table("submitted_batches") \
+    result = client.table("submitted_batches") \
         .insert(
             {
                 "app_id": app_id,
@@ -243,6 +243,42 @@ def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: s
             }
         ).execute()
     
+    return result.data[0]["id"]
+
+def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, chain_id: str, submitted_batch_id: str) -> tuple[list[TransactionBase], str] | None:
+    client = get_db_client("public")
+
+    result = client.table("submitted_batches") \
+        .select("transactions, task_id") \
+        .eq("app_id", app_id) \
+        .eq("app_user_id", app_user_id) \
+        .eq("address", address) \
+        .eq("chain_id", chain_id) \
+        .eq("task_id", task_id) \
+        .eq("id", submitted_batch_id) \
+        .execute()
+    
+    if len(result.data) == 0:
+        return None
+    
+    return (
+        [TransactionBase(**tx) for tx in json.loads(result.data[0]["transactions"])], 
+        result.data[0]["task_id"]    
+    )
+    
+def submit_transactions(app_id: str, app_user_id: str, submitted_batch_id: str) -> None:
+    client = get_db_client("public")
+    
+    client.table("submitted_batches") \
+        .update(
+            {
+                "submitted_on": str(datetime.utcnow())
+            }
+        ).eq("app_id", app_id) \
+        .eq("app_user_id", app_user_id) \
+        .eq("id", submitted_batch_id) \
+        .execute()
+
 class SubmittedBatch(BaseModel):
     id: str
     app_id: str
@@ -251,6 +287,7 @@ class SubmittedBatch(BaseModel):
     app_user_id: str
     task_id: str
     created_at: datetime
+    submitted_on: datetime | None
     transactions: list[dict[str, Any]]
 
 def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
@@ -274,6 +311,7 @@ def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
                 app_user_id=batch_data["app_user_id"],
                 task_id=batch_data["task_id"],
                 created_at=batch_data["created_at"],
+                submitted_on=batch_data["submitted_on"],
                 transactions=json.loads(batch_data["transactions"])
             )
         )
