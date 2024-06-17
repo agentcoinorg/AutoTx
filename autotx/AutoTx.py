@@ -237,9 +237,9 @@ class AutoTx:
 
         return RunResult(chat.summary, chat_history, intents, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
 
-    def add_intents(self, txs: list[Intent]) -> None:
-        self.intents.extend(txs)
-        self.wallet.on_intents_prepared(txs)
+    def add_intents(self, intents: list[Intent]) -> None:
+        self.intents.extend(intents)
+        self.wallet.on_intents_prepared(intents)
 
     def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:
