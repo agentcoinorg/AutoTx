@@ -72,7 +72,7 @@ class LlamaClient(ModelClient):  # type: ignore
                     raise Exception(f"No tool response for this tool call with id {id}")
 
                 sanitized_messages.append(
-                    ChatCompletionRequestToolMessage(**message, name=function_name)
+                    ChatCompletionRequestToolMessage(**message, name=function_name)  # type: ignore
                 )
 
             else:
