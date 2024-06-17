@@ -14,6 +14,7 @@ from web3 import Web3
 from autotx import models
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
+from autotx.intents import Intent
 from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -45,7 +46,7 @@ class Config:
 @dataclass
 class PastRun:
     feedback: str
-    transactions_info: str
+    intents_info: str
 
 class EndReason(Enum):
     TERMINATE = "TERMINATE"
@@ -55,7 +56,7 @@ class EndReason(Enum):
 class RunResult:
     summary: str
     chat_history_json: str
-    transactions: list[models.Transaction]
+    intents: list[Intent]
     end_reason: EndReason
     total_cost_without_cache: float
     total_cost_with_cache: float
@@ -65,7 +66,7 @@ class AutoTx:
     web3: Web3
     wallet: SmartWallet
     logger: Logger
-    transactions: list[models.Transaction]
+    intents: list[Intent]
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     custom_model: Optional[CustomModel]
@@ -99,7 +100,7 @@ class AutoTx:
         self.max_rounds = config.max_rounds
         self.verbose = config.verbose
         self.get_llm_config = config.get_llm_config
-        self.transactions = []
+        self.intents = []
         self.current_run_cost_without_cache = 0
         self.current_run_cost_with_cache = 0
         self.info_messages = []
@@ -137,7 +138,7 @@ class AutoTx:
                 return RunResult(
                     result.summary, 
                     result.chat_history_json, 
-                    result.transactions, 
+                    result.intents, 
                     result.end_reason, 
                     total_cost_without_cache, 
                     total_cost_with_cache, 
@@ -161,13 +162,13 @@ class AutoTx:
 
         while True:
             if past_runs:
-                self.transactions.clear()
+                self.intents.clear()
                 
                 prev_history = "".join(
                     [
                         dedent(f"""
                         Then you prepared these transactions to accomplish the goal:
-                        {run.transactions_info}
+                        {run.intents_info}
                         Then the user provided feedback:
                         {run.feedback}
                         """)
@@ -217,17 +218,17 @@ class AutoTx:
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
             try:
-                result = self.wallet.on_transactions_ready(self.transactions)
+                result = self.wallet.on_intents_ready(self.intents)
 
                 if isinstance(result, str):
-                    transactions_info ="\n".join(
+                    intents_info ="\n".join(
                         [
                             f"{i + 1}. {tx.summary}"
-                            for i, tx in enumerate(self.transactions)
+                            for i, tx in enumerate(self.intents)
                         ]
                     )
                     
-                    past_runs.append(PastRun(result, transactions_info))
+                    past_runs.append(PastRun(result, intents_info))
                 else:
                     break
 
@@ -237,17 +238,17 @@ class AutoTx:
 
         self.logger.stop()
 
-        # Copy transactions to a new list to avoid modifying the original list
-        transactions = self.transactions.copy()
-        self.transactions.clear()
+        # Copy intents to a new list to avoid modifying the original list
+        intents = self.intents.copy()
+        self.intents.clear()
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
+        return RunResult(chat.summary, chat_history, intents, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
 
-    def add_transactions(self, txs: list[models.Transaction]) -> None:
-        self.transactions.extend(txs)
-        self.wallet.on_transactions_prepared(txs)
+    def add_intents(self, intents: list[Intent]) -> None:
+        self.intents.extend(intents)
+        self.wallet.on_intents_prepared(intents)
 
     def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from web3 import Web3
-from autotx import models
+from autotx.intents import Intent
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
@@ -12,11 +12,11 @@ class SmartWallet:
         self.web3 = web3
         self.address = address
 
-    def on_transactions_prepared(self, txs: list[models.Transaction]) -> None:
+    def on_intents_prepared(self, intents: list[Intent]) -> None:
         pass
 
     @abstractmethod
-    def on_transactions_ready(self, txs: list[models.Transaction]) -> bool | str: # True if sent, False if declined, str if feedback
+    def on_intents_ready(self, intents: list[Intent]) -> bool | str: # True if sent, False if declined, str if feedback
         pass
 
     def balance_of(self, token_address: ETHAddress | None = None) -> float:
