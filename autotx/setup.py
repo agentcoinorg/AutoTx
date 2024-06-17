@@ -46,7 +46,7 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
         print(f"Smart account connected: {smart_account_addr}")
         manager = SafeManager.connect(client, smart_account_addr, agent)
 
-        manager.connect_tx_service(network_info.chain_id, network_info.transaction_service_url)
+        manager.connect_tx_service(network_info.transaction_service_url)
     else:
         print("No smart account connected, deploying a new one...")
         dev_account = get_dev_account()

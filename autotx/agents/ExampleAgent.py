@@ -26,8 +26,8 @@ class ExampleTool(AutoTxTool):
             # TODO: do something useful
             autotx.notify_user(f"ExampleTool run: {amount} {receiver}")
             
-            # NOTE: you can add transactions to AutoTx's current bundle
-            # autotx.transactions.append(tx)
+            # NOTE: you can add intents to AutoTx's current bundle
+            # autotx.intents.append(tx)
 
             return f"Something useful has been done with {amount} to {receiver}"
 

@@ -1,7 +1,7 @@
-import uuid
-
 from web3 import Web3
-from autotx import db, models
+from autotx import db
+from autotx.intents import Intent
+from autotx.transactions import Transaction
 from autotx.utils.ethereum.SafeManager import SafeManager
 from autotx.wallets.smart_wallet import SmartWallet
 
@@ -15,7 +15,7 @@ class ApiSmartWallet(SmartWallet):
         self.manager = manager
         self.tasks = tasks
 
-    def on_transactions_prepared(self, txs: list[models.Transaction]) -> None:
+    def on_intents_prepared(self, intents: list[Intent]) -> None:
         if self.task_id is None:
             raise ValueError("Task ID is required")
 
@@ -23,12 +23,8 @@ class ApiSmartWallet(SmartWallet):
         if saved_task is None:
             raise ValueError("Task not found")
 
-        for tx in txs:
-            tx.id = str(uuid.uuid4())
-            tx.task_id = self.task_id
-
-        saved_task.transactions.extend(txs)
+        saved_task.intents.extend(intents)
         self.tasks.update(saved_task)
 
-    def on_transactions_ready(self, _txs: list[models.Transaction]) -> bool | str:
+    def on_intents_ready(self, _intents: list[Intent]) -> bool | str:
         return True
