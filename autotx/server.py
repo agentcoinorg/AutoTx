@@ -89,7 +89,7 @@ def build_transactions(app_id: str, user_id: str, chain_id: int, address: str, t
     app_config = load_config_for_user(app_id, user_id, address, chain_id)
 
     if task.intents is None or len(task.intents) == 0:
-        return ([], app_config)
+        return []
 
     transactions: list[Transaction] = []
 
@@ -242,7 +242,7 @@ def prepare_transactions(
     chain_id: int,
     user_id: str, 
     authorization: Annotated[str | None, Header()] = None
-) -> str:
+) -> PreparedTransactionsDto:
     (app, app_user) = authorize_app_and_user(authorization, user_id)
 
     tasks = db.TasksRepository(app.id)

@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 import os
-from typing import Any
+from typing import Any, cast
 import uuid
 from pydantic import BaseModel
 from supabase import create_client
@@ -243,9 +243,9 @@ def save_transactions(app_id: str, address: str, chain_id: int, app_user_id: str
             }
         ).execute()
     
-    return result.data[0]["id"]
+    return cast(str, result.data[0]["id"])
 
-def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, chain_id: str, submitted_batch_id: str) -> tuple[list[TransactionBase], str] | None:
+def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, chain_id: int, submitted_batch_id: str) -> tuple[list[TransactionBase], str] | None:
     client = get_db_client("public")
 
     result = client.table("submitted_batches") \

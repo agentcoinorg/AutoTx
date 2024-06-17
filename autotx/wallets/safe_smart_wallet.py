@@ -1,4 +1,5 @@
 from autotx.intents import Intent
+from autotx.transactions import TransactionBase
 from autotx.utils.ethereum import SafeManager
 from autotx.wallets.smart_wallet import SmartWallet
 
@@ -17,7 +18,7 @@ class SafeSmartWallet(SmartWallet):
         pass
 
     def on_intents_ready(self, intents: list[Intent]) -> bool | str:
-        transactions = []
+        transactions: list[TransactionBase] = []
 
         for intent in intents:
             transactions.extend(intent.build_transactions(self.manager.web3, self.manager.network, self.manager.address))
