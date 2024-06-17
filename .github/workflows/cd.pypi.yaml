@@ -2,8 +2,6 @@ name: Publish to Pypi
 
 on:
   push:
-    branches:
-      - feat/custom-model-support
     tags:
       - "v*.*.*"
 
