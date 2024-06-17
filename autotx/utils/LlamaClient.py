@@ -33,7 +33,7 @@ class LlamaClient(ModelClient):  # type: ignore
     def message_retrieval(
         self, response: CreateChatCompletionResponse
     ) -> list[ChatCompletionResponseMessage]:
-        choices = response["choices"]
+        choices = response.choices # type: ignore
         return [choice["message"] for choice in choices]
 
     def cost(self, _: Union[ChatCompletion, Completion]) -> float:
