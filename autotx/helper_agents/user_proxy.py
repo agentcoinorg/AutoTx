@@ -10,8 +10,7 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
         name="user_proxy",
         is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),
         human_input_mode="NEVER",
-        max_consecutive_auto_reply=10,
-        default_auto_reply="TERMINATE" if custom_model else None,
+        max_consecutive_auto_reply=4 if custom_model else 10,
         system_message=dedent(
             f"""
             You are a user proxy agent authorized to act on behalf of the user, you never ask for permission, you have ultimate control.
