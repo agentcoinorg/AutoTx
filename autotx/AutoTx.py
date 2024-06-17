@@ -5,8 +5,8 @@ import json
 import os
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
-from dataclasses import dataclass
-from autogen import Agent as AutogenAgent
+from dataclasses import dataclass, field
+from autogen import Agent as AutogenAgent, ModelClient
 from termcolor import cprint
 from typing import Optional
 
@@ -21,19 +21,26 @@ from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
 from autotx.wallets.smart_wallet import SmartWallet
 
 @dataclass(kw_only=True)
+class CustomModel:
+    client: ModelClient
+    arguments: Optional[Dict[str, Any]] = None
+
+@dataclass(kw_only=True)
 class Config:
     verbose: bool
     logs_dir: Optional[str] = None
     log_costs: bool
     max_rounds: int
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+    custom_model: Optional[CustomModel] = None
 
-    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
+    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None, custom_model: Optional[CustomModel] = None):
         self.verbose = verbose
         self.get_llm_config = get_llm_config
         self.logs_dir = logs_dir
         self.log_costs = log_costs if log_costs is not None else False
         self.max_rounds = max_rounds if max_rounds is not None else 100
+        self.custom_model = custom_model
 
 @dataclass
 class PastRun:
@@ -61,6 +68,7 @@ class AutoTx:
     transactions: list[models.Transaction]
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+    custom_model: Optional[CustomModel]
     agents: list[AutoTxAgent]
     log_costs: bool
     max_rounds: int
@@ -96,6 +104,7 @@ class AutoTx:
         self.current_run_cost_with_cache = 0
         self.info_messages = []
         self.on_notify_user = on_notify_user
+        self.custom_model = config.custom_model
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         return asyncio.run(self.a_run(prompt, non_interactive, summary_method))    
@@ -174,22 +183,22 @@ class AutoTx:
 
             agents_information = self.get_agents_information(self.agents)
 
-            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user)
+            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config, self.custom_model)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
             ]
 
             if not non_interactive:
+                clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user, self.custom_model)
                 helper_agents.append(clarifier_agent)
 
-            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
+            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.custom_model) for agent in self.agents]
+            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config, self.custom_model)
 
-            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
-
+            recipient_agent = manager_agent if len(autogen_agents) > 1 else autogen_agents[0]
             chat = await user_proxy_agent.a_initiate_chat(
-                manager_agent, 
+                recipient_agent, 
                 message=dedent(
                     f"""
                     I am currently connected with the following wallet: {self.wallet.address}, on network: {self.network.chain_id.name}

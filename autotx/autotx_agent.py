@@ -4,7 +4,7 @@ import autogen
 from autotx.utils.color import Color
 if TYPE_CHECKING:
     from autotx.autotx_tool import AutoTxTool
-    from autotx.AutoTx import AutoTx
+    from autotx.AutoTx import AutoTx, CustomModel
 
 class AutoTxAgent():
     name: str
@@ -18,7 +18,7 @@ class AutoTxAgent():
             f"{tool.name}: {tool.description}" for tool in self.tools
         ]
 
-    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]]) -> autogen.Agent:
+    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]], custom_model: Optional['CustomModel']) -> autogen.Agent:
         system_message = None
         if isinstance(self.system_message, str):
             system_message = self.system_message
@@ -57,5 +57,8 @@ class AutoTxAgent():
 
         for tool in self.tools:
             tool.register_tool(autotx, agent, user_proxy)
+
+        if custom_model:
+            agent.register_model_client(model_client_cls=custom_model.client, **custom_model.arguments)
 
         return agent

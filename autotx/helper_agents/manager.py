@@ -1,10 +1,12 @@
 from textwrap import dedent
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from autogen import GroupChat, GroupChatManager, Agent as AutogenAgent
+if TYPE_CHECKING:
+    from autotx.AutoTx import CustomModel
 
-def build(agents: list[AutogenAgent], max_rounds: int, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> AutogenAgent:
+def build(agents: list[AutogenAgent], max_rounds: int, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], custom_model: Optional['CustomModel']) -> AutogenAgent:
     clarifier_prompt = "ALWAYS choose the 'clarifier' role first in the conversation." if interactive else ""
-    
+
     groupchat = GroupChat(
         agents=agents, 
         messages=[], 
@@ -23,5 +25,6 @@ def build(agents: list[AutogenAgent], max_rounds: int, interactive: bool, get_ll
         )
     )
     manager = GroupChatManager(groupchat=groupchat, llm_config=get_llm_config())
-
+    if custom_model:
+        manager.register_model_client(model_client_cls=custom_model.client, **custom_model.arguments)
     return manager

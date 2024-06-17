@@ -1,8 +1,11 @@
 from textwrap import dedent
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from autogen import UserProxyAgent
 
-def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[], Optional[Dict[str, Any]]]) -> UserProxyAgent:
+if TYPE_CHECKING:
+    from autotx.AutoTx import CustomModel
+
+def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[], Optional[Dict[str, Any]]], custom_model: Optional['CustomModel']) -> UserProxyAgent:
     user_proxy = UserProxyAgent(
         name="user_proxy",
         is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),
@@ -35,4 +38,9 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
         llm_config=get_llm_config(),
         code_execution_config=False,
     )
+
+    if custom_model:
+        user_proxy.register_model_client(model_client_cls=custom_model.client, **custom_model.arguments)
+   
+
     return user_proxy
