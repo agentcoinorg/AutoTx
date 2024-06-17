@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - feat/custom-model-support
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python3 -
+
+    - name: Install dependencies
+      run: poetry install
+
+    - name: Check types
+      run: poetry run build-check
+
+    - name: Release to pypi
+      run: poetry publish --build --username __token__ --password ${{ secrets.PYPI_ACCESS_TOKEN }}
