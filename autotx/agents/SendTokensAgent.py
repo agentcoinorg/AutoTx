@@ -97,7 +97,7 @@ class TransferTokenTool(AutoTxTool):
             
             autotx.notify_user(f"Prepared transaction: {intent.summary}")
             
-            return intent.summary
+            return f"{intent.summary} has been prepared."
 
         return run
 

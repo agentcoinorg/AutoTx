@@ -10,10 +10,11 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
         name="user_proxy",
         is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),
         human_input_mode="NEVER",
-        max_consecutive_auto_reply=10,
+        max_consecutive_auto_reply=5 if custom_model else 10,
         system_message=dedent(
             f"""
             You are a user proxy agent authorized to act on behalf of the user, you never ask for permission, you have ultimate control.
+            {"You are proefficient in understanding if goal has been achieved." if custom_model else ""}
             You are capable and comfortable with making transactions, and have a wallet.
             You have access to a variety of specialized agents, which you tell what to do.
             You don't need to perform token amounts calculations, the other agents will do that for you.
@@ -32,6 +33,8 @@ def build(user_prompt: str, agents_information: str, get_llm_config: Callable[[]
             Try to find an alternative solution if the goal is not achievable.
             If a token is not supported, ask the 'research-tokens' agent to find a supported token (if it fits within the user's goal).
             Before you end the conversation, make sure to summarize the results.
+
+            {"Please note: If the goal has been achieved, you MUST respond with 'TERMINATE' in your message" if custom_model else ""}
             """
         ),
         description="user_proxy is an agent authorized to act on behalf of the user.",

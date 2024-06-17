@@ -3,8 +3,6 @@ from typing import Any, Dict, Union, cast
 from autogen import ModelClient
 from llama_cpp import (
     ChatCompletion,
-    ChatCompletionRequestAssistantMessage,
-    ChatCompletionRequestFunctionMessage,
     ChatCompletionRequestMessage,
     ChatCompletionRequestToolMessage,
     ChatCompletionResponseMessage,
@@ -33,7 +31,7 @@ class LlamaClient(ModelClient):  # type: ignore
     def message_retrieval(
         self, response: CreateChatCompletionResponse
     ) -> list[ChatCompletionResponseMessage]:
-        choices = response.choices # type: ignore
+        choices = response.choices  # type: ignore
         return [choice["message"] for choice in choices]
 
     def cost(self, _: Union[ChatCompletion, Completion]) -> float:
@@ -52,18 +50,8 @@ class LlamaClient(ModelClient):  # type: ignore
         self, messages: list[ChatCompletionRequestMessage]
     ) -> list[ChatCompletionRequestMessage]:
         sanitized_messages: list[ChatCompletionRequestMessage] = []
-
         for message in messages:
-            if "tool_calls" in message:
-                function_to_call = message["tool_calls"][0]  # type: ignore
-                sanitized_messages.append(
-                    ChatCompletionRequestAssistantMessage(
-                        role="assistant",
-                        function_call=function_to_call["function"],
-                        content=None,
-                    )
-                )
-            elif "tool_call_id" in message:
+            if "tool_call_id" in message:
                 id: str = cast(ChatCompletionRequestToolMessage, message)[
                     "tool_call_id"
                 ]
@@ -84,12 +72,9 @@ class LlamaClient(ModelClient):  # type: ignore
                     raise Exception(f"No tool response for this tool call with id {id}")
 
                 sanitized_messages.append(
-                    ChatCompletionRequestFunctionMessage(
-                        role="function",
-                        name=function_name,
-                        content=cast(Union[str | None], message["content"]),
-                    )
+                    ChatCompletionRequestToolMessage(**message, name=function_name)
                 )
+
             else:
                 sanitized_messages.append(message)
 
