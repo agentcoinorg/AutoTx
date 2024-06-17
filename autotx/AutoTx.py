@@ -88,6 +88,9 @@ class AutoTx:
         config: Config,
         on_notify_user: Callable[[str], None] | None = None
     ):
+        if len(agents) == 0:
+            raise Exception("Agents attribute can not be an empty list")
+
         self.web3 = web3
         self.wallet = wallet
         self.network = network
@@ -195,9 +198,13 @@ class AutoTx:
                 helper_agents.append(clarifier_agent)
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.custom_model) for agent in self.agents]
-            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config, self.custom_model)
 
-            recipient_agent = manager_agent if len(autogen_agents) > 1 else autogen_agents[0]
+            recipient_agent = None
+            if len(autogen_agents) > 1:
+                recipient_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config, self.custom_model)
+            else:
+                recipient_agent = autogen_agents[0]
+
             chat = await user_proxy_agent.a_initiate_chat(
                 recipient_agent, 
                 message=dedent(
