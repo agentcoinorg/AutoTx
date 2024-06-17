@@ -18,7 +18,7 @@ class AutoTxAgent():
             f"{tool.name}: {tool.description}" for tool in self.tools
         ]
 
-    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]], custom_model: Optional['CustomModel']) -> autogen.Agent:
+    def build_autogen_agent(self, autotx: 'AutoTx', user_proxy: autogen.UserProxyAgent, llm_config: Optional[Dict[str, Any]], custom_model: Optional['CustomModel'] = None) -> autogen.Agent:
         system_message = None
         if isinstance(self.system_message, str):
             system_message = self.system_message
