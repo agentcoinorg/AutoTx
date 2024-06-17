@@ -14,8 +14,7 @@ from web3.types import TxParams, TxReceipt
 from gnosis.safe.api import TransactionServiceApi
 from eth_account.signers.local import LocalAccount
 
-from autotx import models
-from autotx.transactions import Transaction
+from autotx.transactions import TransactionBase
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
 from autotx.utils.ethereum.eth_address import ETHAddress
@@ -242,7 +241,7 @@ class SafeManager:
                 hash = self.execute_multisend_tx(txs, safe_nonce)
             return hash.hex()
         
-    def send_tx_batch(self, txs: list[Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+    def send_tx_batch(self, txs: list[TransactionBase], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:
@@ -316,7 +315,7 @@ class SafeManager:
 
             return True
 
-    def send_multisend_tx_batch(self, txs: list[Transaction], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
+    def send_multisend_tx_batch(self, txs: list[TransactionBase], require_approval: bool, safe_nonce: Optional[int] = None) -> bool | str: # True if sent, False if declined, str if feedback
         print("=" * 50)
 
         if not txs:
