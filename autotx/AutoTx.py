@@ -120,7 +120,7 @@ class AutoTx:
 
         if self.verbose:
             available_config = self.get_llm_config()
-            if "config_list" in available_config:
+            if available_config and "config_list" in available_config:
                 print("Available LLM configurations:")
                 for config in available_config["config_list"]:
                     if "model" in config:
