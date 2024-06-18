@@ -115,7 +115,7 @@ class TasksRepository:
         def load_intent(intent_data: dict[str, Any]) -> Intent:
             if intent_data["type"] == "send":
                 return SendIntent.create(
-                    to_address=intent_data["to_address"],
+                    receiver=intent_data["to_address"],
                     token=Token(
                         symbol=intent_data["token"]["symbol"],
                         address=intent_data["token"]["address"]
@@ -146,6 +146,8 @@ class TasksRepository:
                     ),
                     amount=intent_data["amount"]
                 )
+            else:
+                raise Exception(f"Unknown intent type: {intent_data['type']}")
 
         return models.Task(
             id=task_data["id"],
