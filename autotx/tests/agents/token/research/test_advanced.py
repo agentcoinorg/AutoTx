@@ -1,5 +1,5 @@
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx):
     (_, _, _, manager, _) = configuration

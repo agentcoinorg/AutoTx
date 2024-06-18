@@ -12,7 +12,7 @@ from autotx import models
 from autotx.intents import BuyIntent, Intent, SellIntent, SendIntent
 from autotx.token import Token
 from autotx.transactions import Transaction, TransactionBase
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")

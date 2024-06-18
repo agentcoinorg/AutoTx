@@ -12,7 +12,7 @@ from autotx.transactions import SendTransaction, Transaction
 from autotx.utils.ethereum.build_transfer_erc20 import build_transfer_erc20
 from autotx.utils.ethereum.build_transfer_native import build_transfer_native
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.format_amount import format_amount
@@ -41,7 +41,7 @@ class SendIntent(IntentBase):
             type=IntentType.SEND,
             token=token,
             amount=amount,
-            receiver=receiver.hex,
+            receiver=receiver.original_str,
             summary=f"Transfer {format_amount(amount)} {token.symbol} to {receiver}",
         )
     
@@ -57,7 +57,7 @@ class SendIntent(IntentBase):
             SendTransaction.create(
                 token=self.token,
                 amount=self.amount,
-                receiver=self.receiver,
+                receiver=ETHAddress(self.receiver),
                 params=cast(dict[str, Any], tx),
             )
         ]

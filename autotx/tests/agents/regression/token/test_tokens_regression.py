@@ -1,7 +1,7 @@
 import pytest
 from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 
 @pytest.mark.skip()

@@ -5,7 +5,7 @@ import requests
 import re
 
 from autotx.utils.constants import LIFI_API_KEY
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
 
 

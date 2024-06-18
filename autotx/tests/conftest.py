@@ -14,7 +14,7 @@ from eth_account import Account
 
 from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 
 import pytest

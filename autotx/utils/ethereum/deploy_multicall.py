@@ -4,7 +4,7 @@ from gnosis.eth.multicall import Multicall
 from eth_account.signers.local import LocalAccount
 from hexbytes import HexBytes
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 from .cache import cache
 

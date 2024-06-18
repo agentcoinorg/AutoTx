@@ -6,7 +6,7 @@ from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
 from autotx.intents import BuyIntent, Intent, SellIntent
 from autotx.token import Token
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, can_build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported

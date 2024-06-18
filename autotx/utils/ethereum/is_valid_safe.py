@@ -3,7 +3,7 @@ from gnosis.eth import EthereumClient
 from web3 import Web3
 from gnosis.safe import Safe
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from .constants import MASTER_COPY_ADDRESS, MASTER_COPY_L2_ADDRESSES
 
 def is_valid_safe(client: EthereumClient, safe_address: ETHAddress) -> bool:

@@ -7,7 +7,7 @@ from autotx.token import Token
 from autotx.transactions import ApproveTransaction, SwapTransaction, Transaction
 from autotx.utils.ethereum.constants import GAS_PRICE_MULTIPLIER, NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_native_token_symbol import (
     get_native_token_symbol,
 )

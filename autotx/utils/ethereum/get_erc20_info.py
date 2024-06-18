@@ -1,6 +1,6 @@
 from web3 import Web3
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from .erc20_abi import ERC20_ABI
 
 def get_erc20_info(web3: Web3, token_address: ETHAddress) -> tuple[str, str, int]:
