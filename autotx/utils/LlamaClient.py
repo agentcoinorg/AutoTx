@@ -1,3 +1,4 @@
+import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Union, cast
 from autogen import ModelClient
@@ -13,8 +14,9 @@ from llama_cpp import (
 
 
 class LlamaClient(ModelClient):  # type: ignore
-    def __init__(self, _: dict[str, Any], **args: Any):
+    def __init__(self, config: dict[str, Any], **args: Any):
         self.llm: Llama = args["llm"]
+        self.model: str = config["model"]
 
     def create(self, params: Dict[str, Any]) -> SimpleNamespace:
         sanitized_messages = self._sanitize_chat_completion_messages(
@@ -43,7 +45,7 @@ class LlamaClient(ModelClient):  # type: ignore
             "completion_tokens": 0,
             "total_tokens": 0,
             "cost": 0,
-            "model": "meetkai/functionary-small-v2.4-GGUF",
+            "model": self.model,
         }
 
     def _sanitize_chat_completion_messages(

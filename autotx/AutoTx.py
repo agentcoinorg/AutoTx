@@ -119,8 +119,15 @@ class AutoTx:
         info_messages = []
 
         if self.verbose:
-            print(f"LLM model: {OPENAI_MODEL_NAME}")
-            print(f"LLM API URL: {OPENAI_BASE_URL}")
+            available_config = self.get_llm_config()
+            if "config_list" in available_config:
+                print("Available LLM configurations:")
+                for config in available_config["config_list"]:
+                    if "model" in config:
+                        print(f"LLM model: {config['model']}")
+                    if "base_url" in config:
+                        print(f"LLM API URL: {config['base_url']}")
+                    print("==" * 10)
 
         while True:
             result = await self.try_run(prompt, non_interactive, summary_method)
