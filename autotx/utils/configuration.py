@@ -12,7 +12,7 @@ from autotx.setup import setup_safe
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.agent_account import get_or_create_agent_account
 from autotx.utils.ethereum.constants import DEVNET_RPC_URL
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.wallets.smart_wallet import SmartWallet

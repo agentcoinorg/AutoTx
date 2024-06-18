@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Any, Union
 
 from autotx.token import Token
+from autotx.eth_address import ETHAddress
 from autotx.utils.format_amount import format_amount
 
 class TransactionType(str, Enum):
@@ -21,12 +22,12 @@ class SendTransaction(TransactionBase):
     amount: float
 
     @classmethod
-    def create(cls, token: Token, amount: float, receiver: str, params: dict[str, Any]) -> 'SendTransaction':
+    def create(cls, token: Token, amount: float, receiver: ETHAddress, params: dict[str, Any]) -> 'SendTransaction':
         return cls(
             type=TransactionType.SEND,
             token=token,
             amount=amount,
-            receiver=receiver,
+            receiver=receiver.original_str,
             params=params,
             summary=f"Transfer {format_amount(amount)} {token.symbol} to {receiver}",
         )

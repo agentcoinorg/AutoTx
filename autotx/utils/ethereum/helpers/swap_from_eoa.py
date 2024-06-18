@@ -4,7 +4,7 @@ from eth_account.signers.local import LocalAccount
 from gnosis.eth import EthereumClient
 from web3.types import TxParams
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import ChainId
 

@@ -11,7 +11,7 @@ from autotx.utils.ethereum import (
     get_erc20_balance,
 )
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 from web3.types import TxParams
 

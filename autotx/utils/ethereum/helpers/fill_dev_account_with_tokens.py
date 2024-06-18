@@ -1,6 +1,6 @@
 from autotx.utils.ethereum import transfer_erc20
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.networks import ChainId, NetworkInfo
 from eth_account.signers.local import LocalAccount

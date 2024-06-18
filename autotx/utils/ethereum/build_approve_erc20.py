@@ -1,6 +1,6 @@
 from web3 import Web3
 from web3.types import TxParams
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.erc20_abi import ERC20_ABI
 
 def build_approve_erc20(web3: Web3, token_address: ETHAddress, spender: ETHAddress, value: float) -> TxParams:

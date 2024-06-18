@@ -11,7 +11,7 @@ from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL_NAME
 from autotx.utils.ethereum import SafeManager
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.fill_dev_account_with_tokens import fill_dev_account_with_tokens
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances

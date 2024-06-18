@@ -17,9 +17,9 @@ from eth_account.signers.local import LocalAccount
 from autotx.transactions import TransactionBase
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address, save_cached_safe_address
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.is_valid_safe import is_valid_safe
-from autotx.utils.ethereum.networks import ChainId, NetworkInfo
+from autotx.utils.ethereum.networks import NetworkInfo
 from .deploy_safe_with_create2 import deploy_safe_with_create2
 from .deploy_multicall import deploy_multicall
 from .get_erc20_balance import get_erc20_balance
