@@ -1,4 +1,3 @@
-import logging
 from types import SimpleNamespace
 from typing import Any, Dict, Union, cast
 from autogen import ModelClient
