@@ -12,6 +12,7 @@ from autotx import models
 from autotx.intents import BuyIntent, Intent, SellIntent, SendIntent
 from autotx.token import Token
 from autotx.transactions import Transaction, TransactionBase
+from autotx.utils.ethereum.eth_address import ETHAddress
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -115,7 +116,7 @@ class TasksRepository:
         def load_intent(intent_data: dict[str, Any]) -> Intent:
             if intent_data["type"] == "send":
                 return SendIntent.create(
-                    receiver=intent_data["to_address"],
+                    receiver=ETHAddress(intent_data["receiver"]),
                     token=Token(
                         symbol=intent_data["token"]["symbol"],
                         address=intent_data["token"]["address"]
