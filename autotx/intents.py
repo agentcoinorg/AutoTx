@@ -15,6 +15,7 @@ from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.utils.ethereum.eth_address import ETHAddress
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.format_amount import format_amount
 
 class IntentType(str, Enum):
     SEND = "send"
@@ -41,7 +42,7 @@ class SendIntent(IntentBase):
             token=token,
             amount=amount,
             receiver=receiver.hex,
-            summary=f"Transfer {amount} {token.symbol} to {receiver}",
+            summary=f"Transfer {format_amount(amount)} {token.symbol} to {receiver}",
         )
     
     def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
@@ -75,13 +76,13 @@ class BuyIntent(IntentBase):
             from_token=from_token,
             to_token=to_token,
             amount=amount,
-            summary=f"Buy {amount} {to_token.symbol} with {from_token.symbol}",
+            summary=f"Buy {format_amount(amount)} {to_token.symbol} with {from_token.symbol}",
         )
     
     def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
         transactions = build_swap_transaction(
             web3,
-            Decimal(self.amount),
+            Decimal(str(self.amount)),
             ETHAddress(self.from_token.address),
             ETHAddress(self.to_token.address),
             smart_wallet_address,
@@ -103,13 +104,14 @@ class SellIntent(IntentBase):
             from_token=from_token,
             to_token=to_token,
             amount=amount,
-            summary=f"Sell {amount} {from_token.symbol} for {to_token.symbol}",
+            summary=f"Sell {format_amount(amount)} {from_token.symbol} for {to_token.symbol}",
         )    
     
     def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
+
         transactions = build_swap_transaction(
             web3,
-            Decimal(self.amount),
+            Decimal(str(self.amount)),
             ETHAddress(self.from_token.address),
             ETHAddress(self.to_token.address),
             smart_wallet_address,

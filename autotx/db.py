@@ -9,7 +9,10 @@ from supabase.client import Client
 from supabase.lib.client_options import ClientOptions
 
 from autotx import models
+from autotx.intents import BuyIntent, Intent, SellIntent, SendIntent
+from autotx.token import Token
 from autotx.transactions import Transaction, TransactionBase
+from autotx.utils.ethereum.eth_address import ETHAddress
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -110,6 +113,43 @@ class TasksRepository:
 
         task_data = result.data[0]
 
+        def load_intent(intent_data: dict[str, Any]) -> Intent:
+            if intent_data["type"] == "send":
+                return SendIntent.create(
+                    receiver=ETHAddress(intent_data["receiver"]),
+                    token=Token(
+                        symbol=intent_data["token"]["symbol"],
+                        address=intent_data["token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            elif intent_data["type"] == "buy":
+                return BuyIntent.create(
+                    from_token=Token(
+                        symbol=intent_data["from_token"]["symbol"],
+                        address=intent_data["from_token"]["address"]
+                    ),
+                    to_token=Token(
+                        symbol=intent_data["to_token"]["symbol"],
+                        address=intent_data["to_token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            elif intent_data["type"] == "sell":
+                return SellIntent.create(
+                    from_token=Token(
+                        symbol=intent_data["from_token"]["symbol"],
+                        address=intent_data["from_token"]["address"]
+                    ),
+                    to_token=Token(
+                        symbol=intent_data["to_token"]["symbol"],
+                        address=intent_data["to_token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            else:
+                raise Exception(f"Unknown intent type: {intent_data['type']}")
+
         return models.Task(
             id=task_data["id"],
             prompt=task_data["prompt"],
@@ -120,7 +160,7 @@ class TasksRepository:
             running=task_data["running"],
             error=task_data["error"],
             messages=json.loads(task_data["messages"]),
-            intents=json.loads(task_data["intents"])
+            intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
         )
 
     def get_all(self) -> list[models.Task]:

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Any, Union
 
 from autotx.token import Token
+from autotx.utils.format_amount import format_amount
 
 class TransactionType(str, Enum):
     SEND = "send"
@@ -27,7 +28,7 @@ class SendTransaction(TransactionBase):
             amount=amount,
             receiver=receiver,
             params=params,
-            summary=f"Transfer {amount} {token.symbol} to {receiver}",
+            summary=f"Transfer {format_amount(amount)} {token.symbol} to {receiver}",
         )
 
 class ApproveTransaction(TransactionBase):
@@ -43,7 +44,7 @@ class ApproveTransaction(TransactionBase):
             amount=amount,
             spender=spender,
             params=params,
-            summary=f"Approve {amount} {token.symbol} to {spender}"
+            summary=f"Approve {format_amount(amount)} {token.symbol} to {spender}"
         )
 
 class SwapTransaction(TransactionBase):
@@ -61,7 +62,7 @@ class SwapTransaction(TransactionBase):
             from_amount=from_amount,
             to_amount=to_amount,
             params=params,
-            summary=f"Swap {from_amount} {from_token.symbol} for at least {to_amount} {to_token.symbol}"
+            summary=f"Swap {format_amount(from_amount)} {from_token.symbol} for at least {format_amount(to_amount)} {to_token.symbol}"
         )
 
 Transaction = Union[SendTransaction, ApproveTransaction, SwapTransaction]
