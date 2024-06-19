@@ -7,7 +7,7 @@ from autotx.utils.ethereum.helpers.get_native_token_symbol import (
     get_native_token_symbol,
 )
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP, ChainId, NetworkConfiguration
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 
 def show_address_balances(web3: Web3, network: ChainId, address: ETHAddress) -> None:

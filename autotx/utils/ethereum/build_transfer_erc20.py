@@ -1,7 +1,7 @@
 from web3 import Web3
 from web3.types import TxParams, Wei
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from .constants import GAS_PRICE_MULTIPLIER
 from .erc20_abi import ERC20_ABI
 

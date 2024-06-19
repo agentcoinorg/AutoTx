@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+from typing import Any, cast
 import uuid
 from pydantic import BaseModel
 from supabase import create_client
@@ -8,6 +9,10 @@ from supabase.client import Client
 from supabase.lib.client_options import ClientOptions
 
 from autotx import models
+from autotx.intents import BuyIntent, Intent, SellIntent, SendIntent
+from autotx.token import Token
+from autotx.transactions import Transaction, TransactionBase
+from autotx.eth_address import ETHAddress
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -51,7 +56,7 @@ class TasksRepository:
                 "created_at": str(created_at),
                 "updated_at": str(updated_at),
                 "messages": json.dumps([]),
-                "transactions": json.dumps([])
+                "intents": json.dumps([])
             }
         ).execute()
 
@@ -65,7 +70,7 @@ class TasksRepository:
             running=True,
             error=None,
             messages=[],
-            transactions=[]
+            intents=[]
         )
 
     def stop(self, task_id: str) -> None:
@@ -81,7 +86,7 @@ class TasksRepository:
     def update(self, task: models.Task) -> None:
         client = get_db_client("public")
 
-        txs = [json.loads(tx.json()) for tx in task.transactions]
+        intents = [json.loads(intent.json()) for intent in task.intents]
 
         client.table("tasks").update(
             {
@@ -90,7 +95,7 @@ class TasksRepository:
                 "updated_at": str(datetime.utcnow()),
                 "messages": json.dumps(task.messages),
                 "error": task.error,
-                "transactions": json.dumps(txs)
+                "intents": json.dumps(intents)
             }
         ).eq("id", task.id).eq("app_id", self.app_id).execute()
 
@@ -108,6 +113,43 @@ class TasksRepository:
 
         task_data = result.data[0]
 
+        def load_intent(intent_data: dict[str, Any]) -> Intent:
+            if intent_data["type"] == "send":
+                return SendIntent.create(
+                    receiver=ETHAddress(intent_data["receiver"]),
+                    token=Token(
+                        symbol=intent_data["token"]["symbol"],
+                        address=intent_data["token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            elif intent_data["type"] == "buy":
+                return BuyIntent.create(
+                    from_token=Token(
+                        symbol=intent_data["from_token"]["symbol"],
+                        address=intent_data["from_token"]["address"]
+                    ),
+                    to_token=Token(
+                        symbol=intent_data["to_token"]["symbol"],
+                        address=intent_data["to_token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            elif intent_data["type"] == "sell":
+                return SellIntent.create(
+                    from_token=Token(
+                        symbol=intent_data["from_token"]["symbol"],
+                        address=intent_data["from_token"]["address"]
+                    ),
+                    to_token=Token(
+                        symbol=intent_data["to_token"]["symbol"],
+                        address=intent_data["to_token"]["address"]
+                    ),
+                    amount=intent_data["amount"]
+                )
+            else:
+                raise Exception(f"Unknown intent type: {intent_data['type']}")
+
         return models.Task(
             id=task_data["id"],
             prompt=task_data["prompt"],
@@ -118,7 +160,7 @@ class TasksRepository:
             running=task_data["running"],
             error=task_data["error"],
             messages=json.loads(task_data["messages"]),
-            transactions=json.loads(task_data["transactions"])
+            intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
         )
 
     def get_all(self) -> list[models.Task]:
@@ -140,7 +182,7 @@ class TasksRepository:
                     running=task_data["running"],
                     error=task_data["error"],
                     messages=json.loads(task_data["messages"]),
-                    transactions=json.loads(task_data["transactions"])
+                    intents=json.loads(task_data["intents"])
                 )
             )
 
@@ -222,11 +264,13 @@ def get_agent_private_key(app_id: str, user_id: str) -> str | None:
 
     return str(result.data[0]["agent_private_key"])
 
-def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str) -> None:
+def save_transactions(app_id: str, address: str, chain_id: int, app_user_id: str, task_id: str, transactions: list[Transaction]) -> str:
     client = get_db_client("public")
     
+    txs = [json.loads(tx.json()) for tx in transactions]
+
     created_at = datetime.utcnow()
-    client.table("submitted_batches") \
+    result = client.table("submitted_batches") \
         .insert(
             {
                 "app_id": app_id,
@@ -234,10 +278,47 @@ def submit_transactions(app_id: str, address: str, chain_id: int, app_user_id: s
                 "chain_id": chain_id,
                 "app_user_id": app_user_id,
                 "task_id": task_id,
-                "created_at": str(created_at)
+                "created_at": str(created_at),
+                "transactions": json.dumps(txs)
             }
         ).execute()
     
+    return cast(str, result.data[0]["id"])
+
+def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, chain_id: int, submitted_batch_id: str) -> tuple[list[TransactionBase], str] | None:
+    client = get_db_client("public")
+
+    result = client.table("submitted_batches") \
+        .select("transactions, task_id") \
+        .eq("app_id", app_id) \
+        .eq("app_user_id", app_user_id) \
+        .eq("address", address) \
+        .eq("chain_id", chain_id) \
+        .eq("task_id", task_id) \
+        .eq("id", submitted_batch_id) \
+        .execute()
+    
+    if len(result.data) == 0:
+        return None
+    
+    return (
+        [TransactionBase(**tx) for tx in json.loads(result.data[0]["transactions"])], 
+        result.data[0]["task_id"]    
+    )
+    
+def submit_transactions(app_id: str, app_user_id: str, submitted_batch_id: str) -> None:
+    client = get_db_client("public")
+    
+    client.table("submitted_batches") \
+        .update(
+            {
+                "submitted_on": str(datetime.utcnow())
+            }
+        ).eq("app_id", app_id) \
+        .eq("app_user_id", app_user_id) \
+        .eq("id", submitted_batch_id) \
+        .execute()
+
 class SubmittedBatch(BaseModel):
     id: str
     app_id: str
@@ -246,6 +327,8 @@ class SubmittedBatch(BaseModel):
     app_user_id: str
     task_id: str
     created_at: datetime
+    submitted_on: datetime | None
+    transactions: list[dict[str, Any]]
 
 def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
     client = get_db_client("public")
@@ -267,7 +350,9 @@ def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
                 chain_id=batch_data["chain_id"],
                 app_user_id=batch_data["app_user_id"],
                 task_id=batch_data["task_id"],
-                created_at=batch_data["created_at"]
+                created_at=batch_data["created_at"],
+                submitted_on=batch_data["submitted_on"],
+                transactions=json.loads(batch_data["transactions"])
             )
         )
 

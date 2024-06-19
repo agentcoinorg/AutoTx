@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "autotx"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Nestor Amesty <nestor09amesty@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,7 @@ web3 = "^6.19.0"
 safe-eth-py = "^5.8.0"
 uvicorn = "^0.29.0"
 supabase = "^2.5.0"
+llama-cpp-python = "^0.2.78"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"

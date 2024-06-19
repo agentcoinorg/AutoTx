@@ -1,4 +1,5 @@
-from autotx import models
+from autotx.intents import Intent
+from autotx.transactions import TransactionBase
 from autotx.utils.ethereum import SafeManager
 from autotx.wallets.smart_wallet import SmartWallet
 
@@ -13,8 +14,13 @@ class SafeSmartWallet(SmartWallet):
         self.manager = manager
         self.auto_submit_tx = auto_submit_tx
 
-    def on_transactions_prepared(self, txs: list[models.Transaction]) -> None:
+    def on_intents_prepared(self, intents: list[Intent]) -> None:
         pass
 
-    def on_transactions_ready(self, txs: list[models.Transaction]) -> bool | str:
-        return self.manager.send_tx_batch(txs, not self.auto_submit_tx)
+    def on_intents_ready(self, intents: list[Intent]) -> bool | str:
+        transactions: list[TransactionBase] = []
+
+        for intent in intents:
+            transactions.extend(intent.build_transactions(self.manager.web3, self.manager.network, self.manager.address))
+
+        return self.manager.send_multisend_tx_batch(transactions, not self.auto_submit_tx)

@@ -5,11 +5,14 @@ from gnosis.safe.api.base_api import SafeAPIException
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import traceback
 
 from autotx import models, setup
 from autotx import db
 from autotx.AutoTx import AutoTx, Config as AutoTxConfig
+from autotx.intents import Intent
+from autotx.transactions import Transaction
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.chain_short_names import CHAIN_ID_TO_SHORT_NAME
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP
@@ -57,6 +60,43 @@ def authorize(authorization: str | None) -> models.App:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     return app
+
+def load_config_for_user(app_id: str, user_id: str, address: str, chain_id: int) -> AppConfig:
+    agent_private_key = db.get_agent_private_key(app_id, user_id)
+
+    if not agent_private_key:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    agent = Account.from_key(agent_private_key)
+
+    app_config = AppConfig.load(smart_account_addr=address, subsidized_chain_id=chain_id, agent=agent)
+
+    return app_config
+
+def authorize_app_and_user(authorization: str | None, user_id: str) -> tuple[models.App, models.AppUser]:
+    app = authorize(authorization)
+    app_user = db.get_app_user(app.id, user_id)
+
+    if not app_user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    return (app, app_user)
+
+def build_transactions(app_id: str, user_id: str, chain_id: int, address: str, task: models.Task) -> List[Transaction]:
+    if task.running:
+        raise HTTPException(status_code=400, detail="Task is still running")
+
+    app_config = load_config_for_user(app_id, user_id, address, chain_id)
+
+    if task.intents is None or len(task.intents) == 0:
+        return []
+
+    transactions: list[Transaction] = []
+
+    for intent in task.intents:
+        transactions.extend(intent.build_transactions(app_config.web3, app_config.network_info, app_config.manager.address))
+
+    return transactions
 
 @app_router.post("/api/v1/tasks", response_model=models.Task)
 async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:
@@ -162,49 +202,104 @@ def get_task(task_id: str, authorization: Annotated[str | None, Header()] = None
     task = get_task_or_404(task_id, tasks)
     return task
 
-@app_router.get("/api/v1/tasks/{task_id}/transactions", response_model=List[models.Transaction])
-def get_transactions(task_id: str, authorization: Annotated[str | None, Header()] = None) -> Any:
+@app_router.get("/api/v1/tasks/{task_id}/intents", response_model=List[Intent])
+def get_intents(task_id: str, authorization: Annotated[str | None, Header()] = None) -> Any:
     app = authorize(authorization)
     tasks = db.TasksRepository(app.id)
     
     task = get_task_or_404(task_id, tasks)
-    return task.transactions
+    return task.intents
+
+@app_router.get("/api/v1/tasks/{task_id}/transactions", response_model=List[Transaction])
+def get_transactions(
+    task_id: str, 
+    address: str,
+    chain_id: int,
+    user_id: str, 
+    authorization: Annotated[str | None, Header()] = None
+) -> List[Transaction]:
+    (app, app_user) = authorize_app_and_user(authorization, user_id)
+
+    tasks = db.TasksRepository(app.id)
+    
+    task = get_task_or_404(task_id, tasks)
+
+    if task.chain_id != chain_id:
+        raise HTTPException(status_code=400, detail="Chain ID does not match task")
+
+    transactions = build_transactions(app.id, user_id, chain_id, address, task)
+
+    return transactions
+
+class PreparedTransactionsDto(BaseModel):
+    batch_id: str
+    transactions: List[Transaction]
+
+@app_router.post("/api/v1/tasks/{task_id}/transactions/prepare", response_model=PreparedTransactionsDto)
+def prepare_transactions(
+    task_id: str, 
+    address: str,
+    chain_id: int,
+    user_id: str, 
+    authorization: Annotated[str | None, Header()] = None
+) -> PreparedTransactionsDto:
+    (app, app_user) = authorize_app_and_user(authorization, user_id)
+
+    tasks = db.TasksRepository(app.id)
+    
+    task = get_task_or_404(task_id, tasks)
+
+    if task.chain_id != chain_id:
+        raise HTTPException(status_code=400, detail="Chain ID does not match task")
+    
+    transactions = build_transactions(app.id, app_user.user_id, chain_id, address, task)
+
+    if len(transactions) == 0:
+        raise HTTPException(status_code=400, detail="No transactions to send")
+
+    submitted_batch_id = db.save_transactions(app.id, address, chain_id, app_user.id, task_id, transactions)
+
+    return PreparedTransactionsDto(batch_id=submitted_batch_id, transactions=transactions)
 
 @app_router.post("/api/v1/tasks/{task_id}/transactions")
-def send_transactions(task_id: str, model: models.SendTransactionsParams, authorization: Annotated[str | None, Header()] = None) -> str:
-    app = authorize(authorization)
-    app_user = db.get_app_user(app.id, model.user_id)
-    if not app_user: 
-        raise HTTPException(status_code=400, detail="User not found")
+def send_transactions(
+    task_id: str, 
+    address: str,
+    chain_id: int,
+    user_id: str, 
+    batch_id: str,
+    authorization: Annotated[str | None, Header()] = None
+) -> str:
+    (app, app_user) = authorize_app_and_user(authorization, user_id)
 
     tasks = db.TasksRepository(app.id)
     
     task = get_task_or_404(task_id, tasks)
 
-    if task.running:
-        raise HTTPException(status_code=400, detail="Task is still running")
+    if task.chain_id != chain_id:
+        raise HTTPException(status_code=400, detail="Chain ID does not match task")
 
-    agent_private_key = db.get_agent_private_key(app.id, model.user_id)
+    batch = db.get_transactions(app.id, app_user.id, task_id, address, chain_id, batch_id)
 
-    if not agent_private_key:
-        raise HTTPException(status_code=400, detail="User not found")
+    if batch is None:
+        raise HTTPException(status_code=400, detail="Batch not found")
 
-    agent = Account.from_key(agent_private_key)
+    (transactions, task_id) = batch
 
-    if task.transactions is None or len(task.transactions) == 0:
+    if len(transactions) == 0:
         raise HTTPException(status_code=400, detail="No transactions to send")
 
     global autotx_params
     if autotx_params.is_dev:
         print("Dev mode: skipping transaction submission")
-        db.submit_transactions(app.id, model.address, model.chain_id, app_user.id, task_id)
-        return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(model.chain_id)]}:{model.address}"
+        db.submit_transactions(app.id, app_user.id, batch_id)
+        return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
 
     try:
-        app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id, agent=agent)
-       
-        app_config.manager.send_tx_batch(
-            task.transactions,
+        app_config = load_config_for_user(app.id, user_id, address, chain_id)
+
+        app_config.manager.send_multisend_tx_batch(
+            transactions,
             require_approval=False,
         )
     except SafeAPIException as e:
@@ -213,9 +308,9 @@ def send_transactions(task_id: str, model: models.SendTransactionsParams, author
         else:
             raise e
         
-    db.submit_transactions(app.id, model.address, model.chain_id, app_user.id, task_id)
+    db.submit_transactions(app.id, app_user.id, batch_id)
 
-    return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(model.chain_id)]}:{model.address}"
+    return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
 
 @app_router.get("/api/v1/networks", response_model=List[models.SupportedNetwork])
 def get_supported_networks() -> list[models.SupportedNetwork]:

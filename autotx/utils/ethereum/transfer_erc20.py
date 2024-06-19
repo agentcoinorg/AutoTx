@@ -4,7 +4,7 @@ from web3 import Web3
 from web3.types import Wei
 from web3.middleware.signing import construct_sign_and_send_raw_middleware
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 from .constants import GAS_PRICE_MULTIPLIER
 

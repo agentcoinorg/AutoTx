@@ -6,8 +6,10 @@ from autotx.utils.constants import MAINNET_DEFAULT_RPC
 class ETHAddress:
     hex: ChecksumAddress
     ens_domain: str | None
+    original_str: str
 
     def __init__(self, hex_or_ens: str):
+        self.original_str = hex_or_ens
         if hex_or_ens.endswith(".eth"):
             web3 = Web3(HTTPProvider(MAINNET_DEFAULT_RPC))
             address = web3.ens.address(hex_or_ens)  # type: ignore

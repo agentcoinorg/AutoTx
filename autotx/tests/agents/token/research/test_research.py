@@ -3,7 +3,7 @@ from autotx.agents.ResearchTokensAgent import (
     get_coingecko,
 )
 
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
 
 def get_top_token_addresses_by_market_cap(category: str, network: str, count: int, auto_tx) -> list[ETHAddress]:

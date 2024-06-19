@@ -5,8 +5,8 @@ import json
 import os
 from textwrap import dedent
 from typing import Any, Dict, Optional, Callable
-from dataclasses import dataclass
-from autogen import Agent as AutogenAgent
+from dataclasses import dataclass, field
+from autogen import Agent as AutogenAgent, ModelClient
 from termcolor import cprint
 from typing import Optional
 
@@ -14,11 +14,17 @@ from web3 import Web3
 from autotx import models
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
+from autotx.intents import Intent
 from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
 from autotx.wallets.smart_wallet import SmartWallet
+
+@dataclass(kw_only=True)
+class CustomModel:
+    client: ModelClient
+    arguments: Optional[Dict[str, Any]] = None
 
 @dataclass(kw_only=True)
 class Config:
@@ -27,18 +33,20 @@ class Config:
     log_costs: bool
     max_rounds: int
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+    custom_model: Optional[CustomModel] = None
 
-    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None):
+    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None, custom_model: Optional[CustomModel] = None):
         self.verbose = verbose
         self.get_llm_config = get_llm_config
         self.logs_dir = logs_dir
         self.log_costs = log_costs if log_costs is not None else False
         self.max_rounds = max_rounds if max_rounds is not None else 100
+        self.custom_model = custom_model
 
 @dataclass
 class PastRun:
     feedback: str
-    transactions_info: str
+    intents_info: str
 
 class EndReason(Enum):
     TERMINATE = "TERMINATE"
@@ -48,7 +56,7 @@ class EndReason(Enum):
 class RunResult:
     summary: str
     chat_history_json: str
-    transactions: list[models.Transaction]
+    intents: list[Intent]
     end_reason: EndReason
     total_cost_without_cache: float
     total_cost_with_cache: float
@@ -58,9 +66,10 @@ class AutoTx:
     web3: Web3
     wallet: SmartWallet
     logger: Logger
-    transactions: list[models.Transaction]
+    intents: list[Intent]
     network: NetworkInfo
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
+    custom_model: Optional[CustomModel]
     agents: list[AutoTxAgent]
     log_costs: bool
     max_rounds: int
@@ -79,6 +88,9 @@ class AutoTx:
         config: Config,
         on_notify_user: Callable[[str], None] | None = None
     ):
+        if len(agents) == 0:
+            raise Exception("Agents attribute can not be an empty list")
+
         self.web3 = web3
         self.wallet = wallet
         self.network = network
@@ -91,11 +103,12 @@ class AutoTx:
         self.max_rounds = config.max_rounds
         self.verbose = config.verbose
         self.get_llm_config = config.get_llm_config
-        self.transactions = []
+        self.intents = []
         self.current_run_cost_without_cache = 0
         self.current_run_cost_with_cache = 0
         self.info_messages = []
         self.on_notify_user = on_notify_user
+        self.custom_model = config.custom_model
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         return asyncio.run(self.a_run(prompt, non_interactive, summary_method))    
@@ -106,8 +119,15 @@ class AutoTx:
         info_messages = []
 
         if self.verbose:
-            print(f"LLM model: {OPENAI_MODEL_NAME}")
-            print(f"LLM API URL: {OPENAI_BASE_URL}")
+            available_config = self.get_llm_config()
+            if available_config and "config_list" in available_config:
+                print("Available LLM configurations:")
+                for config in available_config["config_list"]:
+                    if "model" in config:
+                        print(f"LLM model: {config['model']}")
+                    if "base_url" in config:
+                        print(f"LLM API URL: {config['base_url']}")
+                    print("==" * 10)
 
         while True:
             result = await self.try_run(prompt, non_interactive, summary_method)
@@ -128,7 +148,7 @@ class AutoTx:
                 return RunResult(
                     result.summary, 
                     result.chat_history_json, 
-                    result.transactions, 
+                    result.intents, 
                     result.end_reason, 
                     total_cost_without_cache, 
                     total_cost_with_cache, 
@@ -152,13 +172,13 @@ class AutoTx:
 
         while True:
             if past_runs:
-                self.transactions.clear()
+                self.intents.clear()
                 
                 prev_history = "".join(
                     [
                         dedent(f"""
                         Then you prepared these transactions to accomplish the goal:
-                        {run.transactions_info}
+                        {run.intents_info}
                         Then the user provided feedback:
                         {run.feedback}
                         """)
@@ -174,22 +194,26 @@ class AutoTx:
 
             agents_information = self.get_agents_information(self.agents)
 
-            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config)
-            clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user)
+            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config, self.custom_model)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
             ]
 
             if not non_interactive:
+                clarifier_agent = clarifier.build(user_proxy_agent, agents_information, not non_interactive, self.get_llm_config, self.notify_user, self.custom_model)
                 helper_agents.append(clarifier_agent)
 
-            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config()) for agent in self.agents]
+            autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.custom_model) for agent in self.agents]
 
-            manager_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config)
+            recipient_agent = None
+            if len(autogen_agents) > 1:
+                recipient_agent = manager.build(autogen_agents + helper_agents, self.max_rounds, not non_interactive, self.get_llm_config, self.custom_model)
+            else:
+                recipient_agent = autogen_agents[0]
 
             chat = await user_proxy_agent.a_initiate_chat(
-                manager_agent, 
+                recipient_agent, 
                 message=dedent(
                     f"""
                     I am currently connected with the following wallet: {self.wallet.address}, on network: {self.network.chain_id.name}
@@ -208,17 +232,17 @@ class AutoTx:
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
             try:
-                result = self.wallet.on_transactions_ready(self.transactions)
+                result = self.wallet.on_intents_ready(self.intents)
 
                 if isinstance(result, str):
-                    transactions_info ="\n".join(
+                    intents_info ="\n".join(
                         [
                             f"{i + 1}. {tx.summary}"
-                            for i, tx in enumerate(self.transactions)
+                            for i, tx in enumerate(self.intents)
                         ]
                     )
                     
-                    past_runs.append(PastRun(result, transactions_info))
+                    past_runs.append(PastRun(result, intents_info))
                 else:
                     break
 
@@ -228,17 +252,17 @@ class AutoTx:
 
         self.logger.stop()
 
-        # Copy transactions to a new list to avoid modifying the original list
-        transactions = self.transactions.copy()
-        self.transactions.clear()
+        # Copy intents to a new list to avoid modifying the original list
+        intents = self.intents.copy()
+        self.intents.clear()
 
         chat_history = json.dumps(chat.chat_history, indent=4)
 
-        return RunResult(chat.summary, chat_history, transactions, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
+        return RunResult(chat.summary, chat_history, intents, EndReason.TERMINATE if is_goal_supported else EndReason.GOAL_NOT_SUPPORTED, float(chat.cost["usage_including_cached_inference"]["total_cost"]), float(chat.cost["usage_excluding_cached_inference"]["total_cost"]), self.info_messages)
 
-    def add_transactions(self, txs: list[models.Transaction]) -> None:
-        self.transactions.extend(txs)
-        self.wallet.on_transactions_prepared(txs)
+    def add_intents(self, intents: list[Intent]) -> None:
+        self.intents.extend(intents)
+        self.wallet.on_intents_prepared(intents)
 
     def notify_user(self, message: str, color: Color | None = None) -> None:
         if color:

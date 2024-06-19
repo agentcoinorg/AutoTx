@@ -1,5 +1,5 @@
 from autotx.utils.ethereum.networks import NetworkInfo
-from autotx.utils.ethereum.eth_address import ETHAddress
+from autotx.eth_address import ETHAddress
 
 DIFFERENCE_PERCENTAGE = 1.01
 

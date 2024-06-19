@@ -33,10 +33,6 @@ def test_get_task_auth():
     response = client.get("/api/v1/tasks/123")
     assert response.status_code == 401
 
-def test_get_task_transactions_auth():
-    response = client.get("/api/v1/tasks/123/transactions")
-    assert response.status_code == 401
-
 def test_create_task():
     server.setup_server(verbose=True, logs=None, max_rounds=None, cache=False, is_dev=True, check_valid_safe=False)
     
@@ -65,7 +61,7 @@ def test_create_task():
     assert "created_at" in data
     assert "updated_at" in data
     assert data["messages"] == []
-    assert data["transactions"] == []
+    assert data["intents"] == []
     assert data["running"] is True
 
     response = client.get(f"/api/v1/tasks/{data['id']}", headers={
@@ -74,7 +70,7 @@ def test_create_task():
     data = response.json()
 
     assert data["running"] is False
-    assert len(data["transactions"]) > 0
+    assert len(data["intents"]) > 0
 
 def test_get_tasks():
     response = client.get("/api/v1/tasks", headers={
@@ -100,13 +96,13 @@ def test_get_task():
     assert len(data["messages"]) > 0
     assert data["running"] is False
 
-def test_get_task_transactions():
+def test_get_task_intents():
     response = client.get("/api/v1/tasks", headers={
         "Authorization": f"Bearer 1234"
     })
     task_id = response.json()[0]["id"]
 
-    response = client.get(f"/api/v1/tasks/{task_id}/transactions", headers={
+    response = client.get(f"/api/v1/tasks/{task_id}/intents", headers={
         "Authorization": f"Bearer 1234"
     })
     assert response.status_code == 200
