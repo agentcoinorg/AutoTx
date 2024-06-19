@@ -7,7 +7,7 @@ from autotx.autotx_tool import AutoTxTool
 from autotx.intents import BuyIntent, Intent, SellIntent
 from autotx.token import Token
 from autotx.eth_address import ETHAddress
-from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, can_build_swap_transaction
+from autotx.utils.ethereum.lifi.swap import SUPPORTED_NETWORKS_BY_LIFI, a_can_build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 from gnosis.eth import EthereumNetworkNotSupported as ChainIdNotSupported
 
@@ -81,7 +81,7 @@ def get_tokens_address(token_in: str, token_out: str, network_info: NetworkInfo)
 class InvalidInput(Exception):
     pass
 
-def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> Intent:
+async def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> Intent:
     sell_parts = token_to_sell.split(" ")
     buy_parts = token_to_buy.split(" ")
 
@@ -118,7 +118,7 @@ def swap(autotx: AutoTx, token_to_sell: str, token_to_buy: str) -> Intent:
         token_in, token_out, autotx.network
     )
 
-    can_build_swap_transaction(
+    await a_can_build_swap_transaction(
         autotx.web3,
         Decimal(exact_amount),
         ETHAddress(token_in_address),
@@ -152,7 +152,7 @@ class BulkSwapTool(AutoTxTool):
     )
 
     def build_tool(self, autotx: AutoTx) -> Callable[[str], str]:
-        def run(
+        async def run(
             tokens: Annotated[
                 str, 
                 """
@@ -171,7 +171,7 @@ class BulkSwapTool(AutoTxTool):
             for swap_str in swaps:
                 (token_to_sell, token_to_buy) = swap_str.strip().split(" to ")
                 try:
-                    all_intents.append(swap(autotx, token_to_sell, token_to_buy))
+                    all_intents.append(await swap(autotx, token_to_sell, token_to_buy))
                 except InvalidInput as e:
                     all_errors.append(e)
                 except Exception as e:
