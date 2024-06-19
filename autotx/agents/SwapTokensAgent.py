@@ -1,6 +1,6 @@
 from decimal import Decimal
 from textwrap import dedent
-from typing import Annotated, Callable
+from typing import Annotated, Any, Callable, Coroutine
 from autotx.AutoTx import AutoTx
 from autotx.autotx_agent import AutoTxAgent
 from autotx.autotx_tool import AutoTxTool
@@ -151,7 +151,7 @@ class BulkSwapTool(AutoTxTool):
         """
     )
 
-    def build_tool(self, autotx: AutoTx) -> Callable[[str], str]:
+    def build_tool(self, autotx: AutoTx) -> Callable[[str], Coroutine[Any, Any, str]]:
         async def run(
             tokens: Annotated[
                 str, 
