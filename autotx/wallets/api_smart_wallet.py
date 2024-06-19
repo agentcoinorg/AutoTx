@@ -26,5 +26,5 @@ class ApiSmartWallet(SmartWallet):
         saved_task.intents.extend(intents)
         self.tasks.update(saved_task)
 
-    def on_intents_ready(self, _intents: list[Intent]) -> bool | str:
+    async def on_intents_ready(self, _intents: list[Intent]) -> bool | str:
         return True

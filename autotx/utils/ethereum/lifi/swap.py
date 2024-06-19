@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, cast
@@ -103,7 +104,61 @@ def get_quote(
         quote["toolDetails"]["name"],
     )
 
+async def fetch_quote_with_retries(
+    token_in_address: ETHAddress,
+    token_in_decimals: int,
+    token_in_symbol: str,
+    token_out_address: ETHAddress,
+    token_out_decimals: int,
+    token_out_symbol: str,
+    chain: ChainId,
+    amount: Decimal,
+    is_exact_input: bool,
+    _from: ETHAddress,
+) -> QuoteInformation:
+    retries = 0
+    while True:
+        try:
+            quote = get_quote(
+                token_in_address,
+                token_in_decimals,
+                token_in_symbol,
+                token_out_address,
+                token_out_decimals,
+                token_out_symbol,
+                chain,
+                amount,
+                not is_exact_input,
+                _from,
+            )
+            return quote
+        except Exception as e:
+            if "The from amount must be greater than zero." in str(e):
+                if is_exact_input:
+                    raise Exception(f"The specified amount of {token_in_symbol} is too low") 
+                else:
+                    raise Exception(f"The specified amount of {token_out_symbol} is too low")
+
+            elif "No available quotes for the requested transfer" in str(e):
+                if retries < 5:
+                    retries += 1
+                    await asyncio.sleep(1)                   
+                    continue
+            raise e
+                
+
 def build_swap_transaction(
+    web3: Web3,
+    amount: Decimal,
+    token_in_address: ETHAddress,
+    token_out_address: ETHAddress,
+    _from: ETHAddress,
+    is_exact_input: bool,
+    chain: ChainId,
+) -> list[Transaction]:
+    return asyncio.run(a_build_swap_transaction(web3, amount, token_in_address, token_out_address, _from, is_exact_input, chain))
+
+async def a_build_swap_transaction(
     web3: Web3,
     amount: Decimal,
     token_in_address: ETHAddress,
@@ -139,7 +194,8 @@ def build_swap_transaction(
         if token_out_is_native
         else token_out.functions.symbol().call()
     )
-    quote = get_quote(
+    
+    quote = await fetch_quote_with_retries(
         token_in_address,
         token_in_decimals,
         token_in_symbol,
@@ -148,10 +204,9 @@ def build_swap_transaction(
         token_out_symbol,
         chain,
         amount,
-        not is_exact_input,
+        is_exact_input,
         _from,
     )
-
     transactions: list[Transaction] = []
     if not token_in_is_native:
         approval_address = quote.approval_address
@@ -195,6 +250,17 @@ def can_build_swap_transaction(
     is_exact_input: bool,
     chain: ChainId,
 ) -> bool:
+    return asyncio.run(a_can_build_swap_transaction(web3, amount, token_in_address, token_out_address, _from, is_exact_input, chain))
+
+async def a_can_build_swap_transaction(
+    web3: Web3,
+    amount: Decimal,
+    token_in_address: ETHAddress,
+    token_out_address: ETHAddress,
+    _from: ETHAddress,
+    is_exact_input: bool,
+    chain: ChainId,
+) -> bool:
     native_token_symbol = get_native_token_symbol(chain)
     token_in_is_native = token_in_address.hex == NATIVE_TOKEN_ADDRESS
     token_in = web3.eth.contract(
@@ -222,7 +288,8 @@ def can_build_swap_transaction(
         if token_out_is_native
         else token_out.functions.symbol().call()
     )
-    quote = get_quote(
+
+    quote = await fetch_quote_with_retries(
         token_in_address,
         token_in_decimals,
         token_in_symbol,
@@ -231,10 +298,9 @@ def can_build_swap_transaction(
         token_out_symbol,
         chain,
         amount,
-        not is_exact_input,
+        is_exact_input,
         _from,
     )
-
     if not token_in_is_native:
         approval_address = quote.approval_address
         allowance = token_in.functions.allowance(_from.hex, approval_address).call()

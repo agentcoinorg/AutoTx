@@ -232,7 +232,7 @@ class AutoTx:
             is_goal_supported = chat.chat_history[-1]["content"] != "Goal not supported: TERMINATE"
 
             try:
-                result = self.wallet.on_intents_ready(self.intents)
+                result = await self.wallet.on_intents_ready(self.intents)
 
                 if isinstance(result, str):
                     intents_info ="\n".join(
