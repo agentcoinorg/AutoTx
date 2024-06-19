@@ -13,7 +13,7 @@ from autotx.utils.ethereum.build_transfer_erc20 import build_transfer_erc20
 from autotx.utils.ethereum.build_transfer_native import build_transfer_native
 from autotx.utils.ethereum.constants import NATIVE_TOKEN_ADDRESS
 from autotx.eth_address import ETHAddress
-from autotx.utils.ethereum.lifi.swap import build_swap_transaction
+from autotx.utils.ethereum.lifi.swap import a_build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.format_amount import format_amount
 
@@ -27,7 +27,7 @@ class IntentBase(BaseModel):
     summary: str
 
     @abstractmethod
-    def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
+    async def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
         pass
 
 class SendIntent(IntentBase):
@@ -45,7 +45,7 @@ class SendIntent(IntentBase):
             summary=f"Transfer {format_amount(amount)} {token.symbol} to {receiver}",
         )
     
-    def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
+    async def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
         tx: TxParams
 
         if self.token.address == NATIVE_TOKEN_ADDRESS:
@@ -79,8 +79,8 @@ class BuyIntent(IntentBase):
             summary=f"Buy {format_amount(amount)} {to_token.symbol} with {from_token.symbol}",
         )
     
-    def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
-        transactions = build_swap_transaction(
+    async def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
+        transactions = await a_build_swap_transaction(
             web3,
             Decimal(str(self.amount)),
             ETHAddress(self.from_token.address),
@@ -107,9 +107,9 @@ class SellIntent(IntentBase):
             summary=f"Sell {format_amount(amount)} {from_token.symbol} for {to_token.symbol}",
         )    
     
-    def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
+    async def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
 
-        transactions = build_swap_transaction(
+        transactions = await a_build_swap_transaction(
             web3,
             Decimal(str(self.amount)),
             ETHAddress(self.from_token.address),

@@ -16,7 +16,7 @@ class SmartWallet:
         pass
 
     @abstractmethod
-    def on_intents_ready(self, intents: list[Intent]) -> bool | str: # True if sent, False if declined, str if feedback
+    async def on_intents_ready(self, intents: list[Intent]) -> bool | str: # True if sent, False if declined, str if feedback
         pass
 
     def balance_of(self, token_address: ETHAddress | None = None) -> float:

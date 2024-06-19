@@ -39,7 +39,7 @@ class AutoTxParams:
         self.max_rounds = max_rounds
         self.is_dev = is_dev
 
-autotx_params: AutoTxParams = AutoTxParams(verbose=False, logs=None, cache=False, max_rounds=None, is_dev=False)
+autotx_params: AutoTxParams = AutoTxParams(verbose=False, logs=None, cache=False, max_rounds=200, is_dev=False)
 
 app_router = APIRouter()
 
@@ -82,7 +82,7 @@ def authorize_app_and_user(authorization: str | None, user_id: str) -> tuple[mod
 
     return (app, app_user)
 
-def build_transactions(app_id: str, user_id: str, chain_id: int, address: str, task: models.Task) -> List[Transaction]:
+async def build_transactions(app_id: str, user_id: str, chain_id: int, address: str, task: models.Task) -> List[Transaction]:
     if task.running:
         raise HTTPException(status_code=400, detail="Task is still running")
 
@@ -94,7 +94,7 @@ def build_transactions(app_id: str, user_id: str, chain_id: int, address: str, t
     transactions: list[Transaction] = []
 
     for intent in task.intents:
-        transactions.extend(intent.build_transactions(app_config.web3, app_config.network_info, app_config.manager.address))
+        transactions.extend(await intent.build_transactions(app_config.web3, app_config.network_info, app_config.manager.address))
 
     return transactions
 
@@ -211,7 +211,7 @@ def get_intents(task_id: str, authorization: Annotated[str | None, Header()] = N
     return task.intents
 
 @app_router.get("/api/v1/tasks/{task_id}/transactions", response_model=List[Transaction])
-def get_transactions(
+async def get_transactions(
     task_id: str, 
     address: str,
     chain_id: int,
@@ -227,7 +227,7 @@ def get_transactions(
     if task.chain_id != chain_id:
         raise HTTPException(status_code=400, detail="Chain ID does not match task")
 
-    transactions = build_transactions(app.id, user_id, chain_id, address, task)
+    transactions = await build_transactions(app.id, user_id, chain_id, address, task)
 
     return transactions
 
@@ -236,7 +236,7 @@ class PreparedTransactionsDto(BaseModel):
     transactions: List[Transaction]
 
 @app_router.post("/api/v1/tasks/{task_id}/transactions/prepare", response_model=PreparedTransactionsDto)
-def prepare_transactions(
+async def prepare_transactions(
     task_id: str, 
     address: str,
     chain_id: int,
@@ -252,7 +252,7 @@ def prepare_transactions(
     if task.chain_id != chain_id:
         raise HTTPException(status_code=400, detail="Chain ID does not match task")
     
-    transactions = build_transactions(app.id, app_user.user_id, chain_id, address, task)
+    transactions = await build_transactions(app.id, app_user.user_id, chain_id, address, task)
 
     if len(transactions) == 0:
         raise HTTPException(status_code=400, detail="No transactions to send")
