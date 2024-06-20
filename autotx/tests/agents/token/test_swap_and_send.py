@@ -16,7 +16,7 @@ def test_swap_and_send_simple(configuration, auto_tx, test_accounts):
 
     auto_tx.run(prompt, non_interactive=True)
 
-    new_wbtc_safe_address = manager.balance_of(wbtc_address)
+    new_wbtc_safe_address = get_erc20_balance(client.w3, wbtc_address, manager.address)
     new_receiver_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver)
     excepted_safe_wbtc_balance = 0.04
     assert excepted_safe_wbtc_balance <= new_wbtc_safe_address <= new_wbtc_safe_address * DIFFERENCE_PERCENTAGE
@@ -33,11 +33,11 @@ def test_swap_and_send_complex(configuration, auto_tx, test_accounts):
 
     prompt = f"Swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC and send 50 USDC to {receiver}"
 
-    wbtc_safe_address = manager.balance_of(wbtc_address)
+    wbtc_safe_address = get_erc20_balance(client.w3, wbtc_address, manager.address)
     auto_tx.run(prompt, non_interactive=True)
 
-    new_wbtc_safe_address = manager.balance_of(wbtc_address)
-    new_usdc_safe_address = manager.balance_of(usdc_address)
+    new_wbtc_safe_address = get_erc20_balance(client.w3, wbtc_address, manager.address)
+    new_usdc_safe_address = get_erc20_balance(client.w3, usdc_address, manager.address)
     new_receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
 
     expected_usdc_safe_balance = 950
@@ -60,7 +60,7 @@ def test_send_and_swap_simple(configuration, auto_tx, test_accounts):
 
     auto_tx.run(prompt, non_interactive=True)
 
-    safe_wbtc_balance = manager.balance_of(wbtc_address)
+    safe_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
     new_receiver_native_balance = get_native_balance(client.w3, receiver)
     new_receiver_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver)
 
@@ -82,14 +82,14 @@ def test_send_and_swap_complex(configuration, auto_tx, test_accounts):
 
     prompt = f"Send 0.1 ETH to {receiver_1}, then swap ETH to 0.05 WBTC, then, swap WBTC to 1000 USDC and send 50 USDC to {receiver_2}"
 
-    wbtc_safe_balance = manager.balance_of(wbtc_address)
+    wbtc_safe_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
     receiver_1_native_balance = get_native_balance(client.w3, receiver_1)
     receiver_2_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver_2)
 
     auto_tx.run(prompt, non_interactive=True)
 
-    new_wbtc_safe_balance = manager.balance_of(wbtc_address)
-    new_usdc_safe_balance = manager.balance_of(usdc_address)
+    new_wbtc_safe_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
+    new_usdc_safe_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
     new_receiver_1_native_balance = get_native_balance(client.w3, receiver_1)
     new_receiver_1_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver_1)
     new_receiver_1_wbtc_balance = get_erc20_balance(client.w3, wbtc_address, receiver_1)

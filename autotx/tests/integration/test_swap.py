@@ -1,5 +1,7 @@
 from decimal import Decimal
 from autotx.eth_address import ETHAddress
+from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
+from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.ethereum.lifi.swap import build_swap_transaction
 from autotx.utils.ethereum.networks import NetworkInfo
 
@@ -23,7 +25,7 @@ def test_buy_one_usdc(configuration):
     )
     hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
-    usdc_balance = manager.balance_of(usdc_address)
+    usdc_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
     assert expected_usdc_amount <= usdc_balance  <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
 
@@ -45,7 +47,7 @@ def test_buy_one_thousand_usdc(configuration):
     print(buy_usdc_with_eth_transaction[0].summary)
     hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
-    usdc_balance = manager.balance_of(usdc_address)
+    usdc_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
     assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
 
@@ -55,7 +57,7 @@ def test_receive_native(configuration):
     network_info = NetworkInfo(client.w3.eth.chain_id)
     eth_address = ETHAddress(network_info.tokens["eth"])
     usdc_address = ETHAddress(network_info.tokens["usdc"])
-    safe_eth_balance = manager.balance_of()
+    safe_eth_balance = get_native_balance(client.w3, manager.address)
     assert safe_eth_balance == 10
     buy_usdc_with_eth_transaction = build_swap_transaction(
         client.w3,
@@ -68,7 +70,7 @@ def test_receive_native(configuration):
     )
     hash = manager.send_tx(buy_usdc_with_eth_transaction[0].params)
     manager.wait(hash)
-    safe_eth_balance = manager.balance_of()
+    safe_eth_balance = get_native_balance(client.w3, manager.address)
     assert safe_eth_balance == 5
 
     buy_eth_with_usdc_transaction = build_swap_transaction(
@@ -84,7 +86,7 @@ def test_receive_native(configuration):
     manager.wait(hash)
     hash = manager.send_tx(buy_eth_with_usdc_transaction[1].params)
     manager.wait(hash)
-    safe_eth_balance = manager.balance_of()
+    safe_eth_balance = get_native_balance(client.w3, manager.address)
     assert safe_eth_balance >= 9
 
 
@@ -105,7 +107,7 @@ def test_buy_small_amount_wbtc_with_eth(configuration):
     )
     hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].params)
     manager.wait(hash)
-    wbtc_balance = manager.balance_of(wbtc_address)
+    wbtc_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 
@@ -126,7 +128,7 @@ def test_buy_big_amount_wbtc_with_eth(configuration):
     )
     hash = manager.send_tx(buy_wbtc_with_eth_transaction[0].params)
     manager.wait(hash)
-    wbtc_balance = manager.balance_of(wbtc_address)
+    wbtc_balance = get_erc20_balance(client.w3, wbtc_balance, manager.address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 
@@ -139,7 +141,7 @@ def test_swap_multiple_tokens(configuration):
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
     shib_address = ETHAddress(network_info.tokens["shib"])
 
-    usdc_balance = manager.balance_of(usdc_address)
+    usdc_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
     assert usdc_balance == 0
 
     sell_eth_for_usdc_transaction = build_swap_transaction(
@@ -153,10 +155,10 @@ def test_swap_multiple_tokens(configuration):
     )
     hash = manager.send_tx(sell_eth_for_usdc_transaction[0].params)
     manager.wait(hash)
-    usdc_balance = manager.balance_of(usdc_address)
+    usdc_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
     assert usdc_balance > 2900
 
-    wbtc_balance = manager.balance_of(wbtc_address)
+    wbtc_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
     assert wbtc_balance == 0
 
     buy_wbtc_with_usdc_transaction = build_swap_transaction(
@@ -173,10 +175,10 @@ def test_swap_multiple_tokens(configuration):
     manager.wait(hash)
     hash = manager.send_tx(buy_wbtc_with_usdc_transaction[1].params)
     manager.wait(hash)
-    wbtc_balance = manager.balance_of(wbtc_address)
+    wbtc_balance = get_erc20_balance(client.w3, wbtc_address, manager.address)
     assert wbtc_balance >= 0.01
 
-    shib_balance = manager.balance_of(shib_address)
+    shib_balance = get_erc20_balance(client.w3, shib_address, manager.address)
     assert shib_balance == 0
 
     sell_wbtc_for_shib = build_swap_transaction(
@@ -192,6 +194,6 @@ def test_swap_multiple_tokens(configuration):
     manager.wait(hash)
     hash = manager.send_tx(sell_wbtc_for_shib[1].params)
     manager.wait(hash)
-    shib_balance = manager.balance_of(shib_address)
-    shib_balance = manager.balance_of(shib_address)
+    shib_balance = get_erc20_balance(client.w3, shib_address, manager.address)
+    shib_balance = get_erc20_balance(client.w3, shib_address, manager.address)
     assert shib_balance > 0

@@ -1,5 +1,6 @@
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 from autotx.utils.ethereum import get_erc20_balance
+from autotx.utils.ethereum.get_native_balance import get_native_balance
 
 DIFFERENCE_PERCENTAGE = 0.01
 
@@ -16,7 +17,7 @@ def test_research_buy_one_send_one(configuration, auto_tx, test_accounts):
     auto_tx.run(prompt, non_interactive=True)
     
     token_address = get_top_token_addresses_by_market_cap("meme-token", "MAINNET", 1, auto_tx)[0]
-    token_balance_in_safe = manager.balance_of(token_address)
+    token_balance_in_safe = get_erc20_balance(client.w3, token_address, manager.address)
 
     receiver_balance = get_erc20_balance(web3, token_address, receiver)
     assert receiver_balance > 10000
@@ -37,7 +38,7 @@ def test_research_buy_one_send_multiple(configuration, auto_tx, test_accounts):
     auto_tx.run(prompt, non_interactive=True)
 
     meme_token_address = get_top_token_addresses_by_market_cap("meme-token", "MAINNET", 1, auto_tx)[0]
-    meme_token_balance_in_safe = manager.balance_of(meme_token_address)
+    meme_token_balance_in_safe = get_erc20_balance(client.w3, meme_token_address, manager.address)
 
     receiver_1_balance = get_erc20_balance(web3, meme_token_address, receiver_1)
     assert receiver_1_balance == 10000
@@ -54,7 +55,7 @@ def test_research_buy_multiple_send_multiple(configuration, auto_tx, test_accoun
     receiver_1 = test_accounts[0]
     receiver_2 = test_accounts[1]
 
-    old_eth_balance = manager.balance_of()
+    old_eth_balance = get_native_balance(client.w3, manager.address)
 
     prompt = f"""
         Buy 1 ETH worth of a meme token with the largest market cap
@@ -65,15 +66,15 @@ def test_research_buy_multiple_send_multiple(configuration, auto_tx, test_accoun
     
     auto_tx.run(prompt, non_interactive=True)
     
-    new_eth_balance = manager.balance_of()
+    new_eth_balance = get_native_balance(client.w3, manager.address)
 
     assert old_eth_balance - new_eth_balance == 1.5
 
     meme_token_address = get_top_token_addresses_by_market_cap("meme-token", "MAINNET", 1, auto_tx)[0]
-    meme_token_balance_in_safe = manager.balance_of(meme_token_address)
+    meme_token_balance_in_safe = get_erc20_balance(client.w3, meme_token_address, manager.address)
 
     governance_token_address = get_top_token_addresses_by_market_cap("governance", "MAINNET", 1, auto_tx)[0]
-    governance_token_balance_in_safe = manager.balance_of(governance_token_address)
+    governance_token_balance_in_safe = get_erc20_balance(client.w3, governance_token_address, manager.address)
 
     meme_balance = get_erc20_balance(web3, meme_token_address, receiver_1)
     assert meme_balance > 10000

@@ -60,11 +60,11 @@ def test_auto_tx_swap(configuration, auto_tx):
     ]
 
     for prompt in prompts:
-        balance = manager.balance_of(usdc_address)
+        balance = get_erc20_balance(client.w3, usdc_address, manager.address)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance = manager.balance_of(usdc_address)
+        new_balance = get_erc20_balance(client.w3, usdc_address, manager.address)
 
         try:
             assert balance + 100 == new_balance
@@ -137,14 +137,14 @@ def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
     ]
 
     for prompt in prompts:
-        wbtc_safe_address = manager.balance_of(wbtc_address)
-        usdc_safe_address = manager.balance_of(usdc_address)
+        wbtc_safe_address = get_erc20_balance(client.w3, wbtc_address, manager.address)
+        usdc_safe_address = get_erc20_balance(client.w3, usdc_address, manager.address)
         receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_wbtc_safe_address = manager.balance_of(wbtc_address)
-        new_usdc_safe_address = manager.balance_of(usdc_address)
+        new_wbtc_safe_address = get_erc20_balance(client.w3, wbtc_address, manager.address)
+        new_usdc_safe_address = get_erc20_balance(client.w3, usdc_address, manager.address)
         new_receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
 
         try:
