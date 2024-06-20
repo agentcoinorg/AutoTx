@@ -12,12 +12,13 @@ from autotx import models, setup
 from autotx import db
 from autotx.AutoTx import AutoTx, Config as AutoTxConfig
 from autotx.intents import Intent
+from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.transactions import Transaction
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.chain_short_names import CHAIN_ID_TO_SHORT_NAME
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP
-from autotx.wallets.api_smart_wallet import ApiSmartWallet
-from autotx.wallets.smart_wallet import SmartWallet
+from autotx.smart_accounts.api_smart_account import ApiSmartAccount
+from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
 
 class AutoTxParams:
     verbose: bool
@@ -61,7 +62,7 @@ def authorize(authorization: str | None) -> models.App:
 
     return app
 
-def load_config_for_user(app_id: str, user_id: str, address: str, chain_id: int) -> AppConfig:
+def load_wallet_for_user(app_config: AppConfig, app_id: str, user_id: str, address: str) -> SmartAccount:
     agent_private_key = db.get_agent_private_key(app_id, user_id)
 
     if not agent_private_key:
@@ -69,9 +70,9 @@ def load_config_for_user(app_id: str, user_id: str, address: str, chain_id: int)
 
     agent = Account.from_key(agent_private_key)
 
-    app_config = AppConfig.load(smart_account_addr=address, subsidized_chain_id=chain_id, agent=agent)
+    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=False, smart_account_addr=address, agent=agent)
 
-    return app_config
+    return wallet
 
 def authorize_app_and_user(authorization: str | None, user_id: str) -> tuple[models.App, models.AppUser]:
     app = authorize(authorization)
@@ -86,7 +87,8 @@ async def build_transactions(app_id: str, user_id: str, chain_id: int, address: 
     if task.running:
         raise HTTPException(status_code=400, detail="Task is still running")
 
-    app_config = load_config_for_user(app_id, user_id, address, chain_id)
+    app_config = AppConfig(subsidized_chain_id=chain_id)
+    wallet = load_wallet_for_user(app_config, app_id, user_id, address)
 
     if task.intents is None or len(task.intents) == 0:
         return []
@@ -94,7 +96,7 @@ async def build_transactions(app_id: str, user_id: str, chain_id: int, address: 
     transactions: list[Transaction] = []
 
     for intent in task.intents:
-        transactions.extend(await intent.build_transactions(app_config.web3, app_config.network_info, app_config.manager.address))
+        transactions.extend(await intent.build_transactions(app_config.web3, app_config.network_info, wallet.address))
 
     return transactions
 
@@ -113,17 +115,14 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     
     prompt = task.prompt
     
-    app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id)
+    app_config = AppConfig(subsidized_chain_id=task.chain_id)
 
-    wallet: SmartWallet
-    if autotx_params.is_dev:
-        wallet = ApiSmartWallet(app_config.web3, app_config.manager, tasks)
-    else:
-        wallet = ApiSmartWallet(app_config.web3, app_config.manager, tasks)
+    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, smart_account_addr=task.address)
+    api_wallet = ApiSmartAccount(app_config.web3, wallet, tasks)
 
-    created_task: models.Task = tasks.start(prompt, wallet.address.hex, app_config.network_info.chain_id.value, app_user.id)
+    created_task: models.Task = tasks.start(prompt, api_wallet.address.hex, app_config.network_info.chain_id.value, app_user.id)
     task_id = created_task.id
-    wallet.task_id = task_id
+    api_wallet.task_id = task_id
 
     try:
         (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
@@ -138,7 +137,7 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
         autotx = AutoTx(
             app_config.web3,
-            wallet,
+            api_wallet,
             app_config.network_info,
             agents,
             AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
@@ -296,12 +295,10 @@ def send_transactions(
         return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
 
     try:
-        app_config = load_config_for_user(app.id, user_id, address, chain_id)
+        app_config = AppConfig(subsidized_chain_id=chain_id)
+        wallet = load_wallet_for_user(app_config, app.id, user_id, address)
 
-        app_config.manager.send_multisend_tx_batch(
-            transactions,
-            require_approval=False,
-        )
+        wallet.send_transactions(transactions)
     except SafeAPIException as e:
         if "is not an owner or delegate" in str(e):
             raise HTTPException(status_code=400, detail="Agent is not an owner or delegate")
@@ -339,7 +336,9 @@ app.add_middleware(
 
 def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, is_dev: bool, check_valid_safe: bool) -> None:
     if is_dev: 
-        AppConfig.load(check_valid_safe=check_valid_safe) # Loading the configuration deploys the dev wallet in dev mode
+        app_config = AppConfig() 
+        # Loading the SafeSmartAccount will deploy a new Safe if one is not already deployed
+        SafeSmartAccount(app_config.rpc_url, app_config.network_info, fill_dev_account=True, check_valid_safe=check_valid_safe)
 
     global autotx_params
     autotx_params = AutoTxParams(

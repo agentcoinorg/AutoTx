@@ -3,29 +3,28 @@ from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
-def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx):
-    (_, _, client, manager, _) = configuration
+def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx):
     uni_address = ETHAddress(auto_tx.network.tokens["uni"])
     
-    uni_balance_in_safe = get_erc20_balance(client.w3, uni_address, manager.address)
+    uni_balance_in_safe = get_erc20_balance(smart_account.web3, uni_address, smart_account.address)
     assert uni_balance_in_safe == 0
 
-    starting_balance = get_native_balance(client.w3, manager.address)
+    starting_balance = get_native_balance(smart_account.web3, smart_account.address)
 
     prompt = f"I want to use 3 ETH to purchase 3 of the best projects in: GameFi, AI, and MEMEs. Please research the top projects, come up with a strategy, and purchase the tokens that look most promising. All of this should be on ETH mainnet."
 
     result = auto_tx.run(prompt, non_interactive=True)
 
-    ending_balance = get_native_balance(client.w3, manager.address)
+    ending_balance = get_native_balance(smart_account.web3, smart_account.address)
 
     gaming_token_address = get_top_token_addresses_by_market_cap("gaming", "MAINNET", 1, auto_tx)[0]
-    gaming_token_balance_in_safe = get_erc20_balance(client.w3, gaming_token_address, manager.address)
+    gaming_token_balance_in_safe = get_erc20_balance(smart_account.web3, gaming_token_address, smart_account.address)
 
     ai_token_address = get_top_token_addresses_by_market_cap("artificial-intelligence", "MAINNET", 1, auto_tx)[0]
-    ai_token_balance_in_safe = get_erc20_balance(client.w3, ai_token_address, manager.address)
+    ai_token_balance_in_safe = get_erc20_balance(smart_account.web3, ai_token_address, smart_account.address)
 
     meme_token_address = get_top_token_addresses_by_market_cap("meme-token", "MAINNET", 1, auto_tx)[0]
-    meme_token_balance_in_safe = get_erc20_balance(client.w3, meme_token_address, manager.address)
+    meme_token_balance_in_safe = get_erc20_balance(smart_account.web3, meme_token_address, smart_account.address)
 
     # Verify the balance is lower by max 3 ETH
     assert starting_balance - ending_balance <= 3
@@ -41,16 +40,15 @@ def test_research_and_swap_many_tokens_subjective_simple(configuration, auto_tx)
     assert ai_token_balance_in_safe > 0
     assert meme_token_balance_in_safe > 0
 
-def test_research_and_swap_many_tokens_subjective_complex(configuration, auto_tx):
-    (_, _, client, manager, _) = configuration
+def test_research_and_swap_many_tokens_subjective_complex(smart_account, auto_tx):
 
-    starting_balance = get_native_balance(client.w3, manager.address)
+    starting_balance = get_native_balance(smart_account.web3, smart_account.address)
 
     prompt = f"I want to use 3 ETH to purchase exactly 10 of the best projects in: GameFi, NFTs, ZK, AI, and MEMEs. Please research the top projects, come up with a strategy, and purchase the tokens that look most promising. All of this should be on ETH mainnet."
 
     result = auto_tx.run(prompt, non_interactive=True)
 
-    ending_balance = get_native_balance(client.w3, manager.address)
+    ending_balance = get_native_balance(smart_account.web3, smart_account.address)
 
     # Verify the balance is lower by max 3 ETH
     assert starting_balance - ending_balance <= 3

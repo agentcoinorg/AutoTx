@@ -1,20 +1,25 @@
-import uuid
 from dotenv import load_dotenv
-
-from autotx import db
-from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
-import uvicorn
 
+from eth_account import Account
+import uvicorn
 from typing import cast
 import click
+import uuid
+from eth_account.signers.local import LocalAccount
 
+from autotx import db
+from autotx.utils.constants import SMART_ACCOUNT_OWNER_PK
+from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
+from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.utils.configuration import AppConfig
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.setup import print_agent_address, setup_agents
 from autotx.server import setup_server
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
+from autotx.smart_accounts.smart_account import SmartAccount
+from autotx.smart_accounts.local_biconomy_smart_account import LocalBiconomySmartAccount
 
 def print_autotx_info() -> None:
     print("""
@@ -48,8 +53,13 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
-    app_config = AppConfig.load(fill_dev_account=True)
-    wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=non_interactive)
+    app_config = AppConfig()
+    wallet: SmartAccount
+    if SMART_ACCOUNT_OWNER_PK is not None:
+        smart_account_owner = cast(LocalAccount, Account.from_key(SMART_ACCOUNT_OWNER_PK))
+        wallet = LocalBiconomySmartAccount(app_config.web3, smart_account_owner, auto_submit_tx=non_interactive)
+    else:
+        wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=non_interactive, fill_dev_account=True)
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 

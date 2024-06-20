@@ -10,9 +10,7 @@ from autotx.agents.SwapTokensAgent import SwapTokensAgent
 from autotx.autotx_agent import AutoTxAgent
 from autotx.utils.constants import COINGECKO_API_KEY, OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL_NAME
 from autotx.utils.ethereum import SafeManager
-from autotx.utils.ethereum.cached_safe_address import get_cached_safe_address
 from autotx.eth_address import ETHAddress
-from autotx.utils.ethereum.helpers.fill_dev_account_with_tokens import fill_dev_account_with_tokens
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 from autotx.utils.ethereum.networks import NetworkInfo
@@ -23,7 +21,7 @@ def print_agent_address() -> None:
     acc = get_or_create_agent_account()
     print(f"Agent address: {acc.address}")
 
-def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, fill_dev_account: bool, check_valid_safe: bool) -> SafeManager:
+def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, client: EthereumClient, check_valid_safe: bool) -> SafeManager:
     web3 = client.w3
 
     chain_id = web3.eth.chain_id
@@ -51,13 +49,8 @@ def setup_safe(smart_account_addr: ETHAddress | None, agent: LocalAccount, clien
         print("No smart account connected, deploying a new one...")
         dev_account = get_dev_account()
 
-        is_safe_deployed = get_cached_safe_address()
         manager = SafeManager.deploy_safe(client, dev_account, agent, [dev_account.address, agent.address], 1)
         print(f"Smart account deployed: {manager.address}")
-        
-        if not is_safe_deployed and fill_dev_account:
-            fill_dev_account_with_tokens(client, dev_account, manager.address, network_info)
-            print(f"Funds sent to smart account for testing purposes")
 
         print("=" * 50)
         print("Starting smart account balances:")

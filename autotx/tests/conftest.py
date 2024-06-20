@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.send_native import send_native
-from autotx.wallets.safe_smart_wallet import SafeSmartWallet
+from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
 load_dotenv()
 
 from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
@@ -33,24 +33,23 @@ def start_and_stop_local_fork():
     stop()
 
 @pytest.fixture()
-def configuration():
-    app_config = AppConfig.load()
-    wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=True)
+def smart_account() -> SafeSmartAccount:
+    app_config = AppConfig()
+    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=True)
     dev_account = get_dev_account()
 
     send_native(dev_account, wallet.address, 10, app_config.web3)
 
-    return (dev_account, app_config.agent, app_config.client, app_config.manager, wallet)
+    return smart_account
 
 @pytest.fixture()
-def auto_tx(configuration):
-    (_, _, client, _, wallet) = configuration
-    network_info = NetworkInfo(client.w3.eth.chain_id)
+def auto_tx(smart_account):
+    network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     get_llm_config = lambda: { "cache_seed": None, "config_list": [{"model": OPENAI_MODEL_NAME, "api_key": OPENAI_API_KEY}]}
 
     return AutoTx(
-        client.w3,
-        wallet,
+        smart_account.web3,
+        smart_account,
         network_info, 
         [
             SendTokensAgent(),
@@ -61,10 +60,8 @@ def auto_tx(configuration):
     )
 
 @pytest.fixture()
-def usdc(configuration) -> ETHAddress:
-    (user, _, client, _, wallet) = configuration
- 
-    chain_id = client.w3.eth.chain_id
+def usdc(smart_account) -> ETHAddress:
+    chain_id = smart_account.web3.eth.chain_id
     network_info = NetworkInfo(chain_id)
     
     eth_address = ETHAddress(network_info.tokens["eth"])
@@ -72,9 +69,10 @@ def usdc(configuration) -> ETHAddress:
 
     amount = 100
 
-    swap(client, user, amount, eth_address, usdc_address, network_info.chain_id)
+    dev_account = get_dev_account()
+    swap(smart_account.web3, dev_account, amount, eth_address, usdc_address, network_info.chain_id)
     
-    transfer_erc20(client.w3, usdc_address, user, wallet.address, amount)
+    transfer_erc20(smart_account.web3, usdc_address, dev_account, smart_account.address, amount)
 
     return usdc_address
 
