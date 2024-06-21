@@ -1,18 +1,15 @@
-import uuid
 from dotenv import load_dotenv
-
-from autotx import db
-from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 load_dotenv()
-import uvicorn
 
+import uuid
+import uvicorn
 from typing import cast
 import click
 
+from autotx.wallets.safe_smart_wallet import SafeSmartWallet
 from autotx.utils.configuration import AppConfig
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.setup import print_agent_address, setup_agents
-from autotx.server import setup_server
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
 
@@ -80,6 +77,8 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
 @click.option("-p", "--port", type=int, help="Port to run the server on")
 @click.option("-d", "--dev", is_flag=True, help="Run the server in development mode")
 def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, port: int | None, dev: bool) -> None:
+    from autotx.server import setup_server
+    
     print_autotx_info()
 
     setup_server(verbose, logs, max_rounds, cache, dev, check_valid_safe=True)
@@ -88,6 +87,8 @@ def serve(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, 
 @main.command()
 @click.option("-n", "--name", type=str, help="Name of the application to create")
 def new_app(name: str) -> None:
+    from autotx import db
+
     print(f"Creating new application: {name}")
 
     app = db.create_app(name, uuid.uuid4().hex)
