@@ -1,10 +1,13 @@
 from textwrap import dedent
-from typing import Annotated, Any, Callable, Dict, Optional
-from autogen import UserProxyAgent, AssistantAgent
+from typing import TYPE_CHECKING, Annotated, Any, Callable, Dict, Optional
+from autogen import UserProxyAgent, AssistantAgent, ModelClient
 
 from autotx.utils.color import Color
 
-def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], notify_user: Callable[[str, Color | None], None]) -> AssistantAgent:
+if TYPE_CHECKING:
+    from autotx.AutoTx import CustomModel
+
+def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], notify_user: Callable[[str, Color | None], None], custom_model: Optional['CustomModel']) -> AssistantAgent:
     missing_1 = dedent("""
         If the goal is not clear or missing information, you MUST ask for more information by calling the request_user_input tool.
         Always ensure you have all the information needed to define the goal that can be executed without prior context.
@@ -77,5 +80,8 @@ def build(user_proxy: UserProxyAgent, agents_information: str, interactive: bool
     
     clarifier_agent.register_for_llm(name="goal_outside_scope", description="Notify the user about their goal not being in the scope of the agents")(goal_outside_scope)
     user_proxy.register_for_execution(name="goal_outside_scope")(goal_outside_scope)
-    
+
+    if custom_model:
+        clarifier_agent.register_model_client(model_client_cls=custom_model.client, **custom_model.arguments)
+
     return clarifier_agent
