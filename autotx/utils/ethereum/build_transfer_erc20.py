@@ -14,7 +14,7 @@ def build_transfer_erc20(web3: Web3, token_address: ETHAddress, to: ETHAddress, 
         {
             "gas": None, # type: ignore
             "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
-            "from": from_address
+            "from": from_address.hex
         }
     )
 
