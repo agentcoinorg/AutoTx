@@ -45,7 +45,7 @@ system_message = lambda autotx: dedent(f"""
     research: {{ "tasks": "Automatically monitor and alert the user about price changes for a specific token." }}
     research: {{ "tasks": "Analyze the profitability of mining Ethereum tokens." }}
 
-    IMPORTANT: When querying for a number of tokens accross multiple categories, make sure to specify the number of tokens and the categories and that there should be no duplicates.
+    IMPORTANT: When querying for a number of tokens across multiple categories, make sure to specify the number of tokens and the categories and that there should be no duplicates.
     You MUST call the research tool once and pass in multiple tasks if needed.
     """
 )
