@@ -49,9 +49,9 @@ class SendIntent(IntentBase):
         tx: TxParams
 
         if self.token.address == NATIVE_TOKEN_ADDRESS:
-            tx = build_transfer_native(web3, ETHAddress(self.token.address), ETHAddress(self.receiver), self.amount)
+            tx = build_transfer_native(web3, smart_wallet_address, ETHAddress(self.receiver), self.amount)
         else:
-            tx = build_transfer_erc20(web3, ETHAddress(self.token.address), ETHAddress(self.receiver), self.amount)
+            tx = build_transfer_erc20(web3, ETHAddress(self.token.address), ETHAddress(self.receiver), self.amount, smart_wallet_address)
             
         transactions: list[Transaction] = [
             SendTransaction.create(
