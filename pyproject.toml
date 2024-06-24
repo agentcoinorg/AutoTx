@@ -31,6 +31,8 @@ pytest-vcr = "^1.0.2"
 [tool.poetry.scripts]
 start-devnet = "autotx.chain_fork:start"
 stop-devnet = "autotx.chain_fork:stop"
+start-smart-account-api = "autotx.smart_account_api:start"
+stop-smart-account-api = "autotx.smart_account_api:stop"
 ask = "autotx.cli:run"
 agent = "autotx.cli:agent"
 serve = "autotx.cli:serve"
