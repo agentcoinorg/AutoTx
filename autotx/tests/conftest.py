@@ -35,12 +35,12 @@ def start_and_stop_local_fork():
 @pytest.fixture()
 def smart_account() -> SafeSmartAccount:
     app_config = AppConfig()
-    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=True)
+    account = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=True)
     dev_account = get_dev_account()
 
-    send_native(dev_account, wallet.address, 10, app_config.web3)
+    send_native(dev_account, account.address, 10, app_config.web3)
 
-    return smart_account
+    return account
 
 @pytest.fixture()
 def auto_tx(smart_account):

@@ -82,8 +82,6 @@ def test_swap_triple(smart_account, auto_tx):
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
 def test_swap_complex_1(smart_account, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
-    (_, _, client, manager, _) = smart_account
-    smart_account.web3 = smart_account.web3
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
@@ -98,8 +96,6 @@ def test_swap_complex_1(smart_account, auto_tx): # This one is complex because i
     assert wbtc_balance < get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
 
 def test_swap_complex_2(smart_account, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
-    (_, _, client, manager, _) = smart_account
-    smart_account.web3 = smart_account.web3
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])

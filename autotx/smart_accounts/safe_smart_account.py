@@ -60,7 +60,7 @@ class SafeSmartAccount(SmartAccount):
         transactions: list[TransactionBase] = []
 
         for intent in intents:
-            transactions.extend(await intent.build_transactions(self.manager.web3, self.manager.network, self.manager.address))
+            transactions.extend(await intent.build_transactions(self.web3, self.manager.network, self.address))
 
         return self.manager.send_multisend_tx_batch(transactions, not self.auto_submit_tx)
 
