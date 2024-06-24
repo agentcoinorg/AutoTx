@@ -1,7 +1,7 @@
 # AutoTx
 [Discord](https://discord.gg/k7UCsH3ps9) | :star: the repo !  
 
-![](./docs/img/banner.png)
+![](./docs/img/autotxbanner.png)
 
 AutoTx is a personal assistant that generates on-chain transactions for you. These transactions are submitted to a smart account so users can easily approve & execute them.
 
