@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+
+from autotx.eth_address import ETHAddress
 load_dotenv()
 
 from eth_account import Account
@@ -43,7 +45,7 @@ def print_autotx_info() -> None:
 def main() -> None:
     pass
 
-def wait_for_native_top_up(web3: Web3, address: str) -> None:
+def wait_for_native_top_up(web3: Web3, address: ETHAddress) -> None:
     network = NetworkInfo(web3.eth.chain_id)
 
     print(f"Detected empty account balance.\nTo use your new smart account, please top it up with some native currency.\nSend the funds to: {address} on {network.chain_id.name}")

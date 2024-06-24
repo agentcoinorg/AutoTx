@@ -1,4 +1,5 @@
 import json
+from typing import cast
 import requests
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
@@ -51,7 +52,7 @@ class LocalBiconomySmartAccount(SmartAccount):
         if response.status_code != 200:
             raise ValueError(f"Failed to get address: Biconomy API internal error")
         
-        return response.json()
+        return cast(str, response.json())
 
     def send_transaction(self, transaction: TransactionBase) -> None:
         response = requests.post(
