@@ -5,7 +5,7 @@ from autotx.eth_address import ETHAddress
 from .constants import GAS_PRICE_MULTIPLIER
 from .erc20_abi import ERC20_ABI
 
-def build_transfer_erc20(web3: Web3, token_address: ETHAddress, to: ETHAddress, value: float) -> TxParams:
+def build_transfer_erc20(web3: Web3, token_address: ETHAddress, to: ETHAddress, value: float, from_address: ETHAddress) -> TxParams:
     erc20 = web3.eth.contract(address=token_address.hex, abi=ERC20_ABI)
     decimals = erc20.functions.decimals().call()
     tx: TxParams = erc20.functions.transfer(
@@ -13,7 +13,8 @@ def build_transfer_erc20(web3: Web3, token_address: ETHAddress, to: ETHAddress, 
     ).build_transaction(
         {
             "gas": None, # type: ignore
-            "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER))
+            "gasPrice": Wei(int(web3.eth.gas_price * GAS_PRICE_MULTIPLIER)),
+            "from": from_address.hex
         }
     )
 
