@@ -145,7 +145,7 @@ class SafeManager:
             0,
             0,
             0,
-            self.gas_price(),
+            0,
             None,
             self.address.hex,
             safe_nonce=self.track_nonce(safe_nonce),
