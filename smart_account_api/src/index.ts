@@ -1,127 +1,73 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
-import {
-  Account,
-  Address,
-  Hex,
-  WalletClient,
-  createWalletClient,
-  http,
-} from "viem";
-import { polygon, sepolia } from "viem/chains";
-import { BiconomySmartAccountV2, createSmartAccountClient, Transaction } from "@biconomy/account";
-import { createGasEstimator } from "entry-point-gas-estimations";
-import { GasEstimator } from "entry-point-gas-estimations/dist/gas-estimator/entry-point-v6/GasEstimator/GasEstimator";
+import { Hex, Transaction } from "@biconomy/account";
+import { initClientWithAccount } from "./account-abstraction";
+import { SMART_ACCOUNT_OWNER_PK } from "./constants";
+import { privateKeyToAccount } from "viem/accounts";
 
 dotenv.config();
 
-const bundlerUrl = process.env.BUNDLER_URL || "http://localhost:3001";
-
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 7080;
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+app.use(express.json());
+
+app.all('*', handleError(async (req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+  //Trim and redirect multiple slashes in URL
+  if (req.url.match(/[/]{2,}/g)) {
+    req.url = req.url.replace(/[/]+/g, '/');
+    res.redirect(req.url);
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.send(200);
+  } else {
+    console.log(`Request:  ${req.method} --- ${req.url}`);
+    next();
+  }
+}));
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.on('finish', () => {
+    console.log(`Response: ${req.method} ${res.statusCode} ${req.url}`);
+  });
+  next();
 });
 
-function getNetwork(chainId: string): {
-  bundlerUrl: string;
-  rpcUrl: string;
-  gasEstimator: GasEstimator;
-  chain: any;
-} {
-  switch (chainId) {
-    case "137":
-      return {
-        bundlerUrl,
-        rpcUrl: polygonRpcUrl,
-        gasEstimator: createGasEstimator({
-          rpcUrl: polygonRpcUrl,
-        }),
-        chain: polygon,
-      };
-    case "31337":
-      return {
-        bundlerUrl,
-        rpcUrl: sepoliaRpcUrl,
-        gasEstimator: createGasEstimator({
-          rpcUrl: sepoliaRpcUrl,
-        }),
-        chain: sepolia,
-      };
-    default:
-      throw new Error("Invalid network");
-  }
-}
+app.get("/api/v1/account/address", handleError(async (req: Request, res: Response) => {
+  const chainId = parseInt(req.query.chainId as string);
 
-type CustomTransactionType = "send" | "approve" | "swap";
-type CustomTransaction = {
-  type: CustomTransactionType;
-  summary: string;
-  params: {
-    from: string;
-    to: string;
-    value: string;
-    data: string;
-  };
-};
+  const { smartAccount } = await initClientWithAccount(SMART_ACCOUNT_OWNER_PK, chainId);
 
-async function initAA(owner: Account | Address, chainId: string): Promise<{
-  client: WalletClient;
-  smartAccount: BiconomySmartAccountV2;
-}> {
-  const { chain, bundlerUrl } = getNetwork(chainId);
-  
-  const client = createWalletClient({
-    account: owner,
-    chain: chain,
-    transport: http(),
-  });
-  
-  const smartAccount = await createSmartAccountClient({
-    signer: client,
-    bundlerUrl,
-  });
-
-  return {
-    client,
-    smartAccount,
-  }
-};
-
-app.get("/api/v1/account/address", async (req: Request, res: Response) => {
-  const owner: Address = req.query.owner as Address;
-  const chainId = req.query.chainId as string;
-
-  const { smartAccount } = await initAA(owner, chainId);
-  
   const smartAccountAddress = await smartAccount.getAccountAddress();
 
   const result = smartAccountAddress;
 
   res.json(result);
-});
+}));
 
-app.post("/api/v1/account/deploy", async (req: Request, res: Response) => {
-  const owner: Address = req.query.owner as Address;
-  const chainId = req.query.chainId as string;
+app.post("/api/v1/account/deploy", handleError(async (req: Request, res: Response) => {
+  const chainId = parseInt(req.query.chainId as string);
 
-  const { smartAccount } = await initAA(owner, chainId);
+  const { smartAccount } = await initClientWithAccount(SMART_ACCOUNT_OWNER_PK, chainId);
 
   const response = await smartAccount.deploy();
 
-  const receipt = await response.waitForTxHash();
+  const receipt = await response.wait();
   
-  res.json(receipt.transactionHash);
-});
+  res.json(receipt.receipt.transactionHash)
+}));
 
-app.post("/api/v1/account/transactions", async (req: Request, res: Response) => {
-  const owner: Address = req.query.owner as Address;
-  const chainId = req.query.chainId as string;
+app.post("/api/v1/account/transactions", handleError(async (req: Request, res: Response, next: NextFunction) => {
+  const chainId = parseInt(req.query.chainId as string);
 
-  const transactions: CustomTransaction[] = req.body.transactions;
+  const transactions: TransactionDto[] = req.body;
 
-  const { smartAccount } = await initAA(owner, chainId);
+  const { smartAccount } = await initClientWithAccount(SMART_ACCOUNT_OWNER_PK, chainId);
 
   const txs: Transaction[] = transactions.map((tx) => {
     return {
@@ -131,8 +77,36 @@ app.post("/api/v1/account/transactions", async (req: Request, res: Response) => 
     };
   });
 
+  console.log(txs);
+
   const response = await smartAccount.sendTransaction(txs);
-  const receipt = await response.waitForTxHash();
-  
-  res.json(receipt.transactionHash);
+
+  console.log(response);
+
+  const receipt = await response.wait();
+
+  res.json(receipt.receipt.transactionHash);
+}));
+
+app.listen(port, () => {
+  console.log(`[server]: Server is running at http://localhost:${port}`);
 });
+
+type TransactionType = "send" | "approve" | "swap";
+type TransactionDto = {
+  type: TransactionType;
+  summary: string;
+  params: {
+    from: string;
+    to: string;
+    value: string;
+    data: string;
+  };
+};
+
+export function handleError(callback: (req: Request<{}>, res: Response, next: NextFunction) => Promise<void>) {
+  return function (req: Request<{}>, res: Response, next: NextFunction) {
+    callback(req, res, next)
+      .catch(next)
+  }
+}
