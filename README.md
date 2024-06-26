@@ -164,8 +164,8 @@ To view the API server documentation, please see the [API.md](./API.md) file.
 
 ## Need Help?
 
-Join our [Discord community](https://discord.gg/k7UCsH3ps9) for support and discussions.
+Join our [Discord community](https://discord.gg/6gk85fetcT) for support and discussions.
 
-[![Join us on Discord](https://invidget.switchblade.xyz/k7UCsH3ps9)](https://discord.com/invite/k7UCsH3ps9)
+[![Join us on Discord](https://invidget.switchblade.xyz/6gk85fetcT)](https://discord.com/invite/6gk85fetcT)
 
-If you have questions or encounter issues, please don't hesitate to [create a new issue](https://github.com/polywrap/AutoTx/issues/new) to get support.
+If you have questions or encounter issues, please don't hesitate to [create a new issue](https://github.com/agentcoinorg/AutoTx/issues/new) to get support.
