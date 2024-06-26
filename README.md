@@ -27,11 +27,11 @@ Below is a list of existing and anticipated agents that AutoTx can use. If you'd
 | [Send Tokens](./autotx/agents/SendTokensAgent.py) | Send tokens (ERC20 & ETH) to a receiving address. | :rocket: |
 | [Swap Tokens](./autotx/agents/SwapTokensAgent.py) | Swap from one token to another. Currently integrated with [Li.Fi](https://docs.li.fi/). | :rocket: |
 | [Token Research](./autotx/agents/ResearchTokensAgent.py) | Research tokens, liquidity, prices, graphs, etc. | :rocket: |
-| Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/98) |
-| Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/46) |
-| Social Search | Research accounts, posts, and sentiment across social networks (ex: Twitter, Farcaster) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/204) |
-| Web3 Domains | Purchase and manage domains (ex: ENS) | :memo: [draft](https://github.com/polywrap/AutoTx/issues/245) |
-| NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/polywrap/AutoTx/issues/45) |
+| Earn Yield | Stake assets to earn yield. | :memo: [draft](https://github.com/agentcoinorg/AutoTx/issues/98) |
+| Bridge Tokens | Bridge tokens from one chain to another. | :memo: [draft](https://github.com/agentcoinorg/AutoTx/issues/46) |
+| Social Search | Research accounts, posts, and sentiment across social networks (ex: Twitter, Farcaster) | :memo: [draft](https://github.com/agentcoinorg/AutoTx/issues/204) |
+| Web3 Domains | Purchase and manage domains (ex: ENS) | :memo: [draft](https://github.com/agentcoinorg/AutoTx/issues/245) |
+| NFTs | Basic NFT integration: mint, transfer, set approval, etc. | :memo: [draft](https://github.com/agentcoinorg/AutoTx/issues/45) |
 | NFT Market | NFT marketplace functionality: list, bid, etc. | :thought_balloon: |
 | LP | Provide liquidity to AMMs. | :thought_balloon: |
 | Governance | Vote or delegate in DAOs. | :thought_balloon: |
@@ -48,7 +48,7 @@ Please install the following:
 - [docker](https://www.docker.com/)
 
 ## Installation
-1. Clone the repository via `git clone https://github.com/polywrap/AutoTx` and `cd AutoTx` into the directory.
+1. Clone the repository via `git clone https://github.com/agentcoinorg/AutoTx` and `cd AutoTx` into the directory.
 2. Create a new .env file via `cp .env.example .env`
 3. Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key `OPENAI_API_KEY=sk-...`
 4. (Optional) If you have an Infura/Alchemy API Key, find the line that says CHAIN_RPC_URL=, and update it, for example: `CHAIN_RPC_URL=https://mainnet.infura.io/v3/YOUR_INFURA_KEY` (see https://www.infura.io/ or https://alchemy.com to get your own API key). 
@@ -116,7 +116,7 @@ NOTE: Non-interactive mode is recommended when using less powerful models (like 
 Interested in contributing to AutoTx? Here are some ideas:
 * Contribute prompt ideas above
 * Build an [agent](#agents)
-* Discuss AutoTx's future in [issues](https://github.com/polywrap/AutoTx/issues)
+* Discuss AutoTx's future in [issues](https://github.com/agentcoinorg/AutoTx/issues)
 
 Connect with us on [Discord](https://discord.gg/k7UCsH3ps9) if you have any questions or ideas to share.
 
