@@ -4,14 +4,14 @@ from datetime import datetime
 import json
 import os
 from textwrap import dedent
-from typing import Any, Dict, Optional, Callable
-from dataclasses import dataclass, field
+from typing import Any, Dict, Optional, Callable, Union
+from dataclasses import dataclass
 from autogen import Agent as AutogenAgent, ModelClient
 from termcolor import cprint
 from typing import Optional
+from autogen import AssistantAgent
 
 from web3 import Web3
-from autotx import models
 from autotx.autotx_agent import AutoTxAgent
 from autotx.helper_agents import clarifier, manager, user_proxy
 from autotx.intents import Intent
@@ -34,14 +34,25 @@ class Config:
     max_rounds: int
     get_llm_config: Callable[[], Optional[Dict[str, Any]]]
     custom_model: Optional[CustomModel] = None
+    on_agent_message: Optional[Callable[[str, str, Any], None]] = None
 
-    def __init__(self, verbose: bool, get_llm_config: Callable[[], Optional[Dict[str, Any]]], logs_dir: Optional[str], max_rounds: Optional[int] = None, log_costs: Optional[bool] = None, custom_model: Optional[CustomModel] = None):
+    def __init__(self, 
+        verbose: bool, 
+        get_llm_config: Callable[[], 
+        Optional[Dict[str, Any]]], 
+        logs_dir: Optional[str], 
+        max_rounds: Optional[int] = None, 
+        log_costs: Optional[bool] = None, 
+        custom_model: Optional[CustomModel] = None,
+        on_agent_message: Optional[Callable[[str, str, Any], None]] = None
+    ):
         self.verbose = verbose
         self.get_llm_config = get_llm_config
         self.logs_dir = logs_dir
         self.log_costs = log_costs if log_costs is not None else False
-        self.max_rounds = max_rounds if max_rounds is not None else 100
+        self.max_rounds = max_rounds if max_rounds is not None else 50
         self.custom_model = custom_model
+        self.on_agent_message = on_agent_message
 
 @dataclass
 class PastRun:
@@ -78,6 +89,7 @@ class AutoTx:
     info_messages: list[str]
     verbose: bool
     on_notify_user: Callable[[str], None] | None
+    on_agent_message: Optional[Callable[[AssistantAgent, Union[Dict[str, Any], str], AutogenAgent, bool], Union[Dict[str, Any], str]]]
 
     def __init__(
         self,
@@ -109,6 +121,7 @@ class AutoTx:
         self.info_messages = []
         self.on_notify_user = on_notify_user
         self.custom_model = config.custom_model
+        self.on_agent_message = build_on_message_hook(config.on_agent_message) if config.on_agent_message else None
 
     def run(self, prompt: str, non_interactive: bool, summary_method: str = "last_msg") -> RunResult:
         return asyncio.run(self.a_run(prompt, non_interactive, summary_method))    
@@ -194,7 +207,7 @@ class AutoTx:
 
             agents_information = self.get_agents_information(self.agents)
 
-            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config, self.custom_model)
+            user_proxy_agent = user_proxy.build(prompt, agents_information, self.get_llm_config, self.custom_model, self.max_rounds)
 
             helper_agents: list[AutogenAgent] = [
                 user_proxy_agent,
@@ -205,6 +218,13 @@ class AutoTx:
                 helper_agents.append(clarifier_agent)
 
             autogen_agents = [agent.build_autogen_agent(self, user_proxy_agent, self.get_llm_config(), self.custom_model) for agent in self.agents]
+
+            for agent in autogen_agents + helper_agents:
+                if self.on_agent_message:
+                    agent.register_hook(
+                        "process_message_before_send",
+                        self.on_agent_message
+                    )
 
             recipient_agent = None
             if len(autogen_agents) > 1:
@@ -288,3 +308,15 @@ class AutoTx:
         agents_information = "\n".join(agent_descriptions)
 
         return agents_information
+
+def build_on_message_hook(on_message: Callable[[str, str, Any], None]) -> Callable[[AssistantAgent, Union[Dict[str, Any], str], AutogenAgent, bool], Union[Dict[str, Any], str]]:
+    def send_message_hook(
+        sender: AssistantAgent,
+        message: Union[Dict[str, Any], str],
+        recipient: AutogenAgent,
+        silent: bool,
+    ) -> Union[Dict[str, Any], str]:
+        on_message(sender.name, recipient.name, message)
+        return message
+
+    return send_message_hook

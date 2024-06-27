@@ -1,16 +1,16 @@
+import json
 from typing import Annotated, Any, Dict, List
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from gnosis.safe.api.base_api import SafeAPIException
 from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import traceback
 
-from autotx import models, setup
+from autotx import models, setup, task_logs
 from autotx import db
-from autotx.AutoTx import AutoTx, Config as AutoTxConfig
 from autotx.intents import Intent
 from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.transactions import Transaction
@@ -31,8 +31,8 @@ class AutoTxParams:
         verbose: bool, 
         logs: str | None, 
         cache: bool,
-        max_rounds: int | None, 
         is_dev: bool,
+        max_rounds: int | None = None
     ):
         self.verbose = verbose
         self.logs = logs
@@ -40,7 +40,7 @@ class AutoTxParams:
         self.max_rounds = max_rounds
         self.is_dev = is_dev
 
-autotx_params: AutoTxParams = AutoTxParams(verbose=False, logs=None, cache=False, max_rounds=200, is_dev=False)
+autotx_params: AutoTxParams = AutoTxParams(verbose=False, logs=None, cache=False, is_dev=False)
 
 app_router = APIRouter()
 
@@ -100,8 +100,20 @@ async def build_transactions(app_id: str, user_id: str, chain_id: int, address: 
 
     return transactions
 
+def stop_task_for_error(tasks: db.TasksRepository, task_id: str, error: str, user_error_message: str) -> None:
+    task = tasks.get(task_id)
+    if task is None:
+        raise Exception("Task not found: " + task_id)
+
+    task.error = error
+    task.running = False
+    task.messages.append(user_error_message)
+    tasks.update(task)
+
 @app_router.post("/api/v1/tasks", response_model=models.Task)
 async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:
+    from autotx.AutoTx import AutoTx, Config as AutoTxConfig
+    
     app = authorize(authorization)
     app_user = db.get_app_user(app.id, task.user_id)
     if not app_user:
@@ -135,27 +147,40 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
             task.messages.append(message)
             tasks.update(task)
 
+        def on_agent_message(from_agent: str, to_agent: str, message: Any) -> None:
+            task = tasks.get(task_id)
+            if task is None:
+                raise Exception("Task not found: " + task_id)
+
+            if task.logs is None:
+                task.logs = []
+            task.logs.append(
+                task_logs.build_agent_message_log(from_agent, to_agent, message)
+            )
+            tasks.update(task)
+
         autotx = AutoTx(
             app_config.web3,
             api_wallet,
             app_config.network_info,
             agents,
-            AutoTxConfig(verbose=autotx_params.verbose, get_llm_config=get_llm_config, logs_dir=logs_dir, max_rounds=autotx_params.max_rounds),
-            on_notify_user=on_notify_user
+            AutoTxConfig(
+                verbose=autotx_params.verbose, 
+                get_llm_config=get_llm_config, 
+                logs_dir=logs_dir, 
+                max_rounds=autotx_params.max_rounds,
+                on_agent_message=on_agent_message,
+            ),
+            on_notify_user=on_notify_user,
         )
 
         async def run_task() -> None:
             try: 
                 await autotx.a_run(prompt, non_interactive=True)
             except Exception as e:
-                task = tasks.get(task_id)
-                if task is None:
-                    raise Exception("Task not found: " + task_id)
-
-                task.messages.append(str(e))
-                task.error = traceback.format_exc()
-                task.running = False
-                tasks.update(task)
+                error = traceback.format_exc()
+                db.add_task_error(f"AutoTx run", app.id, app_user.id, task_id, error)
+                stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
                 raise e
             tasks.stop(task_id)
 
@@ -163,9 +188,9 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
         return created_task
     except Exception as e:
-        created_task.error = traceback.format_exc()
-        created_task.running = False
-        tasks.update(created_task)
+        error = traceback.format_exc()
+        db.add_task_error(f"Route: create_task", app.id, app_user.id, task_id, error)
+        stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
         raise e
 
 @app_router.post("/api/v1/connect", response_model=models.AppUser)
@@ -223,10 +248,14 @@ async def get_transactions(
     
     task = get_task_or_404(task_id, tasks)
 
-    if task.chain_id != chain_id:
-        raise HTTPException(status_code=400, detail="Chain ID does not match task")
+    try:
+        if task.chain_id != chain_id:
+            raise HTTPException(status_code=400, detail="Chain ID does not match task")
 
-    transactions = await build_transactions(app.id, user_id, chain_id, address, task)
+        transactions = await build_transactions(app.id, user_id, chain_id, address, task)
+    except Exception as e:
+        db.add_task_error(f"Route: get_transactions", app.id, app_user.id, task_id, traceback.format_exc())
+        raise e
 
     return transactions
 
@@ -248,15 +277,19 @@ async def prepare_transactions(
     
     task = get_task_or_404(task_id, tasks)
 
-    if task.chain_id != chain_id:
-        raise HTTPException(status_code=400, detail="Chain ID does not match task")
-    
-    transactions = await build_transactions(app.id, app_user.user_id, chain_id, address, task)
+    try:
+        if task.chain_id != chain_id:
+            raise HTTPException(status_code=400, detail="Chain ID does not match task")
+        
+        transactions = await build_transactions(app.id, app_user.user_id, chain_id, address, task)
 
-    if len(transactions) == 0:
-        raise HTTPException(status_code=400, detail="No transactions to send")
+        if len(transactions) == 0:
+            raise HTTPException(status_code=400, detail="No transactions to send")
 
-    submitted_batch_id = db.save_transactions(app.id, address, chain_id, app_user.id, task_id, transactions)
+        submitted_batch_id = db.save_transactions(app.id, address, chain_id, app_user.id, task_id, transactions)
+    except Exception as e:
+        db.add_task_error(f"Route: prepare_transactions", app.id, app_user.id, task_id, traceback.format_exc())
+        raise e
 
     return PreparedTransactionsDto(batch_id=submitted_batch_id, transactions=transactions)
 
@@ -278,32 +311,38 @@ def send_transactions(
     if task.chain_id != chain_id:
         raise HTTPException(status_code=400, detail="Chain ID does not match task")
 
-    batch = db.get_transactions(app.id, app_user.id, task_id, address, chain_id, batch_id)
-
-    if batch is None:
-        raise HTTPException(status_code=400, detail="Batch not found")
-
-    (transactions, task_id) = batch
-
-    if len(transactions) == 0:
-        raise HTTPException(status_code=400, detail="No transactions to send")
-
-    global autotx_params
-    if autotx_params.is_dev:
-        print("Dev mode: skipping transaction submission")
-        db.submit_transactions(app.id, app_user.id, batch_id)
-        return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
-
     try:
-        app_config = AppConfig(subsidized_chain_id=chain_id)
-        wallet = load_wallet_for_user(app_config, app.id, user_id, address)
+        batch = db.get_transactions(app.id, app_user.id, task_id, address, chain_id, batch_id)
 
-        wallet.send_transactions(transactions)
-    except SafeAPIException as e:
-        if "is not an owner or delegate" in str(e):
-            raise HTTPException(status_code=400, detail="Agent is not an owner or delegate")
-        else:
-            raise e
+        if batch is None:
+            raise HTTPException(status_code=400, detail="Batch not found")
+
+        (transactions, task_id) = batch
+
+        if len(transactions) == 0:
+            raise HTTPException(status_code=400, detail="No transactions to send")
+
+        global autotx_params
+        if autotx_params.is_dev:
+            print("Dev mode: skipping transaction submission")
+            db.submit_transactions(app.id, app_user.id, batch_id)
+            return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
+
+        try:
+            app_config = AppConfig(subsidized_chain_id=chain_id)
+            wallet = load_wallet_for_user(app_config, app.id, user_id, address)
+
+            wallet.send_transactions(transactions)
+        except SafeAPIException as e:
+            if "is not an owner or delegate" in str(e):
+                raise HTTPException(status_code=400, detail="Agent is not an owner or delegate")
+            else:
+                raise e
+            
+        db.submit_transactions(app.id, app_user.id, batch_id)
+    except Exception as e:
+        db.add_task_error(f"Route: send_transactions", app.id, app_user.id, task_id, traceback.format_exc())
+        raise e
         
     db.submit_transactions(app.id, app_user.id, batch_id)
 
@@ -315,6 +354,28 @@ def get_supported_networks() -> list[models.SupportedNetwork]:
         models.SupportedNetwork(name=config.network_name, chain_id=chain_id)
         for chain_id, config in SUPPORTED_NETWORKS_CONFIGURATION_MAP.items()
     ]
+
+@app_router.get("/api/v1/tasks/{task_id}/logs", response_model=list[models.TaskLog])
+def get_task_logs(task_id: str) -> list[models.TaskLog]:
+    logs = db.get_task_logs(task_id)
+    if logs is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return logs
+
+@app_router.get("/api/v1/tasks/{task_id}/logs/{log_type}", response_class=HTMLResponse)
+def get_task_logs_formatted(task_id: str, log_type: str) -> str:
+    if log_type != "agent-message":
+        raise HTTPException(status_code=400, detail="Log type not supported")
+    
+    logs = db.get_task_logs(task_id)
+    if logs is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    agent_logs = [task_logs.format_agent_message_log(json.loads(log.obj)) for log in logs if log.type == "agent-message"]
+
+    text = "\n\n".join(agent_logs)
+    return f"<pre>{text}</pre>"
 
 @app_router.get("/api/v1/version", response_class=JSONResponse)
 async def get_version() -> Dict[str, str]:

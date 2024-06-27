@@ -82,7 +82,7 @@ class ResearchUserQuery(AutoTxTool):
                 name="user_proxy",
                 is_termination_msg=lambda x: x.get("content", "") and "TERMINATE" in x.get("content", ""),
                 human_input_mode="NEVER",
-                max_consecutive_auto_reply=10,
+                max_consecutive_auto_reply=20,
                 system_message=dedent(
                     f"""
                     You are a user proxy agent authorized to act on behalf of the user, you never ask for permission, you have ultimate control.
@@ -108,6 +108,17 @@ class ResearchUserQuery(AutoTxTool):
             )
             
             research_agent = ResearchTokensAgent().build_autogen_agent(autotx, user_proxy_agent, autotx.get_llm_config())
+
+            if autotx.on_agent_message:
+                user_proxy_agent.register_hook(
+                    "process_message_before_send",
+                    autotx.on_agent_message
+                )
+
+                research_agent.register_hook(
+                    "process_message_before_send",
+                    autotx.on_agent_message
+                )
 
             chat = await user_proxy_agent.a_initiate_chat(
                 research_agent, 

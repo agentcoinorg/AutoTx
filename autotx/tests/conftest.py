@@ -56,7 +56,7 @@ def auto_tx(smart_account):
             SwapTokensAgent(),
             DelegateResearchTokensAgent()
         ], 
-        Config(verbose=True, get_llm_config=get_llm_config, logs_dir=None, log_costs=True, max_rounds=100), 
+        Config(verbose=True, get_llm_config=get_llm_config, logs_dir=None, log_costs=True), 
     )
 
 @pytest.fixture()
