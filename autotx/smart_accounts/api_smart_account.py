@@ -30,8 +30,8 @@ class ApiSmartAccount(SmartAccount):
     async def on_intents_ready(self, _intents: list[Intent]) -> bool | str:
         return True
     
-    def send_transaction(self, transaction: TransactionBase) -> None:
-        self.wallet.send_transaction(transaction)
+    async def send_transaction(self, transaction: TransactionBase) -> None:
+        await self.wallet.send_transaction(transaction)
     
-    def send_transactions(self, transactions: list[TransactionBase]) -> None:
-        self.wallet.send_transactions(transactions)
+    async def send_transactions(self, transactions: list[TransactionBase]) -> None:
+        await self.wallet.send_transactions(transactions)

@@ -1,23 +1,19 @@
 from dotenv import load_dotenv
+load_dotenv()
+import pytest
+from eth_account import Account
 
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.helpers.swap_from_eoa import swap
 from autotx.utils.ethereum.send_native import send_native
 from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
-load_dotenv()
-
 from autotx.agents.DelegateResearchTokensAgent import DelegateResearchTokensAgent
 from autotx.agents.SendTokensAgent import SendTokensAgent
 from autotx.agents.SwapTokensAgent import SwapTokensAgent
-
-from eth_account import Account
-
 from autotx.utils.constants import OPENAI_API_KEY, OPENAI_MODEL_NAME
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.helpers.get_dev_account import get_dev_account
-
-import pytest
 from autotx.AutoTx import AutoTx, Config
 from autotx.chain_fork import stop, start
 from autotx.utils.ethereum import (

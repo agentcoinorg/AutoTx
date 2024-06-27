@@ -37,7 +37,7 @@ class QuoteInformation:
     exchange_name: str
 
 
-def get_quote(
+async def get_quote(
     token_in_address: ETHAddress,
     token_in_decimals: int,
     token_in_symbol: str,
@@ -52,7 +52,7 @@ def get_quote(
     quote: dict[str, Any] | None = None
     try:
         if amount_is_output:
-            quote = Lifi.get_quote_to_amount(
+            quote = await Lifi.get_quote_to_amount(
                 token_in_address,
                 token_out_address,
                 int(expected_amount * (10**token_out_decimals)),
@@ -64,7 +64,7 @@ def get_quote(
 
         else:
             amount_in_integer = int(expected_amount * (10**token_in_decimals))
-            quote = Lifi.get_quote_from_amount(
+            quote = await Lifi.get_quote_from_amount(
                 token_in_address,
                 token_out_address,
                 amount_in_integer,
@@ -81,6 +81,13 @@ def get_quote(
             raise Exception(
                 f"Token {token_out_symbol} is not supported. Please try another one"
             )
+    except Exception as e:
+        if "The from amount must be greater than zero." in str(e):
+            if amount_is_output:
+                raise Exception(f"The specified amount of {token_out_symbol} is too low")
+            else:
+                raise Exception(f"The specified amount of {token_in_symbol} is too low") 
+        raise e
 
     if not quote:
         raise Exception("Quote has not been fetched")
@@ -103,49 +110,6 @@ def get_quote(
         transaction,
         quote["toolDetails"]["name"],
     )
-
-async def fetch_quote_with_retries(
-    token_in_address: ETHAddress,
-    token_in_decimals: int,
-    token_in_symbol: str,
-    token_out_address: ETHAddress,
-    token_out_decimals: int,
-    token_out_symbol: str,
-    chain: ChainId,
-    amount: Decimal,
-    is_exact_input: bool,
-    _from: ETHAddress,
-) -> QuoteInformation:
-    retries = 0
-    while True:
-        try:
-            quote = get_quote(
-                token_in_address,
-                token_in_decimals,
-                token_in_symbol,
-                token_out_address,
-                token_out_decimals,
-                token_out_symbol,
-                chain,
-                amount,
-                not is_exact_input,
-                _from,
-            )
-            return quote
-        except Exception as e:
-            if "The from amount must be greater than zero." in str(e):
-                if is_exact_input:
-                    raise Exception(f"The specified amount of {token_in_symbol} is too low") 
-                else:
-                    raise Exception(f"The specified amount of {token_out_symbol} is too low")
-
-            elif "No available quotes for the requested transfer" in str(e):
-                if retries < 5:
-                    retries += 1
-                    await asyncio.sleep(1)                   
-                    continue
-            raise e
-                
 
 def build_swap_transaction(
     web3: Web3,
@@ -195,7 +159,7 @@ async def a_build_swap_transaction(
         else token_out.functions.symbol().call()
     )
     
-    quote = await fetch_quote_with_retries(
+    quote = await get_quote(
         token_in_address,
         token_in_decimals,
         token_in_symbol,
@@ -204,7 +168,7 @@ async def a_build_swap_transaction(
         token_out_symbol,
         chain,
         amount,
-        is_exact_input,
+        not is_exact_input,
         _from,
     )
     transactions: list[Transaction] = []
@@ -289,7 +253,7 @@ async def a_can_build_swap_transaction(
         else token_out.functions.symbol().call()
     )
 
-    quote = await fetch_quote_with_retries(
+    quote = await get_quote(
         token_in_address,
         token_in_decimals,
         token_in_symbol,

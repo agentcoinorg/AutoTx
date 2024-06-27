@@ -1,3 +1,4 @@
+import asyncio
 from decimal import Decimal
 from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
@@ -14,7 +15,7 @@ def test_buy_one_usdc(smart_account):
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     expected_usdc_amount = 1
     buy_usdc_with_eth_transaction = build_swap_transaction(
-        smart_account.web3.,
+        smart_account.web3,
         expected_usdc_amount,
         eth_address,
         usdc_address,
@@ -43,7 +44,7 @@ def test_buy_one_thousand_usdc(smart_account):
         network_info.chain_id,
     )
     print(buy_usdc_with_eth_transaction[0].summary)
-    hash = smart_account.send_transaction(buy_usdc_with_eth_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_usdc_with_eth_transaction[0].params))
     smart_account.wait(hash)
     usdc_balance = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
     assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
@@ -65,7 +66,7 @@ def test_receive_native(smart_account):
         True,
         network_info.chain_id,
     )
-    hash = smart_account.send_transaction(buy_usdc_with_eth_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_usdc_with_eth_transaction[0].params))
     smart_account.wait(hash)
     safe_eth_balance = get_native_balance(smart_account.web3, smart_account.address)
     assert safe_eth_balance == 5
@@ -79,9 +80,9 @@ def test_receive_native(smart_account):
         False,
         network_info.chain_id,
     )
-    hash = smart_account.send_tx(buy_eth_with_usdc_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_eth_with_usdc_transaction[0].params))
     smart_account.wait(hash)
-    hash = smart_account.send_tx(buy_eth_with_usdc_transaction[1].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_eth_with_usdc_transaction[1].params))
     smart_account.wait(hash)
     safe_eth_balance = get_native_balance(smart_account.web3, smart_account.address)
     assert safe_eth_balance >= 9
@@ -101,7 +102,7 @@ def test_buy_small_amount_wbtc_with_eth(smart_account):
         False,
         network_info.chain_id,
     )
-    hash = smart_account.send_tx(buy_wbtc_with_eth_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_wbtc_with_eth_transaction[0].params))
     smart_account.wait(hash)
     wbtc_balance = get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
@@ -121,7 +122,7 @@ def test_buy_big_amount_wbtc_with_eth(smart_account):
         False,
         network_info.chain_id,
     )
-    hash = smart_account.send_tx(buy_wbtc_with_eth_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_wbtc_with_eth_transaction[0].params))
     smart_account.wait(hash)
     wbtc_balance = get_erc20_balance(smart_account.web3, wbtc_balance, smart_account.address)
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
@@ -147,7 +148,7 @@ def test_swap_multiple_tokens(smart_account):
         True,
         network_info.chain_id,
     )
-    hash = smart_account.send_tx(sell_eth_for_usdc_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(sell_eth_for_usdc_transaction[0].params))
     smart_account.wait(hash)
     usdc_balance = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
     assert usdc_balance > 2900
@@ -165,9 +166,9 @@ def test_swap_multiple_tokens(smart_account):
         network_info.chain_id,
     )
 
-    hash = smart_account.send_tx(buy_wbtc_with_usdc_transaction[0].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_wbtc_with_usdc_transaction[0].params))
     smart_account.wait(hash)
-    hash = smart_account.send_tx(buy_wbtc_with_usdc_transaction[1].params)
+    hash = asyncio.run(smart_account.send_transaction(buy_wbtc_with_usdc_transaction[1].params))
     smart_account.wait(hash)
     wbtc_balance = get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
     assert wbtc_balance >= 0.01
@@ -184,9 +185,9 @@ def test_swap_multiple_tokens(smart_account):
         True,
         network_info.chain_id,
     )
-    hash = smart_account.send_tx(sell_wbtc_for_shib[0].params)
+    hash = asyncio.run(smart_account.send_transaction(sell_wbtc_for_shib[0].params))
     smart_account.wait(hash)
-    hash = smart_account.send_tx(sell_wbtc_for_shib[1].params)
+    hash = asyncio.run(smart_account.send_transaction(sell_wbtc_for_shib[1].params))
     smart_account.wait(hash)
     shib_balance = get_erc20_balance(smart_account.web3, shib_address, smart_account.address)
     shib_balance = get_erc20_balance(smart_account.web3, shib_address, smart_account.address)

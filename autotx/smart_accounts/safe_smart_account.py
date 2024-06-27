@@ -64,10 +64,10 @@ class SafeSmartAccount(SmartAccount):
 
         return self.manager.send_multisend_tx_batch(transactions, not self.auto_submit_tx)
 
-    def send_transaction(self, transaction: TransactionBase) -> None:
+    async def send_transaction(self, transaction: TransactionBase) -> None:
         self.manager.send_multisend_tx_batch([transaction], require_approval=False)
 
-    def send_transactions(self, transactions: list[TransactionBase]) -> None:
+    async def send_transactions(self, transactions: list[TransactionBase]) -> None:
         self.manager.send_multisend_tx_batch(
             transactions,
             require_approval=False,

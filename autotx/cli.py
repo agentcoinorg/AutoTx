@@ -1,6 +1,4 @@
 from dotenv import load_dotenv
-
-from autotx.eth_address import ETHAddress
 load_dotenv()
 
 from eth_account import Account
@@ -13,6 +11,7 @@ import click
 import uuid
 from eth_account.signers.local import LocalAccount
 
+from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.constants import SMART_ACCOUNT_OWNER_PK
@@ -77,7 +76,7 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
             wait_for_native_top_up(app_config.web3, wallet.address)
     else:
         wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=non_interactive, fill_dev_account=True)
-        print("Using Safe smart account: {wallet.address}")
+        print(f"Using Safe smart account: {wallet.address}")
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 

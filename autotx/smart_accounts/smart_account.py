@@ -24,11 +24,11 @@ class SmartAccount:
         pass
 
     @abstractmethod
-    def send_transaction(self, transaction: TransactionBase) -> None:
+    async def send_transaction(self, transaction: TransactionBase) -> None:
        pass
 
     @abstractmethod
-    def send_transactions(self, transactions: list[TransactionBase]) -> None:
+    async def send_transactions(self, transactions: list[TransactionBase]) -> None:
         pass
 
     def wait(self, tx_hash: HexBytes) -> TxReceipt:

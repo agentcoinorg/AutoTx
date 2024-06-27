@@ -294,7 +294,7 @@ async def prepare_transactions(
     return PreparedTransactionsDto(batch_id=submitted_batch_id, transactions=transactions)
 
 @app_router.post("/api/v1/tasks/{task_id}/transactions")
-def send_transactions(
+async def send_transactions(
     task_id: str, 
     address: str,
     chain_id: int,
@@ -332,7 +332,7 @@ def send_transactions(
             app_config = AppConfig(subsidized_chain_id=chain_id)
             wallet = load_wallet_for_user(app_config, app.id, user_id, address)
 
-            wallet.send_transactions(transactions)
+            await wallet.send_transactions(transactions)
         except SafeAPIException as e:
             if "is not an owner or delegate" in str(e):
                 raise HTTPException(status_code=400, detail="Agent is not an owner or delegate")
