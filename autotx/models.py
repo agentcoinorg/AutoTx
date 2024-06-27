@@ -1,8 +1,13 @@
 from pydantic import BaseModel
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from autotx.intents import Intent
+
+class TaskLog(BaseModel):
+    type: str
+    obj: str
+    created_at: datetime
 
 class Task(BaseModel):
     id: str
@@ -14,7 +19,16 @@ class Task(BaseModel):
     error: str | None
     running: bool
     messages: List[str]
+    logs: List[TaskLog] | None
     intents: List[Intent]
+
+class TaskError(BaseModel):
+    id: str
+    message: str
+    task_id: str
+    app_id: str
+    app_user_id: str
+    created_at: datetime
 
 class App(BaseModel):
     id: str

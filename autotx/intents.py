@@ -122,3 +122,40 @@ class SellIntent(IntentBase):
         return transactions
 
 Intent = Union[SendIntent, BuyIntent, SellIntent]
+
+def load_intent(intent_data: dict[str, Any]) -> Intent:
+    if intent_data["type"] == "send":
+        return SendIntent.create(
+            receiver=ETHAddress(intent_data["receiver"]),
+            token=Token(
+                symbol=intent_data["token"]["symbol"],
+                address=intent_data["token"]["address"]
+            ),
+            amount=intent_data["amount"]
+        )
+    elif intent_data["type"] == "buy":
+        return BuyIntent.create(
+            from_token=Token(
+                symbol=intent_data["from_token"]["symbol"],
+                address=intent_data["from_token"]["address"]
+            ),
+            to_token=Token(
+                symbol=intent_data["to_token"]["symbol"],
+                address=intent_data["to_token"]["address"]
+            ),
+            amount=intent_data["amount"]
+        )
+    elif intent_data["type"] == "sell":
+        return SellIntent.create(
+            from_token=Token(
+                symbol=intent_data["from_token"]["symbol"],
+                address=intent_data["from_token"]["address"]
+            ),
+            to_token=Token(
+                symbol=intent_data["to_token"]["symbol"],
+                address=intent_data["to_token"]["address"]
+            ),
+            amount=intent_data["amount"]
+        )
+    else:
+        raise Exception(f"Unknown intent type: {intent_data['type']}")
