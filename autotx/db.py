@@ -9,10 +9,9 @@ from supabase.client import Client
 from supabase.lib.client_options import ClientOptions
 
 from autotx import models
-from autotx.intents import BuyIntent, Intent, SellIntent, SendIntent
-from autotx.token import Token
+from autotx.intents import load_intent
 from autotx.transactions import Transaction, TransactionBase
-from autotx.eth_address import ETHAddress
+from autotx.utils.dump_pydantic_list import dump_pydantic_list
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -56,7 +55,8 @@ class TasksRepository:
                 "created_at": str(created_at),
                 "updated_at": str(updated_at),
                 "messages": json.dumps([]),
-                "intents": json.dumps([])
+                "logs": json.dumps([]),
+                "intents": json.dumps([]),
             }
         ).execute()
 
@@ -70,7 +70,8 @@ class TasksRepository:
             running=True,
             error=None,
             messages=[],
-            intents=[]
+            logs=[],
+            intents=[],
         )
 
     def stop(self, task_id: str) -> None:
@@ -86,8 +87,6 @@ class TasksRepository:
     def update(self, task: models.Task) -> None:
         client = get_db_client("public")
 
-        intents = [json.loads(intent.json()) for intent in task.intents]
-
         client.table("tasks").update(
             {
                 "prompt": task.prompt,
@@ -95,7 +94,8 @@ class TasksRepository:
                 "updated_at": str(datetime.utcnow()),
                 "messages": json.dumps(task.messages),
                 "error": task.error,
-                "intents": json.dumps(intents)
+                "logs": dump_pydantic_list(task.logs if task.logs else []),
+                "intents": dump_pydantic_list(task.intents)
             }
         ).eq("id", task.id).eq("app_id", self.app_id).execute()
 
@@ -113,43 +113,6 @@ class TasksRepository:
 
         task_data = result.data[0]
 
-        def load_intent(intent_data: dict[str, Any]) -> Intent:
-            if intent_data["type"] == "send":
-                return SendIntent.create(
-                    receiver=ETHAddress(intent_data["receiver"]),
-                    token=Token(
-                        symbol=intent_data["token"]["symbol"],
-                        address=intent_data["token"]["address"]
-                    ),
-                    amount=intent_data["amount"]
-                )
-            elif intent_data["type"] == "buy":
-                return BuyIntent.create(
-                    from_token=Token(
-                        symbol=intent_data["from_token"]["symbol"],
-                        address=intent_data["from_token"]["address"]
-                    ),
-                    to_token=Token(
-                        symbol=intent_data["to_token"]["symbol"],
-                        address=intent_data["to_token"]["address"]
-                    ),
-                    amount=intent_data["amount"]
-                )
-            elif intent_data["type"] == "sell":
-                return SellIntent.create(
-                    from_token=Token(
-                        symbol=intent_data["from_token"]["symbol"],
-                        address=intent_data["from_token"]["address"]
-                    ),
-                    to_token=Token(
-                        symbol=intent_data["to_token"]["symbol"],
-                        address=intent_data["to_token"]["address"]
-                    ),
-                    amount=intent_data["amount"]
-                )
-            else:
-                raise Exception(f"Unknown intent type: {intent_data['type']}")
-
         return models.Task(
             id=task_data["id"],
             prompt=task_data["prompt"],
@@ -160,6 +123,7 @@ class TasksRepository:
             running=task_data["running"],
             error=task_data["error"],
             messages=json.loads(task_data["messages"]),
+            logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
             intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
         )
 
@@ -182,7 +146,8 @@ class TasksRepository:
                     running=task_data["running"],
                     error=task_data["error"],
                     messages=json.loads(task_data["messages"]),
-                    intents=json.loads(task_data["intents"])
+                    logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
+                    intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
                 )
             )
 
@@ -318,6 +283,21 @@ def submit_transactions(app_id: str, app_user_id: str, submitted_batch_id: str) 
         .eq("app_user_id", app_user_id) \
         .eq("id", submitted_batch_id) \
         .execute()
+    
+def add_task_error(context: str, app_id: str, app_user_id: str, task_id: str, message: str) -> None:
+    client = get_db_client("public")
+
+    created_at = datetime.utcnow()
+    client.table("task_errors").insert(
+        {
+            "context": context,
+            "app_id": app_id,
+            "task_id": task_id,
+            "app_user_id": app_user_id,
+            "message": message,
+            "created_at": str(created_at)
+        }
+    ).execute()
 
 class SubmittedBatch(BaseModel):
     id: str
@@ -357,6 +337,21 @@ def get_submitted_batches(app_id: str, task_id: str) -> list[SubmittedBatch]:
         )
 
     return batches
+
+def get_task_logs(task_id: str) -> list[models.TaskLog] | None:
+    client = get_db_client("public")
+
+    result = client.table("tasks") \
+        .select("logs") \
+        .eq("id", task_id) \
+        .execute()
+
+    if len(result.data) == 0:
+        return None
+
+    task_data = result.data[0]
+
+    return [models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else []
 
 def create_app(name: str, api_key: str) -> models.App:
     client = get_db_client("public")
