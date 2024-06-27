@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from typing import Annotated, Any, Dict, List
 from eth_account import Account
@@ -110,6 +111,19 @@ def stop_task_for_error(tasks: db.TasksRepository, task_id: str, error: str, use
     task.messages.append(user_error_message)
     tasks.update(task)
 
+def log(log_type: str, obj: Any, task_id: str, tasks: db.TasksRepository) -> None:
+   add_task_log(models.TaskLog(type=log_type, obj=json.dumps(obj), created_at=datetime.now()), task_id, tasks)
+
+def add_task_log(log: models.TaskLog, task_id: str, tasks: db.TasksRepository) -> None:
+    task = tasks.get(task_id)
+    if task is None:
+        raise Exception("Task not found: " + task_id)
+
+    if task.logs is None:
+        task.logs = []
+    task.logs.append(log)
+    tasks.update(task)
+
 @app_router.post("/api/v1/tasks", response_model=models.Task)
 async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:
     from autotx.AutoTx import AutoTx, Config as AutoTxConfig
@@ -148,16 +162,11 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
             tasks.update(task)
 
         def on_agent_message(from_agent: str, to_agent: str, message: Any) -> None:
-            task = tasks.get(task_id)
-            if task is None:
-                raise Exception("Task not found: " + task_id)
-
-            if task.logs is None:
-                task.logs = []
-            task.logs.append(
-                task_logs.build_agent_message_log(from_agent, to_agent, message)
+            add_task_log(
+                task_logs.build_agent_message_log(from_agent, to_agent, message),
+                task_id,
+                tasks
             )
-            tasks.update(task)
 
         autotx = AutoTx(
             app_config.web3,
@@ -176,13 +185,16 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
         async def run_task() -> None:
             try: 
+                log("execution", "run-start", task_id, tasks)
                 await autotx.a_run(prompt, non_interactive=True)
+                log("execution", "run-end", task_id, tasks)
             except Exception as e:
                 error = traceback.format_exc()
                 db.add_task_error(f"AutoTx run", app.id, app_user.id, task_id, error)
                 stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
                 raise e
             tasks.stop(task_id)
+            log("execution", "task-stop", task_id, tasks)
 
         background_tasks.add_task(run_task)
 
@@ -365,17 +377,25 @@ def get_task_logs(task_id: str) -> list[models.TaskLog]:
 
 @app_router.get("/api/v1/tasks/{task_id}/logs/{log_type}", response_class=HTMLResponse)
 def get_task_logs_formatted(task_id: str, log_type: str) -> str:
-    if log_type != "agent-message":
+    if log_type != "agent-message" and log_type != "execution":
         raise HTTPException(status_code=400, detail="Log type not supported")
     
     logs = db.get_task_logs(task_id)
     if logs is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    
-    agent_logs = [task_logs.format_agent_message_log(json.loads(log.obj)) for log in logs if log.type == "agent-message"]
 
-    text = "\n\n".join(agent_logs)
-    return f"<pre>{text}</pre>"
+    filtered_logs = [log for log in logs if log.type == log_type]
+
+    if len(filtered_logs) == 0:
+        return "<pre>No logs found</pre>"
+    
+    if log_type == "execution":
+        return "<pre>" + "\n".join([log.created_at.strftime("%Y-%m-%d %H:%M:%S") + f": {json.loads(log.obj)}" for log in filtered_logs]) + "</pre>"
+    else:
+        agent_logs = [task_logs.format_agent_message_log(json.loads(log.obj)) for log in filtered_logs]
+
+        text = "\n\n".join(agent_logs)
+        return f"<pre>{text}</pre>"
 
 @app_router.get("/api/v1/version", response_class=JSONResponse)
 async def get_version() -> Dict[str, str]:
