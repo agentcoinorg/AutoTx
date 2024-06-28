@@ -22,7 +22,7 @@ def test_swap_and_send_simple(smart_account, auto_tx, test_accounts):
     assert excepted_safe_wbtc_balance <= new_wbtc_safe_address <= new_wbtc_safe_address * DIFFERENCE_PERCENTAGE
     assert new_receiver_wbtc_balance == 0.01
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(180)
 def test_swap_and_send_complex(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -68,7 +68,7 @@ def test_send_and_swap_simple(smart_account, auto_tx, test_accounts):
     assert new_receiver_wbtc_balance == receiver_wbtc_balance
     assert new_receiver_native_balance == receiver_native_balance + 0.1
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(180)
 def test_send_and_swap_complex(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])

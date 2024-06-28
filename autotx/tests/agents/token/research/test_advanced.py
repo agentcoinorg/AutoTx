@@ -1,8 +1,11 @@
+import pytest
+
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
+@pytest.mark.timeout(180)
 def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx):
     uni_address = ETHAddress(auto_tx.network.tokens["uni"])
     
@@ -40,6 +43,7 @@ def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx)
     assert ai_token_balance_in_safe > 0
     assert meme_token_balance_in_safe > 0
 
+@pytest.mark.timeout(500)
 def test_research_and_swap_many_tokens_subjective_complex(smart_account, auto_tx):
 
     starting_balance = get_native_balance(smart_account.web3, smart_account.address)

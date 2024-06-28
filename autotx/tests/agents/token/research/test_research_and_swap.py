@@ -1,7 +1,10 @@
+import pytest
+
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
+@pytest.mark.timeout(120)
 def test_research_and_buy_one(smart_account, auto_tx):
     
     prompt = (
@@ -15,6 +18,7 @@ def test_research_and_buy_one(smart_account, auto_tx):
     token_balance_in_safe = get_erc20_balance(smart_account.web3, token_address, smart_account.address)
     assert token_balance_in_safe > 1000
 
+@pytest.mark.timeout(180)
 def test_research_and_buy_multiple(smart_account, auto_tx):
 
     old_eth_balance = get_native_balance(smart_account.web3, smart_account.address)

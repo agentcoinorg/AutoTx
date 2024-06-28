@@ -1,9 +1,12 @@
+import pytest
+
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
 DIFFERENCE_PERCENTAGE = 0.01
 
+@pytest.mark.timeout(180)
 def test_research_buy_one_send_one(smart_account, auto_tx, test_accounts):
 
     receiver = test_accounts[0]
@@ -22,6 +25,7 @@ def test_research_buy_one_send_one(smart_account, auto_tx, test_accounts):
 
     assert token_balance_in_safe / receiver_balance < DIFFERENCE_PERCENTAGE
 
+@pytest.mark.timeout(180)
 def test_research_buy_one_send_multiple(smart_account, auto_tx, test_accounts):
 
     receiver_1 = test_accounts[0]
@@ -44,6 +48,7 @@ def test_research_buy_one_send_multiple(smart_account, auto_tx, test_accounts):
 
     assert meme_token_balance_in_safe > 10000
 
+@pytest.mark.timeout(180)
 def test_research_buy_multiple_send_multiple(smart_account, auto_tx, test_accounts):
 
     receiver_1 = test_accounts[0]
