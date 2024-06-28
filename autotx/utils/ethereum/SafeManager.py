@@ -182,7 +182,6 @@ class SafeManager:
             
             raise Exception("Unknown error executing transaction", e)
 
-
     def execute_multisend_tx(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
@@ -205,7 +204,7 @@ class SafeManager:
                 for i, tx in enumerate(txs):
                     print(f"Executing transaction {i + 1}...")
                     self.execute_tx(tx, nonce + i)
-                  
+            raise e
 
     def post_transaction(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> None:
         ts_api = TransactionServiceApi(
