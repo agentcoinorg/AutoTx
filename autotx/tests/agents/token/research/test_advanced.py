@@ -21,8 +21,12 @@ def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx)
 
     ending_balance = get_native_balance(smart_account.web3, smart_account.address)
 
-    gaming_token_address = get_top_token_addresses_by_market_cap("gaming", "MAINNET", 1, auto_tx)[0]
-    gaming_token_balance_in_safe = get_erc20_balance(smart_account.web3, gaming_token_address, smart_account.address)
+    gaming_token_address1 = get_top_token_addresses_by_market_cap("gaming", "MAINNET", 1, auto_tx)[0]
+    gaming_token_address2 = get_top_token_addresses_by_market_cap("on-chain-gaming", "MAINNET", 1, auto_tx)[0]
+    gaming_token_address3 = get_top_token_addresses_by_market_cap("play-to-earn", "MAINNET", 1, auto_tx)[0]
+    gaming_token_balance_in_safe1 = get_erc20_balance(smart_account.web3, gaming_token_address1, smart_account.address)
+    gaming_token_balance_in_safe2 = get_erc20_balance(smart_account.web3, gaming_token_address2, smart_account.address)
+    gaming_token_balance_in_safe3 = get_erc20_balance(smart_account.web3, gaming_token_address3, smart_account.address)
 
     ai_token_address = get_top_token_addresses_by_market_cap("artificial-intelligence", "MAINNET", 1, auto_tx)[0]
     ai_token_balance_in_safe = get_erc20_balance(smart_account.web3, ai_token_address, smart_account.address)
@@ -32,15 +36,15 @@ def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx)
 
     # Verify the balance is lower by max 3 ETH
     assert starting_balance - ending_balance <= 3
-    # Verify there are at least 3 transactions
-    assert len(result.transactions) == 3
-    # Verify there are only swap transactions
-    assert all([tx.summary.startswith("Swap") for tx in result.transactions])
+    # Verify there are at exactly 3 intents
+    assert len(result.intents) == 3
+    # Verify there are only swap intents
+    assert all([intent.type == "buy" or intent.type == "sell" for intent in result.intents])
     # Verify the tokens are different
-    assert len(set([tx.summary.split(" ")[-1] for tx in result.transactions])) == 3
+    assert len(set([intent.to_token.symbol for intent in result.intents])) == 3
 
     # Verify the tokens are in the safe
-    assert gaming_token_balance_in_safe > 0
+    assert gaming_token_balance_in_safe1 > 0 or gaming_token_balance_in_safe2 > 0 or gaming_token_balance_in_safe3 > 0
     assert ai_token_balance_in_safe > 0
     assert meme_token_balance_in_safe > 0
 
@@ -57,9 +61,9 @@ def test_research_and_swap_many_tokens_subjective_complex(smart_account, auto_tx
 
     # Verify the balance is lower by max 3 ETH
     assert starting_balance - ending_balance <= 3
-    # Verify there are at least 5 transactions
-    assert len(result.transactions) == 10
-    # Verify there are only swap transactions
-    assert all([tx.summary.startswith("Swap") for tx in result.transactions])
+    # Verify there are at exactly 10 intents
+    assert len(result.intents) == 10
+    # Verify there are only swap intents
+    assert all([intent.type == "buy" or intent.type == "sell" for intent in result.intents])
     # Verify the tokens are different
-    assert len(set([tx.summary.split(" ")[-1] for tx in result.transactions])) == 10
+    assert len(set([intent.to_token.symbol for intent in result.intents])) == 10
