@@ -6,9 +6,10 @@ from autotx.agents.ResearchTokensAgent import (
 )
 
 from autotx.eth_address import ETHAddress
+from autotx.tests.conftest import FAST_TEST_TIMEOUT_SEC
 from autotx.utils.ethereum.networks import ChainId
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def get_top_token_addresses_by_market_cap(category: str, network: str, count: int, auto_tx) -> list[ETHAddress]:
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category=category, per_page=250)
     tokens_in_network = filter_token_list_by_network(
@@ -17,7 +18,7 @@ def get_top_token_addresses_by_market_cap(category: str, network: str, count: in
 
     return [ETHAddress(auto_tx.network.tokens[token["symbol"].lower()]) for token in tokens_in_network[:count]]
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_price_change_information(auto_tx):
     token_information = get_coingecko().coins.get_id(
         id="starknet",
@@ -37,7 +38,7 @@ def test_price_change_information(auto_tx):
         str(price_change) in "\n".join(result.info_messages).lower() or str(price_change_rounded) in "\n".join(result.info_messages).lower()
     )
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_get_top_5_tokens_from_base(auto_tx):
     tokens = get_coingecko().coins.get_markets(
         vs_currency="usd", category="base-ecosystem"
@@ -50,7 +51,7 @@ def test_get_top_5_tokens_from_base(auto_tx):
         symbol: str = token["symbol"]
         assert symbol.lower() in "\n".join(result.info_messages).lower()
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
     tokens = get_coingecko().coins.get_markets(
         vs_currency="usd", category="layer-1", order="volume_desc"
@@ -63,7 +64,7 @@ def test_get_top_5_most_traded_tokens_from_l1(auto_tx):
         symbol: str = token["symbol"]
         assert symbol.lower() in "\n".join(result.info_messages).lower()
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_get_top_5_memecoins(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
     tokens_in_network = filter_token_list_by_network(
@@ -78,7 +79,7 @@ def test_get_top_5_memecoins(auto_tx):
         symbol: str = token["symbol"]
         assert symbol.lower() in "\n".join(result.info_messages).lower()
 
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_get_top_5_memecoins_in_optimism(auto_tx):
     tokens = get_coingecko().coins.get_markets(vs_currency="usd", category="meme-token")
     prompt = "What are the top 5 meme coins on Optimism?"

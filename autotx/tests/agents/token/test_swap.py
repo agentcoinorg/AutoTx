@@ -1,12 +1,13 @@
 import pytest
 
+from autotx.tests.conftest import FAST_TEST_TIMEOUT_SEC
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.eth_address import ETHAddress
 
 DIFFERENCE_PERCENTAGE = 1.01
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_with_non_default_token(smart_account, auto_tx):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     shib_address = ETHAddress(network_info.tokens["shib"])
@@ -21,7 +22,7 @@ def test_swap_with_non_default_token(smart_account, auto_tx):
     expected_shib_amount = 100000
     assert expected_shib_amount <= new_balance <= expected_shib_amount * DIFFERENCE_PERCENTAGE
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_native(smart_account, auto_tx):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -33,7 +34,7 @@ def test_swap_native(smart_account, auto_tx):
     expected_usdc_amount = 100
     assert expected_usdc_amount <= new_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_multiple_1(smart_account, auto_tx):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -51,7 +52,7 @@ def test_swap_multiple_1(smart_account, auto_tx):
     assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount_plus_slippage - expected_usdc_amount
     assert wbtc_balance < get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_multiple_2(smart_account, auto_tx):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -67,7 +68,7 @@ def test_swap_multiple_2(smart_account, auto_tx):
     assert expected_amount <= usdc_balance
     assert wbtc_balance < get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_triple(smart_account, auto_tx): 
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -88,7 +89,7 @@ def test_swap_triple(smart_account, auto_tx):
     assert expected_uni_amount <= uni_balance <= expected_uni_amount * DIFFERENCE_PERCENTAGE
     assert expected_wbtc_amount <= wbtc_balance <= expected_wbtc_amount * DIFFERENCE_PERCENTAGE
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_complex_1(smart_account, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -103,7 +104,7 @@ def test_swap_complex_1(smart_account, auto_tx): # This one is complex because i
     assert expected_usdc_amount <= usdc_balance <= expected_usdc_amount * DIFFERENCE_PERCENTAGE
     assert wbtc_balance < get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(FAST_TEST_TIMEOUT_SEC)
 def test_swap_complex_2(smart_account, auto_tx): # This one is complex because it confuses the LLM with WBTC amount
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])

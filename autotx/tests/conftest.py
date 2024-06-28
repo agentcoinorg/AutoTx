@@ -20,6 +20,10 @@ from autotx.utils.ethereum import (
     transfer_erc20,
 )
 
+FAST_TEST_TIMEOUT_SEC = 120
+SLOW_TEST_TIMEOUT_SEC = 200
+MAX_TEST_TIMEOUT_SEC = 500
+
 @pytest.fixture(autouse=True)
 def start_and_stop_local_fork():
     start()
