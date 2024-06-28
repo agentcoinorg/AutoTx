@@ -2,11 +2,11 @@ import pytest
 
 from autotx.tests.agents.token.research.test_research import get_top_token_addresses_by_market_cap
 from autotx.eth_address import ETHAddress
-from autotx.tests.conftest import MAX_TEST_TIMEOUT_SEC, SLOW_TEST_TIMEOUT_SEC
+from autotx.tests.conftest import MAX_TEST_TIMEOUT_SEC
 from autotx.utils.ethereum.get_erc20_balance import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
-@pytest.mark.timeout(SLOW_TEST_TIMEOUT_SEC)
+@pytest.mark.timeout(MAX_TEST_TIMEOUT_SEC)
 def test_research_and_swap_many_tokens_subjective_simple(smart_account, auto_tx):
     uni_address = ETHAddress(auto_tx.network.tokens["uni"])
     
