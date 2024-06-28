@@ -1,6 +1,9 @@
+import pytest
+
 from autotx.utils.ethereum import get_erc20_balance
 from autotx.utils.ethereum.get_native_balance import get_native_balance
 
+@pytest.mark.timeout(60)
 def test_send_native(smart_account, auto_tx, test_accounts):
     receiver = test_accounts[0]
     balance = get_native_balance(smart_account.web3, receiver)
@@ -11,6 +14,7 @@ def test_send_native(smart_account, auto_tx, test_accounts):
     balance = get_native_balance(smart_account.web3, receiver)
     assert balance == 1
 
+@pytest.mark.timeout(60)
 def test_send_erc20(smart_account, auto_tx, usdc, test_accounts):
 
     receiver = test_accounts[0]
@@ -25,6 +29,7 @@ def test_send_erc20(smart_account, auto_tx, usdc, test_accounts):
 
     assert balance + 10 == new_balance
 
+@pytest.mark.timeout(60)
 def test_send_native_sequential(smart_account, auto_tx, test_accounts):
     receiver = test_accounts[0]
 
@@ -38,6 +43,7 @@ def test_send_native_sequential(smart_account, auto_tx, test_accounts):
     balance = get_native_balance(smart_account.web3, receiver)
     assert balance == 1.5
       
+@pytest.mark.timeout(60)
 def test_send_erc20_parallel(smart_account, auto_tx, usdc, test_accounts):
 
     receiver_one = test_accounts[0]
@@ -56,6 +62,7 @@ def test_send_erc20_parallel(smart_account, auto_tx, usdc, test_accounts):
     assert balance_one + 2 == new_balance_one
     assert balance_two + 3 == new_balance_two
 
+@pytest.mark.timeout(60)
 def test_send_eth_multiple(smart_account, auto_tx, usdc, test_accounts):
 
     receiver_1 = test_accounts[0]

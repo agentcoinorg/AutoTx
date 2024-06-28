@@ -1,9 +1,11 @@
+import pytest
 from autotx.utils.ethereum import get_erc20_balance, get_native_balance
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.eth_address import ETHAddress
 
 DIFFERENCE_PERCENTAGE = 1.01
 
+@pytest.mark.timeout(60)
 def test_swap_and_send_simple(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
@@ -20,6 +22,7 @@ def test_swap_and_send_simple(smart_account, auto_tx, test_accounts):
     assert excepted_safe_wbtc_balance <= new_wbtc_safe_address <= new_wbtc_safe_address * DIFFERENCE_PERCENTAGE
     assert new_receiver_wbtc_balance == 0.01
 
+@pytest.mark.timeout(60)
 def test_swap_and_send_complex(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
@@ -41,6 +44,7 @@ def test_swap_and_send_complex(smart_account, auto_tx, test_accounts):
     assert expected_usdc_safe_balance <= new_usdc_safe_address <= expected_usdc_safe_balance * DIFFERENCE_PERCENTAGE
     assert new_receiver_usdc_balance == 50
 
+@pytest.mark.timeout(60)
 def test_send_and_swap_simple(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
@@ -64,6 +68,7 @@ def test_send_and_swap_simple(smart_account, auto_tx, test_accounts):
     assert new_receiver_wbtc_balance == receiver_wbtc_balance
     assert new_receiver_native_balance == receiver_native_balance + 0.1
 
+@pytest.mark.timeout(60)
 def test_send_and_swap_complex(smart_account, auto_tx, test_accounts):
     network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
