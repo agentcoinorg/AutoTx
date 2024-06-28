@@ -1,8 +1,7 @@
 import json
 from textwrap import dedent
 from typing import Union
-
-from autotx.utils import http_requests
+import aiohttp
 
 KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
 COINGECKO_TOKENS_LISTS = [
@@ -24,10 +23,11 @@ async def fetch_tokens_list() -> None:
 
     for token_list_url in TOKENS_LIST:
         try:
-            response = await http_requests.get(token_list_url)
-            result = await response.json()
-            tokens = result["tokens"]
-            loaded_tokens.extend(tokens)
+            async with aiohttp.ClientSession() as session:
+                response = await session.get(token_list_url)
+                result = await response.json()
+                tokens = result["tokens"]
+                loaded_tokens.extend(tokens)
         except:
             print("Error while trying to fetch list:", token_list_url)
 

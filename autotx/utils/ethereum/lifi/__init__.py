@@ -3,7 +3,6 @@ from typing import Any
 import re
 import aiohttp
 
-from autotx.utils import http_requests
 from autotx.utils.constants import LIFI_API_KEY
 from autotx.eth_address import ETHAddress
 from autotx.utils.ethereum.networks import ChainId
@@ -71,17 +70,24 @@ class Lifi:
         }
         headers = add_authorization_info_if_provided(params)
        
-        attempt_count = 0
-        while True:
-            try:
-                return await handle_lifi_response(await http_requests.post(cls.BASE_URL + "/quote/contractCalls", json=params, headers=headers))
-            except Exception as e:
-                if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
+        async with aiohttp.ClientSession() as session:
+            attempt_count = 0
+            while True:
+                try:
+                    response = await session.post(cls.BASE_URL + "/quote/contractCalls", json=params, headers=headers, timeout=10)
+                    result = await handle_lifi_response(response)
+                    return result
+                except asyncio.TimeoutError as e:
                     if attempt_count < 5:
                         attempt_count += 1
-                        await asyncio.sleep(1)                   
+                        await asyncio.sleep(0.5)                   
                         continue
-                raise e
+                except Exception as e:
+                    if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
+                        if attempt_count < 5:
+                            attempt_count += 1
+                            await asyncio.sleep(0.5)                   
+                            continue
 
     @classmethod
     async def get_quote_from_amount(
@@ -104,14 +110,21 @@ class Lifi:
         }
         headers = add_authorization_info_if_provided(params)
 
-        attempt_count = 0
-        while True:
-            try:
-                return await handle_lifi_response(await http_requests.get(cls.BASE_URL + "/quote", params=params, headers=headers))
-            except Exception as e:
-                if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
+        async with aiohttp.ClientSession() as session:
+            attempt_count = 0
+            while True:
+                try:
+                    response = await session.get(cls.BASE_URL + "/quote", params=params, headers=headers, timeout=10)
+                    result = await handle_lifi_response(response)
+                    return result
+                except asyncio.TimeoutError as e:
                     if attempt_count < 5:
                         attempt_count += 1
-                        await asyncio.sleep(1)                   
+                        await asyncio.sleep(0.5)                   
                         continue
-                raise e
+                except Exception as e:
+                    if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
+                        if attempt_count < 5:
+                            attempt_count += 1
+                            await asyncio.sleep(0.5)                   
+                            continue

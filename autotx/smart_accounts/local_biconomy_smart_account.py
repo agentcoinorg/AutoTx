@@ -1,7 +1,7 @@
 import asyncio
 import json
 from typing import cast
-
+import aiohttp
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
@@ -9,7 +9,6 @@ from autotx.eth_address import ETHAddress
 from autotx.intents import Intent
 from autotx.transactions import TransactionBase
 from autotx.smart_accounts.smart_account import SmartAccount
-from autotx.utils import http_requests
 from autotx.utils.ethereum.networks import NetworkInfo
 
 class LocalBiconomySmartAccount(SmartAccount):
@@ -46,36 +45,37 @@ class LocalBiconomySmartAccount(SmartAccount):
             return False
 
     async def get_address(self) -> str:
-        response = await http_requests.get(
-            f"http://localhost:7080/api/v1/account/address?chainId={self.web3.eth.chain_id}",
-            headers={"Content-Type": "application/json"},
-        )
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(
+                f"http://localhost:7080/api/v1/account/address?chainId={self.web3.eth.chain_id}",
+                headers={"Content-Type": "application/json"},
+            )
 
-        if response.status != 200:
-            raise ValueError(f"Failed to get address: Biconomy API internal error")
-        
-        return cast(str, await response.json())
+            if response.status != 200:
+                raise ValueError(f"Failed to get address: Biconomy API internal error")
+            
+            return cast(str, await response.json())
 
     async def send_transaction(self, transaction: TransactionBase) -> None:
-        response = await http_requests.post(
-            f"http://localhost:7080/api/v1/account/transactions?chainId={self.web3.eth.chain_id}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps([transaction]),
-        )
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(
+                f"http://localhost:7080/api/v1/account/transactions?chainId={self.web3.eth.chain_id}",
+                headers={"Content-Type": "application/json"},
+                data=json.dumps([transaction]),
+            )
+            if response.status != 200:
+                raise ValueError(f"Transaction failed: {await response.json()}")
 
-        if response.status != 200:
-            raise ValueError(f"Transaction failed: {await response.json()}")
-
-        print(f"Transaction sent: {await response.json()}")
+            print(f"Transaction sent: {await response.json()}")
 
     async def send_transactions(self, transactions: list[TransactionBase]) -> None:
-        response = await http_requests.post(
-            f"http://localhost:7080/api/v1/account/transactions?chainId={self.web3.eth.chain_id}",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(transactions)
-        )
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(
+                f"http://localhost:7080/api/v1/account/transactions?chainId={self.web3.eth.chain_id}",
+                headers={"Content-Type": "application/json"},
+                data=json.dumps(transactions)
+            )
+            if response.status != 200:
+                raise ValueError(f"Transaction failed: Biconomy API internal error")
 
-        if response.status != 200:
-            raise ValueError(f"Transaction failed: Biconomy API internal error")
-
-        print(f"Transaction sent: {await response.json()}")
+            print(f"Transaction sent: {await response.json()}")
