@@ -75,7 +75,7 @@ class Lifi:
         while True:
             try:
                 return await handle_lifi_response(await http_requests.post(cls.BASE_URL + "/quote/contractCalls", json=params, headers=headers))
-            except LifiApiError as e:
+            except Exception as e:
                 if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
                     if attempt_count < 5:
                         attempt_count += 1
@@ -107,8 +107,8 @@ class Lifi:
         attempt_count = 0
         while True:
             try:
-                return await handle_lifi_response( await http_requests.get(cls.BASE_URL + "/quote", params=params, headers=headers))
-            except LifiApiError as e:
+                return await handle_lifi_response(await http_requests.get(cls.BASE_URL + "/quote", params=params, headers=headers))
+            except Exception as e:
                 if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
                     if attempt_count < 5:
                         attempt_count += 1
