@@ -20,7 +20,7 @@ from autotx.utils.ethereum import (
     transfer_erc20,
 )
 
-FAST_TEST_TIMEOUT_SEC = 120
+FAST_TEST_TIMEOUT_SEC = 100
 SLOW_TEST_TIMEOUT_SEC = 200
 MAX_TEST_TIMEOUT_SEC = 500
 
