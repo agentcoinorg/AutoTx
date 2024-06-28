@@ -262,7 +262,7 @@ async def a_can_build_swap_transaction(
         token_out_symbol,
         chain,
         amount,
-        is_exact_input,
+        not is_exact_input,
         _from,
     )
     if not token_in_is_native:
