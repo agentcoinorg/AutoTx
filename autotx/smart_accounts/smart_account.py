@@ -21,15 +21,15 @@ class SmartAccount:
 
     @abstractmethod
     async def on_intents_ready(self, intents: list[Intent]) -> bool | str: # True if sent, False if declined, str if feedback
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     async def send_transaction(self, transaction: TransactionBase) -> None:
-       pass
+        raise NotImplementedError()
 
     @abstractmethod
     async def send_transactions(self, transactions: list[TransactionBase]) -> None:
-        pass
+        raise NotImplementedError()
 
     def wait(self, tx_hash: HexBytes) -> TxReceipt:
         return self.web3.eth.wait_for_transaction_receipt(tx_hash)

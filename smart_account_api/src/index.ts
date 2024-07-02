@@ -40,6 +40,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.get("/api/v1/account/address", handleError(async (req: Request, res: Response) => {
   const chainId = parseInt(req.query.chainId as string);
+  if (!chainId) {
+    res.status(400).json({ error: "chainId is required" });
+    return;
+  }
 
   const { smartAccount } = await initClientWithAccount(SMART_ACCOUNT_OWNER_PK, chainId);
 
@@ -52,6 +56,10 @@ app.get("/api/v1/account/address", handleError(async (req: Request, res: Respons
 
 app.post("/api/v1/account/deploy", handleError(async (req: Request, res: Response) => {
   const chainId = parseInt(req.query.chainId as string);
+  if (!chainId) {
+    res.status(400).json({ error: "chainId is required" });
+    return;
+  }
 
   const { smartAccount } = await initClientWithAccount(SMART_ACCOUNT_OWNER_PK, chainId);
 
@@ -64,6 +72,10 @@ app.post("/api/v1/account/deploy", handleError(async (req: Request, res: Respons
 
 app.post("/api/v1/account/transactions", handleError(async (req: Request, res: Response, next: NextFunction) => {
   const chainId = parseInt(req.query.chainId as string);
+  if (!chainId) {
+    res.status(400).json({ error: "chainId is required" });
+    return;
+  }
 
   const transactions: TransactionDto[] = req.body;
 
