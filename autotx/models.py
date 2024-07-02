@@ -21,6 +21,8 @@ class Task(BaseModel):
     messages: List[str]
     logs: List[TaskLog] | None
     intents: List[Intent]
+    previous_task_id: str | None
+    feedback: str | None
 
 class TaskError(BaseModel):
     id: str

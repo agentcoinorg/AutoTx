@@ -82,12 +82,14 @@ class Lifi:
                         attempt_count += 1
                         await asyncio.sleep(0.5)                   
                         continue
+                    raise e
                 except Exception as e:
                     if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
                         if attempt_count < 5:
                             attempt_count += 1
                             await asyncio.sleep(0.5)                   
                             continue
+                    raise e
 
     @classmethod
     async def get_quote_from_amount(
@@ -122,9 +124,11 @@ class Lifi:
                         attempt_count += 1
                         await asyncio.sleep(0.5)                   
                         continue
+                    raise e
                 except Exception as e:
                     if "No available quotes for the requested transfer" in str(e) or "Unable to find quote to match expected output" in str(e):
                         if attempt_count < 5:
                             attempt_count += 1
                             await asyncio.sleep(0.5)                   
                             continue
+                    raise e
