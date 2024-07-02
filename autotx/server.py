@@ -128,7 +128,7 @@ def add_task_log(log: models.TaskLog, task_id: str, tasks: db.TasksRepository) -
 
 def get_previous_tasks(task: models.Task, tasks: db.TasksRepository) -> List[models.Task]:
     previous_tasks = []
-    current_task = task
+    current_task: models.Task | None = task
     while current_task is not None:
         previous_tasks.append(current_task)
         if current_task.previous_task_id is None:
@@ -216,9 +216,9 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
     
     prompt = task.prompt
     
-    task = run_task(prompt, task, app, app_user, tasks, background_tasks)
+    created_task = run_task(prompt, task, app, app_user, tasks, background_tasks)
 
-    return task
+    return created_task
 
 class FeedbackParams(BaseModel):
     feedback: str
@@ -257,9 +257,9 @@ def provide_feedback(task_id: str, model: FeedbackParams, background_tasks: Back
     
     tasks.update_feedback(task_id, model.feedback)
 
-    task = run_task(prompt, models.TaskCreate(prompt=prompt, address=task.address, chain_id=task.chain_id, user_id=app_user.user_id), app, app_user, tasks, background_tasks, task_id)
+    created_task = run_task(prompt, models.TaskCreate(prompt=prompt, address=task.address, chain_id=task.chain_id, user_id=app_user.user_id), app, app_user, tasks, background_tasks, task_id)
 
-    return task
+    return created_task
 
 @app_router.post("/api/v1/connect", response_model=models.AppUser)
 async def connect(model: models.ConnectionCreate, authorization: Annotated[str | None, Header()] = None) -> models.AppUser:
