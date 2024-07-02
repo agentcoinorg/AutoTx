@@ -1,8 +1,8 @@
+import asyncio
 import json
 from textwrap import dedent
 from typing import Union
-
-import requests
+import aiohttp
 
 KLEROS_TOKENS_LIST = "https://t2crtokens.eth.link/"
 COINGECKO_TOKENS_LISTS = [
@@ -19,14 +19,16 @@ COINGECKO_TOKENS_LISTS = [
 TOKENS_LIST = [KLEROS_TOKENS_LIST, *COINGECKO_TOKENS_LISTS]
 
 
-def fetch_tokens_list() -> None:
+async def fetch_tokens_list() -> None:
     loaded_tokens: list[dict[str, Union[str, int]]] = []
 
     for token_list_url in TOKENS_LIST:
         try:
-            response = requests.get(token_list_url)
-            tokens = json.loads(response.text)["tokens"]
-            loaded_tokens.extend(tokens)
+            async with aiohttp.ClientSession() as session:
+                response = await session.get(token_list_url)
+                result = await response.json()
+                tokens = result["tokens"]
+                loaded_tokens.extend(tokens)
         except:
             print("Error while trying to fetch list:", token_list_url)
 
@@ -42,4 +44,4 @@ token_list = {loaded_tokens_as_string}
 
 
 def run() -> None:
-    fetch_tokens_list()
+    asyncio.run(fetch_tokens_list())

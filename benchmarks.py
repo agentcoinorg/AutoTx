@@ -62,7 +62,7 @@ def run_test(test_name, iterations, avg_time_across_tests, completed_tests, rema
         estimated_time_left = remaining_time_current_test + (estimated_avg_time_across_tests * remaining_tests)
         total_completion_time = datetime.now() + timedelta(seconds=estimated_time_left)
         
-        new_costs = os.listdir("costs")
+        new_costs = os.listdir("costs") if os.path.exists("costs") else []
         # Find all new cost files that are not in old costs
         current_run_costs = list(set(new_costs) - set(old_costs))
         for cost_file in current_run_costs:

@@ -171,7 +171,8 @@ class BulkSwapTool(AutoTxTool):
             for swap_str in swaps:
                 (token_to_sell, token_to_buy) = swap_str.strip().split(" to ")
                 try:
-                    all_intents.append(await swap(autotx, token_to_sell, token_to_buy))
+                    intent = await swap(autotx, token_to_sell, token_to_buy)
+                    all_intents.append(intent)
                 except InvalidInput as e:
                     all_errors.append(e)
                 except Exception as e:

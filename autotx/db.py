@@ -37,7 +37,7 @@ class TasksRepository:
         self.client = get_db_client("public")
         self.app_id = app_id
 
-    def start(self, prompt: str, address: str, chain_id: int, app_user_id: str) -> models.Task:
+    def start(self, prompt: str, address: str, chain_id: int, app_user_id: str, previous_task_id: str | None = None) -> models.Task:
         client = get_db_client("public")
 
         created_at = datetime.utcnow()
@@ -57,6 +57,8 @@ class TasksRepository:
                 "messages": json.dumps([]),
                 "logs": json.dumps([]),
                 "intents": json.dumps([]),
+                "previous_task_id": previous_task_id,
+                "feedback": None
             }
         ).execute()
 
@@ -72,6 +74,8 @@ class TasksRepository:
             messages=[],
             logs=[],
             intents=[],
+            previous_task_id=previous_task_id,
+            feedback=None
         )
 
     def stop(self, task_id: str) -> None:
@@ -95,9 +99,19 @@ class TasksRepository:
                 "messages": json.dumps(task.messages),
                 "error": task.error,
                 "logs": dump_pydantic_list(task.logs if task.logs else []),
-                "intents": dump_pydantic_list(task.intents)
+                "intents": dump_pydantic_list(task.intents),
+                "previous_task_id": task.previous_task_id
             }
         ).eq("id", task.id).eq("app_id", self.app_id).execute()
+    
+    def update_feedback(self, task_id: str, feedback: str) -> None:
+        client = get_db_client("public")
+
+        client.table("tasks").update(
+            {
+                "feedback": feedback
+            }
+        ).eq("id", task_id).eq("app_id", self.app_id).execute()
 
     def get(self, task_id: str) -> models.Task | None:
         client = get_db_client("public")
@@ -124,7 +138,9 @@ class TasksRepository:
             error=task_data["error"],
             messages=json.loads(task_data["messages"]),
             logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
-            intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
+            intents=[load_intent(intent) for intent in json.loads(task_data["intents"])],
+            previous_task_id=task_data["previous_task_id"],
+            feedback=task_data["feedback"]
         )
 
     def get_all(self) -> list[models.Task]:
@@ -147,7 +163,9 @@ class TasksRepository:
                     error=task_data["error"],
                     messages=json.loads(task_data["messages"]),
                     logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
-                    intents=[load_intent(intent) for intent in json.loads(task_data["intents"])]
+                    intents=[load_intent(intent) for intent in json.loads(task_data["intents"])],
+                    previous_task_id=task_data["previous_task_id"],
+                    feedback=task_data["feedback"]
                 )
             )
 

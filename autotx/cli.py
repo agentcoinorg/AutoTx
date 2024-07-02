@@ -1,17 +1,29 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from eth_account import Account
+import time
+from web3 import Web3
 import uuid
 import uvicorn
 from typing import cast
 import click
+import uuid
+from eth_account.signers.local import LocalAccount
 
-from autotx.wallets.safe_smart_wallet import SafeSmartWallet
+from autotx.eth_address import ETHAddress
+from autotx.utils.ethereum.get_native_balance import get_native_balance
+from autotx.utils.ethereum.networks import NetworkInfo
+from autotx.utils.constants import SMART_ACCOUNT_OWNER_PK
+from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
+from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.utils.configuration import AppConfig
 from autotx.utils.is_dev_env import is_dev_env
 from autotx.setup import print_agent_address, setup_agents
 from autotx.AutoTx import AutoTx, Config
 from autotx.utils.ethereum.helpers.show_address_balances import show_address_balances
+from autotx.smart_accounts.smart_account import SmartAccount
+from autotx.smart_accounts.local_biconomy_smart_account import LocalBiconomySmartAccount
 
 def print_autotx_info() -> None:
     print("""
@@ -32,6 +44,15 @@ def print_autotx_info() -> None:
 def main() -> None:
     pass
 
+def wait_for_native_top_up(web3: Web3, address: ETHAddress) -> None:
+    network = NetworkInfo(web3.eth.chain_id)
+
+    print(f"Detected empty account balance.\nTo use your new smart account, please top it up with some native currency.\nSend the funds to: {address} on {network.chain_id.name}")
+    print("Waiting...")
+    while get_native_balance(web3, address) == 0:
+        time.sleep(2)
+    print(f"Account balance detected ({get_native_balance(web3, address)}). Ready to use.")
+
 @main.command()
 @click.argument('prompt', required=False)
 @click.option("-n", "--non-interactive", is_flag=True, help="Non-interactive mode (will not expect further user input or approval)")
@@ -45,8 +66,17 @@ def run(prompt: str | None, non_interactive: bool, verbose: bool, logs: str | No
     if prompt == None:
         prompt = click.prompt("What do you want to do?")
 
-    app_config = AppConfig.load(fill_dev_account=True)
-    wallet = SafeSmartWallet(app_config.manager, auto_submit_tx=non_interactive)
+    app_config = AppConfig()
+    wallet: SmartAccount
+    if SMART_ACCOUNT_OWNER_PK:
+        smart_account_owner = cast(LocalAccount, Account.from_key(SMART_ACCOUNT_OWNER_PK))
+        wallet = LocalBiconomySmartAccount(app_config.web3, smart_account_owner, auto_submit_tx=non_interactive)
+        print(f"Using Biconomy smart account: {wallet.address}")
+        if get_native_balance(app_config.web3, wallet.address) == 0:
+            wait_for_native_top_up(app_config.web3, wallet.address)
+    else:
+        wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=non_interactive, fill_dev_account=True)
+        print(f"Using Safe smart account: {wallet.address}")
 
     (get_llm_config, agents, logs_dir) = setup_agents(logs, cache)
 

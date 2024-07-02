@@ -158,6 +158,8 @@ python benchmarks.py ./autotx/tests/file_name.py::function_name 5
 # run a specific test with 5 iterations and name the output folder (instead of the default timestamp)
 python benchmarks.py ./autotx/tests/file_name.py::function_name 5 output_folder_name
 ```
+# Biconomy Smart Accounts
+To view the Biconomy Smart Accounts documentation, please see the [Biconomy.md](./Biconomy.md) file.
 
 # API Server
 To view the API server documentation, please see the [API.md](./API.md) file.

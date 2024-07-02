@@ -9,3 +9,4 @@ COINGECKO_API_KEY = os.environ.get("COINGECKO_API_KEY", None)
 LIFI_API_KEY = os.environ.get("LIFI_API_KEY", None)
 ALCHEMY_API_KEY = os.environ.get("ALCHEMY_API_KEY")
 MAINNET_DEFAULT_RPC = f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
+SMART_ACCOUNT_OWNER_PK = os.environ.get("SMART_ACCOUNT_OWNER_PK", None)

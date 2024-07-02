@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from typing import Annotated, Any, Dict, List
 from eth_account import Account
@@ -11,13 +12,15 @@ import traceback
 
 from autotx import models, setup, task_logs
 from autotx import db
+from autotx.AutoTx import AutoTx, Config as AutoTxConfig
 from autotx.intents import Intent
+from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.transactions import Transaction
 from autotx.utils.configuration import AppConfig
 from autotx.utils.ethereum.chain_short_names import CHAIN_ID_TO_SHORT_NAME
 from autotx.utils.ethereum.networks import SUPPORTED_NETWORKS_CONFIGURATION_MAP
-from autotx.wallets.api_smart_wallet import ApiSmartWallet
-from autotx.wallets.smart_wallet import SmartWallet
+from autotx.smart_accounts.api_smart_account import ApiSmartAccount
+from autotx.smart_accounts.safe_smart_account import SafeSmartAccount
 
 class AutoTxParams:
     verbose: bool
@@ -61,7 +64,7 @@ def authorize(authorization: str | None) -> models.App:
 
     return app
 
-def load_config_for_user(app_id: str, user_id: str, address: str, chain_id: int) -> AppConfig:
+def load_wallet_for_user(app_config: AppConfig, app_id: str, user_id: str, address: str) -> SmartAccount:
     agent_private_key = db.get_agent_private_key(app_id, user_id)
 
     if not agent_private_key:
@@ -69,9 +72,9 @@ def load_config_for_user(app_id: str, user_id: str, address: str, chain_id: int)
 
     agent = Account.from_key(agent_private_key)
 
-    app_config = AppConfig.load(smart_account_addr=address, subsidized_chain_id=chain_id, agent=agent)
+    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, auto_submit_tx=False, smart_account_addr=address, agent=agent)
 
-    return app_config
+    return wallet
 
 def authorize_app_and_user(authorization: str | None, user_id: str) -> tuple[models.App, models.AppUser]:
     app = authorize(authorization)
@@ -86,7 +89,8 @@ async def build_transactions(app_id: str, user_id: str, chain_id: int, address: 
     if task.running:
         raise HTTPException(status_code=400, detail="Task is still running")
 
-    app_config = load_config_for_user(app_id, user_id, address, chain_id)
+    app_config = AppConfig(subsidized_chain_id=chain_id)
+    wallet = load_wallet_for_user(app_config, app_id, user_id, address)
 
     if task.intents is None or len(task.intents) == 0:
         return []
@@ -94,7 +98,7 @@ async def build_transactions(app_id: str, user_id: str, chain_id: int, address: 
     transactions: list[Transaction] = []
 
     for intent in task.intents:
-        transactions.extend(await intent.build_transactions(app_config.web3, app_config.network_info, app_config.manager.address))
+        transactions.extend(await intent.build_transactions(app_config.web3, app_config.network_info, wallet.address))
 
     return transactions
 
@@ -108,34 +112,39 @@ def stop_task_for_error(tasks: db.TasksRepository, task_id: str, error: str, use
     task.messages.append(user_error_message)
     tasks.update(task)
 
-@app_router.post("/api/v1/tasks", response_model=models.Task)
-async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:
-    from autotx.AutoTx import AutoTx, Config as AutoTxConfig
-    
-    app = authorize(authorization)
-    app_user = db.get_app_user(app.id, task.user_id)
-    if not app_user:
-        raise HTTPException(status_code=400, detail="User not found")
+def log(log_type: str, obj: Any, task_id: str, tasks: db.TasksRepository) -> None:
+   add_task_log(models.TaskLog(type=log_type, obj=json.dumps(obj), created_at=datetime.now()), task_id, tasks)
 
-    tasks = db.TasksRepository(app.id)
+def add_task_log(log: models.TaskLog, task_id: str, tasks: db.TasksRepository) -> None:
+    task = tasks.get(task_id)
+    if task is None:
+        raise Exception("Task not found: " + task_id)
 
-    global autotx_params
-    if not autotx_params.is_dev and (not task.address or not task.chain_id):
-        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
-    
-    prompt = task.prompt
-    
-    app_config = AppConfig.load(smart_account_addr=task.address, subsidized_chain_id=task.chain_id)
+    if task.logs is None:
+        task.logs = []
+    task.logs.append(log)
+    tasks.update(task)
 
-    wallet: SmartWallet
-    if autotx_params.is_dev:
-        wallet = ApiSmartWallet(app_config.web3, app_config.manager, tasks)
-    else:
-        wallet = ApiSmartWallet(app_config.web3, app_config.manager, tasks)
 
-    created_task: models.Task = tasks.start(prompt, wallet.address.hex, app_config.network_info.chain_id.value, app_user.id)
+def get_previous_tasks(task: models.Task, tasks: db.TasksRepository) -> List[models.Task]:
+    previous_tasks = []
+    current_task: models.Task | None = task
+    while current_task is not None:
+        previous_tasks.append(current_task)
+        if current_task.previous_task_id is None:
+            break
+        current_task = tasks.get(current_task.previous_task_id)
+    return previous_tasks
+
+def run_task(prompt: str, task: models.TaskCreate, app: models.App, app_user: models.AppUser, tasks: db.TasksRepository, background_tasks: BackgroundTasks, previous_task_id: str | None = None) -> models.Task:
+    app_config = AppConfig(subsidized_chain_id=task.chain_id)
+
+    wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, smart_account_addr=task.address)
+    api_wallet = ApiSmartAccount(app_config.web3, wallet, tasks)
+
+    created_task: models.Task = tasks.start(prompt, api_wallet.address.hex, app_config.network_info.chain_id.value, app_user.id, previous_task_id)
     task_id = created_task.id
-    wallet.task_id = task_id
+    api_wallet.task_id = task_id
 
     try:
         (get_llm_config, agents, logs_dir) = setup.setup_agents(autotx_params.logs, cache=autotx_params.cache)
@@ -149,20 +158,15 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
             tasks.update(task)
 
         def on_agent_message(from_agent: str, to_agent: str, message: Any) -> None:
-            task = tasks.get(task_id)
-            if task is None:
-                raise Exception("Task not found: " + task_id)
-
-            if task.logs is None:
-                task.logs = []
-            task.logs.append(
-                task_logs.build_agent_message_log(from_agent, to_agent, message)
+            add_task_log(
+                task_logs.build_agent_message_log(from_agent, to_agent, message),
+                task_id,
+                tasks
             )
-            tasks.update(task)
 
         autotx = AutoTx(
             app_config.web3,
-            wallet,
+            api_wallet,
             app_config.network_info,
             agents,
             AutoTxConfig(
@@ -177,13 +181,16 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
 
         async def run_task() -> None:
             try: 
+                log("execution", "run-start", task_id, tasks)
                 await autotx.a_run(prompt, non_interactive=True)
+                log("execution", "run-end", task_id, tasks)
             except Exception as e:
                 error = traceback.format_exc()
                 db.add_task_error(f"AutoTx run", app.id, app_user.id, task_id, error)
                 stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
                 raise e
             tasks.stop(task_id)
+            log("execution", "task-stop", task_id, tasks)
 
         background_tasks.add_task(run_task)
 
@@ -193,6 +200,66 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
         db.add_task_error(f"Route: create_task", app.id, app_user.id, task_id, error)
         stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
         raise e
+
+@app_router.post("/api/v1/tasks", response_model=models.Task)
+async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:   
+    app = authorize(authorization)
+    app_user = db.get_app_user(app.id, task.user_id)
+    if not app_user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    tasks = db.TasksRepository(app.id)
+
+    global autotx_params
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
+    
+    prompt = task.prompt
+    
+    created_task = run_task(prompt, task, app, app_user, tasks, background_tasks)
+
+    return created_task
+
+class FeedbackParams(BaseModel):
+    feedback: str
+    user_id: str
+
+@app_router.post("/api/v1/tasks/{task_id}/feedback", response_model=models.Task)
+def provide_feedback(task_id: str, model: FeedbackParams, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> 'models.Task':
+    (app, app_user) = authorize_app_and_user(authorization, model.user_id)
+
+    tasks = db.TasksRepository(app.id)
+    
+    task = get_task_or_404(task_id, tasks)
+
+    if task.running:
+        raise HTTPException(status_code=400, detail="Task is still running")
+    
+    global autotx_params
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
+    
+    # Get all previous tasks
+    previous_tasks = get_previous_tasks(task, tasks)
+
+    prompt = "History:\n"
+    for previous_task in previous_tasks[::-1]:
+        if previous_task.previous_task_id is None:
+            prompt += "The user first said:\n"+ previous_task.prompt + "\n\n"
+        prompt += "Then the agents generated the following transactions:\n"
+        for intent in previous_task.intents:
+            prompt += intent.summary + "\n"
+        prompt += "\n"
+        if previous_task.feedback:
+            prompt += "The user then said:\n" + previous_task.feedback + "\n\n"
+
+    prompt += "Now the user provided feedback:\n" + model.feedback
+    
+    tasks.update_feedback(task_id, model.feedback)
+
+    created_task = run_task(prompt, models.TaskCreate(prompt=prompt, address=task.address, chain_id=task.chain_id, user_id=app_user.user_id), app, app_user, tasks, background_tasks, task_id)
+
+    return created_task
 
 @app_router.post("/api/v1/connect", response_model=models.AppUser)
 async def connect(model: models.ConnectionCreate, authorization: Annotated[str | None, Header()] = None) -> models.AppUser:
@@ -295,7 +362,7 @@ async def prepare_transactions(
     return PreparedTransactionsDto(batch_id=submitted_batch_id, transactions=transactions)
 
 @app_router.post("/api/v1/tasks/{task_id}/transactions")
-def send_transactions(
+async def send_transactions(
     task_id: str, 
     address: str,
     chain_id: int,
@@ -330,12 +397,10 @@ def send_transactions(
             return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
 
         try:
-            app_config = load_config_for_user(app.id, user_id, address, chain_id)
+            app_config = AppConfig(subsidized_chain_id=chain_id)
+            wallet = load_wallet_for_user(app_config, app.id, user_id, address)
 
-            app_config.manager.send_multisend_tx_batch(
-                transactions,
-                require_approval=False,
-            )
+            await wallet.send_transactions(transactions)
         except SafeAPIException as e:
             if "is not an owner or delegate" in str(e):
                 raise HTTPException(status_code=400, detail="Agent is not an owner or delegate")
@@ -346,6 +411,8 @@ def send_transactions(
     except Exception as e:
         db.add_task_error(f"Route: send_transactions", app.id, app_user.id, task_id, traceback.format_exc())
         raise e
+        
+    db.submit_transactions(app.id, app_user.id, batch_id)
 
     return f"https://app.safe.global/transactions/queue?safe={CHAIN_ID_TO_SHORT_NAME[str(chain_id)]}:{address}"
 
@@ -366,17 +433,25 @@ def get_task_logs(task_id: str) -> list[models.TaskLog]:
 
 @app_router.get("/api/v1/tasks/{task_id}/logs/{log_type}", response_class=HTMLResponse)
 def get_task_logs_formatted(task_id: str, log_type: str) -> str:
-    if log_type != "agent-message":
+    if log_type != "agent-message" and log_type != "execution":
         raise HTTPException(status_code=400, detail="Log type not supported")
     
     logs = db.get_task_logs(task_id)
     if logs is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    
-    agent_logs = [task_logs.format_agent_message_log(json.loads(log.obj)) for log in logs if log.type == "agent-message"]
 
-    text = "\n\n".join(agent_logs)
-    return f"<pre>{text}</pre>"
+    filtered_logs = [log for log in logs if log.type == log_type]
+
+    if len(filtered_logs) == 0:
+        return "<pre>No logs found</pre>"
+    
+    if log_type == "execution":
+        return "<pre>" + "\n".join([log.created_at.strftime("%Y-%m-%d %H:%M:%S") + f": {json.loads(log.obj)}" for log in filtered_logs]) + "</pre>"
+    else:
+        agent_logs = [task_logs.format_agent_message_log(json.loads(log.obj)) for log in filtered_logs]
+
+        text = "\n\n".join(agent_logs)
+        return f"<pre>{text}</pre>"
 
 @app_router.get("/api/v1/version", response_class=JSONResponse)
 async def get_version() -> Dict[str, str]:
@@ -398,7 +473,9 @@ app.add_middleware(
 
 def setup_server(verbose: bool, logs: str | None, max_rounds: int | None, cache: bool, is_dev: bool, check_valid_safe: bool) -> None:
     if is_dev: 
-        AppConfig.load(check_valid_safe=check_valid_safe) # Loading the configuration deploys the dev wallet in dev mode
+        app_config = AppConfig() 
+        # Loading the SafeSmartAccount will deploy a new Safe if one is not already deployed
+        SafeSmartAccount(app_config.rpc_url, app_config.network_info, fill_dev_account=True, check_valid_safe=check_valid_safe)
 
     global autotx_params
     autotx_params = AutoTxParams(

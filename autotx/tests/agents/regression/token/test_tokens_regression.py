@@ -5,8 +5,7 @@ from autotx.eth_address import ETHAddress
 
 
 @pytest.mark.skip()
-def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _, _) = configuration
+def test_auto_tx_send_erc20(smart_account, auto_tx, usdc, test_accounts):
 
     receiver = test_accounts[0]
 
@@ -25,11 +24,11 @@ def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
     ]
 
     for prompt in prompts:
-        balance = get_erc20_balance(client.w3, usdc, receiver)
+        balance = get_erc20_balance(smart_account.web3, usdc, receiver)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance = get_erc20_balance(client.w3, usdc, receiver)
+        new_balance = get_erc20_balance(smart_account.web3, usdc, receiver)
 
         try: 
             assert balance + 10 == new_balance
@@ -39,10 +38,8 @@ def test_auto_tx_send_erc20(configuration, auto_tx, usdc, test_accounts):
             raise
 
 @pytest.mark.skip()
-def test_auto_tx_swap(configuration, auto_tx):
-    (_, _, client, manager, _) = configuration
-    web3 = client.w3
-    network_info = NetworkInfo(web3.eth.chain_id)
+def test_auto_tx_swap(smart_account, auto_tx):
+    network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
 
     prompts = [
@@ -60,11 +57,11 @@ def test_auto_tx_swap(configuration, auto_tx):
     ]
 
     for prompt in prompts:
-        balance = manager.balance_of(usdc_address)
+        balance = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance = manager.balance_of(usdc_address)
+        new_balance = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
 
         try:
             assert balance + 100 == new_balance
@@ -74,8 +71,7 @@ def test_auto_tx_swap(configuration, auto_tx):
             raise
 
 @pytest.mark.skip()
-def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
-    (_, _, client, _, _) = configuration
+def test_auto_tx_multiple_sends(smart_account, auto_tx, usdc, test_accounts):
 
     receiver_one = test_accounts[0]
     receiver_two = test_accounts[1]
@@ -95,13 +91,13 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
     ]
 
     for prompt in prompts:
-        balance_one = get_erc20_balance(client.w3, usdc, receiver_one)
-        balance_two = get_erc20_balance(client.w3, usdc, receiver_two)
+        balance_one = get_erc20_balance(smart_account.web3, usdc, receiver_one)
+        balance_two = get_erc20_balance(smart_account.web3, usdc, receiver_two)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_balance_one = get_erc20_balance(client.w3, usdc, receiver_one)
-        new_balance_two = get_erc20_balance(client.w3, usdc, receiver_two)
+        new_balance_one = get_erc20_balance(smart_account.web3, usdc, receiver_one)
+        new_balance_two = get_erc20_balance(smart_account.web3, usdc, receiver_two)
 
         try:
             assert balance_one + 10 == new_balance_one
@@ -113,10 +109,8 @@ def test_auto_tx_multiple_sends(configuration, auto_tx, usdc, test_accounts):
             raise
 
 @pytest.mark.skip()
-def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
-    (_, _, client, manager, _) = configuration
-    web3 = client.w3
-    network_info = NetworkInfo(web3.eth.chain_id)
+def test_auto_tx_swap_and_send(smart_account, auto_tx, test_accounts):
+    network_info = NetworkInfo(smart_account.web3.eth.chain_id)
     usdc_address = ETHAddress(network_info.tokens["usdc"])
     wbtc_address = ETHAddress(network_info.tokens["wbtc"])
 
@@ -137,15 +131,15 @@ def test_auto_tx_swap_and_send(configuration, auto_tx, test_accounts):
     ]
 
     for prompt in prompts:
-        wbtc_safe_address = manager.balance_of(wbtc_address)
-        usdc_safe_address = manager.balance_of(usdc_address)
-        receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
+        wbtc_safe_address = get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
+        usdc_safe_address = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
+        receiver_usdc_balance = get_erc20_balance(smart_account.web3, usdc_address, receiver)
 
         auto_tx.run(prompt, non_interactive=True)
 
-        new_wbtc_safe_address = manager.balance_of(wbtc_address)
-        new_usdc_safe_address = manager.balance_of(usdc_address)
-        new_receiver_usdc_balance = get_erc20_balance(client.w3, usdc_address, receiver)
+        new_wbtc_safe_address = get_erc20_balance(smart_account.web3, wbtc_address, smart_account.address)
+        new_usdc_safe_address = get_erc20_balance(smart_account.web3, usdc_address, smart_account.address)
+        new_receiver_usdc_balance = get_erc20_balance(smart_account.web3, usdc_address, receiver)
 
         try:
             assert new_wbtc_safe_address > wbtc_safe_address

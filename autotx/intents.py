@@ -28,7 +28,7 @@ class IntentBase(BaseModel):
 
     @abstractmethod
     async def build_transactions(self, web3: Web3, network: NetworkInfo, smart_wallet_address: ETHAddress) -> list[Transaction]:
-        pass
+        raise NotImplementedError()
 
 class SendIntent(IntentBase):
     receiver: str
