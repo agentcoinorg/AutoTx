@@ -182,7 +182,6 @@ class SafeManager:
             
             raise Exception("Unknown error executing transaction", e)
 
-
     def execute_multisend_tx(self, txs: list[TxParams | dict[str, Any]], safe_nonce: Optional[int] = None) -> HexBytes:
         if not self.dev_account:
             raise ValueError("Dev account not set. This function should not be called in production.")
@@ -191,14 +190,22 @@ class SafeManager:
 
         safe_tx.sign(self.agent.key.hex())
 
-        safe_tx.call(tx_sender_address=self.dev_account.address)
+        try:
+            safe_tx.call(tx_sender_address=self.dev_account.address)
+            tx_hash, _ = safe_tx.execute(
+                tx_sender_private_key=self.dev_account.key.hex()
+            )
+            return tx_hash
+        except Exception as e:
+            if "revert: GS013" in str(e):
+                print(str(e))
+                print("Executing transactions one by one to get a more detailed revert message")
+                nonce = self.track_nonce(safe_nonce)
+                for i, tx in enumerate(txs):
+                    print(f"Executing transaction {i + 1}...")
+                    self.execute_tx(tx, nonce + i)
+            raise e
 
-        tx_hash, _ = safe_tx.execute(
-            tx_sender_private_key=self.dev_account.key.hex()
-        )
-
-        return tx_hash
-    
     def post_transaction(self, tx: TxParams | dict[str, Any], safe_nonce: Optional[int] = None) -> None:
         ts_api = TransactionServiceApi(
             self.network.chain_id, ethereum_client=self.client, base_url=self.transaction_service_url

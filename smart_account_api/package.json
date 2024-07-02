@@ -1,0 +1,27 @@
+{
+  "name": "smart-account-api",
+  "version": "1.0.0",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts"
+  },
+  "dependencies": {
+    "@biconomy/account": "^4.4.6",
+    "dotenv": "^16.4.5",
+    "entry-point-gas-estimations": "^0.0.19",
+    "ethers": "^6.13.1",
+    "express": "^4.19.2",
+    "viem": "^2.15.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.6",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "tsc": "^2.0.4",
+    "typescript": "^5.4.5"
+  }
+}

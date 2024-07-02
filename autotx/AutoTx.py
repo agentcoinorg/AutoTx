@@ -19,7 +19,7 @@ from autotx.utils.color import Color
 from autotx.utils.logging.Logger import Logger
 from autotx.utils.ethereum.networks import NetworkInfo
 from autotx.utils.constants import OPENAI_BASE_URL, OPENAI_MODEL_NAME
-from autotx.wallets.smart_wallet import SmartWallet
+from autotx.smart_accounts.smart_account import SmartAccount
 
 @dataclass(kw_only=True)
 class CustomModel:
@@ -75,7 +75,7 @@ class RunResult:
 
 class AutoTx:
     web3: Web3
-    wallet: SmartWallet
+    wallet: SmartAccount
     logger: Logger
     intents: list[Intent]
     network: NetworkInfo
@@ -94,7 +94,7 @@ class AutoTx:
     def __init__(
         self,
         web3: Web3,
-        wallet: SmartWallet,
+        wallet: SmartAccount,
         network: NetworkInfo,
         agents: list[AutoTxAgent],
         config: Config,
