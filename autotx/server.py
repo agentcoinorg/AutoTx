@@ -12,6 +12,7 @@ import traceback
 
 from autotx import models, setup, task_logs
 from autotx import db
+from autotx.AutoTx import AutoTx, Config as AutoTxConfig
 from autotx.intents import Intent
 from autotx.smart_accounts.smart_account import SmartAccount
 from autotx.transactions import Transaction
@@ -124,29 +125,24 @@ def add_task_log(log: models.TaskLog, task_id: str, tasks: db.TasksRepository) -
     task.logs.append(log)
     tasks.update(task)
 
-@app_router.post("/api/v1/tasks", response_model=models.Task)
-async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:
-    from autotx.AutoTx import AutoTx, Config as AutoTxConfig
-    
-    app = authorize(authorization)
-    app_user = db.get_app_user(app.id, task.user_id)
-    if not app_user:
-        raise HTTPException(status_code=400, detail="User not found")
 
-    tasks = db.TasksRepository(app.id)
+def get_previous_tasks(task: models.Task, tasks: db.TasksRepository) -> List[models.Task]:
+    previous_tasks = []
+    current_task = task
+    while current_task is not None:
+        previous_tasks.append(current_task)
+        if current_task.previous_task_id is None:
+            break
+        current_task = tasks.get(current_task.previous_task_id)
+    return previous_tasks
 
-    global autotx_params
-    if not autotx_params.is_dev and (not task.address or not task.chain_id):
-        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
-    
-    prompt = task.prompt
-    
+def run_task(prompt: str, task: models.TaskCreate, app: models.App, app_user: models.AppUser, tasks: db.TasksRepository, background_tasks: BackgroundTasks, previous_task_id: str | None = None) -> models.Task:
     app_config = AppConfig(subsidized_chain_id=task.chain_id)
 
     wallet = SafeSmartAccount(app_config.rpc_url, app_config.network_info, smart_account_addr=task.address)
     api_wallet = ApiSmartAccount(app_config.web3, wallet, tasks)
 
-    created_task: models.Task = tasks.start(prompt, api_wallet.address.hex, app_config.network_info.chain_id.value, app_user.id)
+    created_task: models.Task = tasks.start(prompt, api_wallet.address.hex, app_config.network_info.chain_id.value, app_user.id, previous_task_id)
     task_id = created_task.id
     api_wallet.task_id = task_id
 
@@ -204,6 +200,66 @@ async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks
         db.add_task_error(f"Route: create_task", app.id, app_user.id, task_id, error)
         stop_task_for_error(tasks, task_id, error, f"An error caused AutoTx to stop ({task_id})")
         raise e
+
+@app_router.post("/api/v1/tasks", response_model=models.Task)
+async def create_task(task: models.TaskCreate, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> models.Task:   
+    app = authorize(authorization)
+    app_user = db.get_app_user(app.id, task.user_id)
+    if not app_user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    tasks = db.TasksRepository(app.id)
+
+    global autotx_params
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
+    
+    prompt = task.prompt
+    
+    task = run_task(prompt, task, app, app_user, tasks, background_tasks)
+
+    return task
+
+class FeedbackParams(BaseModel):
+    feedback: str
+    user_id: str
+
+@app_router.post("/api/v1/tasks/{task_id}/feedback", response_model=models.Task)
+def provide_feedback(task_id: str, model: FeedbackParams, background_tasks: BackgroundTasks, authorization: Annotated[str | None, Header()] = None) -> 'models.Task':
+    (app, app_user) = authorize_app_and_user(authorization, model.user_id)
+
+    tasks = db.TasksRepository(app.id)
+    
+    task = get_task_or_404(task_id, tasks)
+
+    if task.running:
+        raise HTTPException(status_code=400, detail="Task is still running")
+    
+    global autotx_params
+    if not autotx_params.is_dev and (not task.address or not task.chain_id):
+        raise HTTPException(status_code=400, detail="Address and Chain ID are required for non-dev mode")
+    
+    # Get all previous tasks
+    previous_tasks = get_previous_tasks(task, tasks)
+
+    prompt = "History:\n"
+    for previous_task in previous_tasks[::-1]:
+        if previous_task.previous_task_id is None:
+            prompt += "The user first said:\n"+ previous_task.prompt + "\n\n"
+        prompt += "Then the agents generated the following transactions:\n"
+        for intent in previous_task.intents:
+            prompt += intent.summary + "\n"
+        prompt += "\n"
+        if previous_task.feedback:
+            prompt += "The user then said:\n" + previous_task.feedback + "\n\n"
+
+    prompt += "Now the user provided feedback:\n" + model.feedback
+    
+    tasks.update_feedback(task_id, model.feedback)
+
+    task = run_task(prompt, models.TaskCreate(prompt=prompt, address=task.address, chain_id=task.chain_id, user_id=app_user.user_id), app, app_user, tasks, background_tasks, task_id)
+
+    return task
 
 @app_router.post("/api/v1/connect", response_model=models.AppUser)
 async def connect(model: models.ConnectionCreate, authorization: Annotated[str | None, Header()] = None) -> models.AppUser:
