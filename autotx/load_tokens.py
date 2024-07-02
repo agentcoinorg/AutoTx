@@ -1,3 +1,4 @@
+import asyncio
 import json
 from textwrap import dedent
 from typing import Union
@@ -42,5 +43,5 @@ token_list = {loaded_tokens_as_string}
         f.write(content)
 
 
-async def run() -> None:
-    await fetch_tokens_list()
+def run() -> None:
+    asyncio.run(fetch_tokens_list())
