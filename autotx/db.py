@@ -171,6 +171,35 @@ class TasksRepository:
 
         return tasks
     
+    def get_from_user(self, app_user_id: str) -> list[models.Task]:
+        client = get_db_client("public")
+
+        result = client.table("tasks").select("*").eq("app_id", self.app_id).eq("app_user_id", app_user_id).execute()
+
+        tasks = []
+
+        for task_data in result.data:
+            tasks.append(
+                models.Task(
+                    id=task_data["id"],
+                    app_user_id=task_data["app_user_id"],
+                    prompt=task_data["prompt"],
+                    address=task_data["address"],
+                    chain_id=task_data["chain_id"],
+                    created_at=task_data["created_at"],
+                    updated_at=task_data["updated_at"],
+                    running=task_data["running"],
+                    error=task_data["error"],
+                    messages=json.loads(task_data["messages"]),
+                    logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
+                    intents=[load_intent(intent) for intent in json.loads(task_data["intents"])],
+                    previous_task_id=task_data["previous_task_id"],
+                    feedback=task_data["feedback"]
+                )
+            )
+
+        return tasks
+    
 def get_app_by_api_key(api_key: str) -> models.App | None:
     client = get_db_client("public")
 
@@ -288,7 +317,32 @@ def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, 
         [TransactionBase(**tx) for tx in json.loads(result.data[0]["transactions"])], 
         result.data[0]["task_id"]    
     )
-    
+
+def get_submitted_transactions_from_user(
+    app_id: str,
+    app_user_id: str,
+) -> list[list[TransactionBase]]:
+    client = get_db_client("public")
+    result = (
+        client.table("submitted_batches")
+        .select("transactions")
+        .eq("app_id", app_id)
+        .eq("app_user_id", app_user_id)
+        .not_.is_("submitted_on", "null")
+        .execute()
+    )
+
+    if len(result.data) == 0:
+        return []
+
+    submitted_batches = []
+    for batch in result.data:
+        submitted_batches.append(
+            [TransactionBase(**tx) for tx in json.loads(batch["transactions"])]
+        )
+
+    return submitted_batches
+
 def submit_transactions(app_id: str, app_user_id: str, submitted_batch_id: str) -> None:
     client = get_db_client("public")
     
