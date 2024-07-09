@@ -292,16 +292,28 @@ def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, 
         result.data[0]["task_id"]    
     )
 
-def get_submitted_transactions_from_user(app_user_id: str) -> list[list[TransactionBase]]:
+def get_submitted_transactions_from_user(
+    app_id: str,
+    app_user_id: str,
+) -> list[list[TransactionBase]]:
     client = get_db_client("public")
-    result = client.table("submitted_batches").select("transactions").eq("app_user_id", app_user_id).not_.is_("submitted_on", "null").execute()
+    result = (
+        client.table("submitted_batches")
+        .select("transactions")
+        .eq("app_id", app_id)
+        .eq("app_user_id", app_user_id)
+        .not_.is_("submitted_on", "null")
+        .execute()
+    )
 
     if len(result.data) == 0:
         return []
-    
+
     submitted_batches = []
     for batch in result.data:
-        submitted_batches.append([TransactionBase(**tx) for tx in json.loads(batch["transactions"])])
+        submitted_batches.append(
+            [TransactionBase(**tx) for tx in json.loads(batch["transactions"])]
+        )
 
     return submitted_batches
 

@@ -312,7 +312,7 @@ def get_user_tasks(
         if task.app_user_id == app_user.id
     ]
     user_submitted_transactions = [
-        batch for batch in db.get_submitted_transactions_from_user(app_user.id)
+        batch for batch in db.get_submitted_transactions_from_user(app.id, app_user.id)
     ]
 
     return { "tasks": user_tasks, "submitted_transactions": user_submitted_transactions }
