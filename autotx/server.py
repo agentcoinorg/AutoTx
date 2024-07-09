@@ -294,6 +294,17 @@ def get_task(task_id: str, authorization: Annotated[str | None, Header()] = None
     task = get_task_or_404(task_id, tasks)
     return task
 
+@app_router.get("/api/v1/tasks/user/{user_id}")
+def get_user_tasks(
+    user_id: str, authorization: Annotated[str | None, Header()] = None
+) -> str:
+    (_, app_user) = authorize_app_and_user(authorization, user_id)
+    return [
+        {**task, "transactions": db.get_transactions_from_task(task.id)}
+        for task in db.TasksRepository().get_all()
+        if task.app_user_id == app_user.id
+    ]
+
 @app_router.get("/api/v1/tasks/{task_id}/intents", response_model=List[Intent])
 def get_intents(task_id: str, authorization: Annotated[str | None, Header()] = None) -> Any:
     app = authorize(authorization)

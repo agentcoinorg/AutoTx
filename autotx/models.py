@@ -11,6 +11,7 @@ class TaskLog(BaseModel):
 
 class Task(BaseModel):
     id: str
+    app_user_id: str
     prompt: str
     address: str
     chain_id: int

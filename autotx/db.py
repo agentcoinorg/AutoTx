@@ -64,6 +64,7 @@ class TasksRepository:
 
         return models.Task(
             id=result.data[0]["id"],
+            app_user_id=app_user_id,
             prompt=prompt,
             address=address,
             chain_id=chain_id,
@@ -129,6 +130,7 @@ class TasksRepository:
 
         return models.Task(
             id=task_data["id"],
+            app_user_id=task_data["app_user_id"],
             prompt=task_data["prompt"],
             address=task_data["address"],
             chain_id=task_data["chain_id"],
@@ -154,6 +156,7 @@ class TasksRepository:
             tasks.append(
                 models.Task(
                     id=task_data["id"],
+                    app_user_id=task_data["app_user_id"],
                     prompt=task_data["prompt"],
                     address=task_data["address"],
                     chain_id=task_data["chain_id"],
@@ -288,7 +291,16 @@ def get_transactions(app_id: str, app_user_id: str, task_id: str, address: str, 
         [TransactionBase(**tx) for tx in json.loads(result.data[0]["transactions"])], 
         result.data[0]["task_id"]    
     )
+
+def get_transactions_from_task(task_id: str):
+    client = get_db_client("public")
+    result = client.table("submitted_batches").select("transactions, task_id").eq("task_id", task_id).execute()
+
+    if len(result.data) == 0:
+        return []
     
+    return [TransactionBase(**tx) for tx in json.loads(result.data[0]["transactions"])]
+
 def submit_transactions(app_id: str, app_user_id: str, submitted_batch_id: str) -> None:
     client = get_db_client("public")
     
