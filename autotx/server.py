@@ -297,13 +297,26 @@ def get_task(task_id: str, authorization: Annotated[str | None, Header()] = None
 @app_router.get("/api/v1/tasks/user/{user_id}")
 def get_user_tasks(
     user_id: str, authorization: Annotated[str | None, Header()] = None
-) -> str:
-    (_, app_user) = authorize_app_and_user(authorization, user_id)
-    return [
-        {**task, "transactions": db.get_transactions_from_task(task.id)}
-        for task in db.TasksRepository().get_all()
+) -> dict[str, list[Any]]:
+    (app, app_user) = authorize_app_and_user(authorization, user_id)
+    tasks = db.TasksRepository(app_id=app.id).get_all()
+    user_tasks = [
+        {
+            "id": task.id,
+            "prompt": task.prompt,
+            "address": task.address,
+            "chain_id": task.chain_id,
+            "intents": task.intents,
+        }
+        for task in tasks
         if task.app_user_id == app_user.id
     ]
+    user_submitted_transactions = [
+        batch for batch in db.get_submitted_transactions_from_user(app_user.id)
+    ]
+
+    return { "tasks": user_tasks, "submitted_transactions": user_submitted_transactions }
+
 
 @app_router.get("/api/v1/tasks/{task_id}/intents", response_model=List[Intent])
 def get_intents(task_id: str, authorization: Annotated[str | None, Header()] = None) -> Any:
