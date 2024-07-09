@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from autotx.intents import Intent
-from autotx.transactions import TransactionBase
 
 class TaskLog(BaseModel):
     type: str
@@ -12,7 +11,6 @@ class TaskLog(BaseModel):
 
 class Task(BaseModel):
     id: str
-    app_user_id: str
     prompt: str
     address: str
     chain_id: int

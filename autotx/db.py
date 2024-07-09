@@ -64,7 +64,6 @@ class TasksRepository:
 
         return models.Task(
             id=result.data[0]["id"],
-            app_user_id=app_user_id,
             prompt=prompt,
             address=address,
             chain_id=chain_id,
@@ -130,7 +129,6 @@ class TasksRepository:
 
         return models.Task(
             id=task_data["id"],
-            app_user_id=task_data["app_user_id"],
             prompt=task_data["prompt"],
             address=task_data["address"],
             chain_id=task_data["chain_id"],
@@ -149,6 +147,34 @@ class TasksRepository:
         client = get_db_client("public")
 
         result = client.table("tasks").select("*").eq("app_id", self.app_id).execute()
+
+        tasks = []
+
+        for task_data in result.data:
+            tasks.append(
+                models.Task(
+                    id=task_data["id"],
+                    prompt=task_data["prompt"],
+                    address=task_data["address"],
+                    chain_id=task_data["chain_id"],
+                    created_at=task_data["created_at"],
+                    updated_at=task_data["updated_at"],
+                    running=task_data["running"],
+                    error=task_data["error"],
+                    messages=json.loads(task_data["messages"]),
+                    logs=[models.TaskLog(**log) for log in json.loads(task_data["logs"])] if task_data["logs"] else None,
+                    intents=[load_intent(intent) for intent in json.loads(task_data["intents"])],
+                    previous_task_id=task_data["previous_task_id"],
+                    feedback=task_data["feedback"]
+                )
+            )
+
+        return tasks
+    
+    def get_from_user(self, app_user_id: str) -> list[models.Task]:
+        client = get_db_client("public")
+
+        result = client.table("tasks").select("*").eq("app_id", self.app_id).eq("app_user_id", app_user_id).execute()
 
         tasks = []
 

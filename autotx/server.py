@@ -299,7 +299,7 @@ def get_user_tasks(
     user_id: str, authorization: Annotated[str | None, Header()] = None
 ) -> dict[str, list[Any]]:
     (app, app_user) = authorize_app_and_user(authorization, user_id)
-    tasks = db.TasksRepository(app_id=app.id).get_all()
+    tasks = db.TasksRepository(app_id=app.id).get_from_user(app_user.id)
     user_tasks = [
         {
             "id": task.id,
@@ -309,7 +309,6 @@ def get_user_tasks(
             "intents": task.intents,
         }
         for task in tasks
-        if task.app_user_id == app_user.id
     ]
     user_submitted_transactions = [
         batch for batch in db.get_submitted_transactions_from_user(app.id, app_user.id)
