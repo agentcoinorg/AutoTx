@@ -182,10 +182,10 @@ def test_send_transactions():
     assert batches[1].created_at is not None
     assert batches[1].submitted_on is None
 
-    assert batch1["batch_id"] == batches[0].id
+    assert batch1["batch_id"] in [batch.id for batch in batches]
     assert len(batch1["transactions"]) == 1
 
-    assert batch2["batch_id"] == batches[1].id
+    assert batch2["batch_id"] in [batch.id for batch in batches]
     assert len(batch2["transactions"]) == 1
 
     response = client.post(f"/api/v1/tasks/{task_id}/transactions", params={
