@@ -1,0 +1,64 @@
+name: Deploy Serverless Function
+
+on:
+  push:
+    branches:
+      - chore/serverless-function
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.5.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Export requirements.txt from Poetry
+        run: poetry export --without-hashes --format=requirements.txt > requirements.txt
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: ${{ secrets.GOOGLE_WIP }}
+          service_account: ${{ secrets.GOOGLE_SA }}
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+        with:
+          version: ">= 474.0.0"
+
+      - name: "Use gcloud CLI"
+        run: "gcloud info"
+
+      - name: "Deploy get_user_tasks function"
+        run: |
+          gcloud functions deploy get_user_tasks \
+            --project=autotx-423210 \
+            --gen2 \
+            --source=autotx/serverless_functions/get_user_tasks.py
+            --runtime=python310 \
+            --region=us-central1 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --entry-point=get_user_tasks \
+            --set-env-vars SUPABASE_URL="${{ secrets.DEV_SUPABASE_URL }}",SUPABASE_SERVICE_ROLE_KEY="${{ secrets.DEV_SUPABASE_SERVICE_ROLE_KEY }}

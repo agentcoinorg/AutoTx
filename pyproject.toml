@@ -21,6 +21,7 @@ supabase = "^2.5.0"
 llama-cpp-python = "^0.2.78"
 aiohttp = "^3.9.5"
 pytest-timeout = "^2.3.1"
+functions-framework = "^3.8.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
