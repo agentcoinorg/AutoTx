@@ -55,10 +55,10 @@ jobs:
           gcloud functions deploy get_user_tasks \
             --project=autotx-423210 \
             --gen2 \
-            --source=autotx/serverless_functions/get_user_tasks.py
+            --source=autotx/serverless_functions/get_user_tasks.py \
             --runtime=python310 \
             --region=us-central1 \
             --trigger-http \
             --allow-unauthenticated \
             --entry-point=get_user_tasks \
-            --set-env-vars SUPABASE_URL="${{ secrets.DEV_SUPABASE_URL }}",SUPABASE_SERVICE_ROLE_KEY="${{ secrets.DEV_SUPABASE_SERVICE_ROLE_KEY }}
+            --set-env-vars SUPABASE_URL="${{ secrets.DEV_SUPABASE_URL }}",SUPABASE_SERVICE_ROLE_KEY="${{ secrets.DEV_SUPABASE_SERVICE_ROLE_KEY }}"
