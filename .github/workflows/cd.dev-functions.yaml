@@ -34,7 +34,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Export requirements.txt from Poetry
-        run: poetry export --without-hashes --format=requirements.txt > requirements.txt
+        run: poetry export --without-hashes --format=requirements.txt > ./autotx/serverless_functions/requirements.txt
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
@@ -55,7 +55,7 @@ jobs:
           gcloud functions deploy get_user_tasks \
             --project=autotx-423210 \
             --gen2 \
-            --source=autotx/serverless_functions/get_user_tasks.py \
+            --source=autotx/serverless_functions \
             --runtime=python310 \
             --region=us-central1 \
             --trigger-http \
