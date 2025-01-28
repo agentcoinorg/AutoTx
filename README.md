@@ -12,7 +12,7 @@ AutoTx is a personal assistant that generates on-chain transactions for you. The
 
 ## How It Works
 
-AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user prompt, AutoTx will create a new shared context amongst all agents in the form of an [Autogen Group Chat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat). Individual agents will contribute their unique expert opinions to the shared conversation. Agent tools will be selected and run to progressively solve for the goal(s) defined within the user's original prompt.
+AutoTx employs a multi-agent orchestration architecture to easily compose functionality. Given a user prompt, AutoTx will create a new shared context amongst all agents in the form of an [AG2 Group Chat](https://docs.ag2.ai/docs/tutorial/conversation-patterns#group-chat). Individual agents will contribute their unique expert opinions to the shared conversation. Agent tools will be selected and run to progressively solve for the goal(s) defined within the user's original prompt.
 
 Agent tools can add transactions to a batch, which will later be proposed to the user's smart account for final approval before being executed on-chain. Currently AutoTx supports [Safe](https://safe.global/) smart accounts. AutoTx uses a locally-stored private key to submit transactions to the user's smart account.
 
@@ -109,7 +109,7 @@ To run AutoTx with your favorite OS model, you can use any provider that simulat
 1. Set `OPENAI_BASE_URL` to point to `https://api.together.xyz/v1`
 1. Set `OPENAI_MODEL_NAME` to one of these recommended JSON-enabled models: `mistralai/Mixtral-8x7B-Instruct-v0.1`, `mistralai/Mistral-7B-Instruct-v0.1`
 
-Now simply run AutoTx as normally do. For more tips on choosing the best model, you can follow [this guide](https://microsoft.github.io/autogen/docs/topics/non-openai-models/best-tips-for-nonopenai-models/).
+Now simply run AutoTx as normally do. For more tips on choosing the best model, you can follow [this guide](https://docs.ag2.ai/docs/topics/non-openai-models/best-tips-for-nonopenai-models#tips-for-non-openai-models).
 NOTE: Non-interactive mode is recommended when using less powerful models (like Open Source models) to avoid hallucinations.
 
 ## How To Contribute
